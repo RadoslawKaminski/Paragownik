@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:background="@color/light_brown_background"> <!-- Opcjonalnie, tło elementu listy też może być brązowe -->
+
+    <TextView
+        android:id="@+id/receiptNumberTextView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="18sp"
+        android:textColor="@color/black"
+        android:textStyle="bold"
+        android:text="Numer paragonu: 12345" /> <!-- Przykładowy tekst -->
+
+    <TextView
+        android:id="@+id/receiptDateTextView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="16sp"
+        android:textColor="@color/black"
+        android:text="Data paragonu: 2024-01-01" /> <!-- Przykładowy tekst -->
+
+    <TextView
+        android:id="@+id/verificationDateTextView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="16sp"
+        android:textColor="@color/black"
+        android:text="Data weryfikacji: 2024-01-02" /> <!-- Przykładowy tekst -->
+
+    <TextView
+        android:id="@+id/clientDescriptionTextView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="16sp"
+        android:textColor="@color/black"
+        android:text="Opis klienta: Brak" /> <!-- Przykładowy tekst -->
+
+</LinearLayout>
