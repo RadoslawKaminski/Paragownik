@@ -16,6 +16,6 @@
         <!-- Background color for the entire window -->
         <item name="android:windowBackground">@color/light_brown_background</item>
 
-        <item name="android:textColor">@color/white_text</item> <!-- Domyślny kolor tekstu na czarny -->
+        <item name="android:textColor">@color/white_text</item>
     </style>
 </resources>

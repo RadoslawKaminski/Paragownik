@@ -34,9 +34,9 @@ class ReceiptListActivity : AppCompatActivity() {
 
         receiptViewModel.loadReceiptsForStore(storeId)
 
-        receiptViewModel.receiptsForStore.observe(this) { receipts ->
-            receipts?.let {
-                receiptAdapter.receiptList = it
+        receiptViewModel.receiptsForStore.observe(this) { receiptsWithClients -> // Zmień nazwę zmiennej i typ
+            receiptsWithClients?.let {
+                receiptAdapter.receiptList = it // Adapter teraz przyjmuje List<ReceiptWithClient>
                 receiptAdapter.notifyDataSetChanged()
             }
         }

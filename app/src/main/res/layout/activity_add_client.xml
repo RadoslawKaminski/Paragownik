@@ -42,7 +42,7 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Data paragonu (YYYY-MM-DD):"
+            android:text="Data paragonu (DD-MM-YYYY):"
             android:textSize="18sp"
             android:textColor="@color/black" />
 
@@ -51,7 +51,24 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:inputType="date"
-            android:hint="YYYY-MM-DD"
+            android:hint="DD-MM-YYYY"
+            android:textColor="@color/black"
+            android:textColorHint="#757575"
+            android:layout_marginBottom="16dp"/>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Data weryfikacji (DD-MM-YYYY, opcjonalne):"
+            android:textSize="18sp"
+            android:textColor="@color/black" />
+
+        <EditText
+            android:id="@+id/verificationDateEditText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="date"
+            android:hint="DD-MM-YYYY (opcjonalne)"
             android:textColor="@color/black"
             android:textColorHint="#757575"
             android:layout_marginBottom="16dp"/>

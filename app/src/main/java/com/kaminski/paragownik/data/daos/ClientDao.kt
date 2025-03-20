@@ -9,7 +9,7 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface ClientDao {
     @Insert
-    suspend fun insertClient(client: Client)
+    suspend fun insertClient(client: Client): Long
 
     @Query("SELECT * FROM clients")
     fun getAllClients(): Flow<List<Client>>

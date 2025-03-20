@@ -6,10 +6,11 @@ import android.view.ViewGroup
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.kaminski.paragownik.data.Receipt
+import com.kaminski.paragownik.data.ReceiptWithClient
 import java.text.SimpleDateFormat
 import java.util.Locale
 
-class ReceiptAdapter(var receiptList: List<Receipt>) :
+class ReceiptAdapter(var receiptList: List<ReceiptWithClient>) :
     RecyclerView.Adapter<ReceiptAdapter.ReceiptViewHolder>() {
 
     class ReceiptViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
@@ -26,7 +27,9 @@ class ReceiptAdapter(var receiptList: List<Receipt>) :
     }
 
     override fun onBindViewHolder(holder: ReceiptViewHolder, position: Int) {
-        val currentReceipt = receiptList[position]
+        val currentReceiptWithClient = receiptList[position] // Zmień typ zmiennej
+        val currentReceipt = currentReceiptWithClient.receipt // Pobierz Receipt z ReceiptWithClient
+        val client = currentReceiptWithClient.clients.firstOrNull() // Pobierz pierwszego klienta z listy (powinien być co najwyżej jeden)
         val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
 
         holder.receiptNumberTextView.text = "Numer paragonu: ${currentReceipt.receiptNumber}"
@@ -34,13 +37,8 @@ class ReceiptAdapter(var receiptList: List<Receipt>) :
         holder.verificationDateTextView.text = currentReceipt.verificationDate?.let {
             "Data weryfikacji: ${dateFormat.format(it)}"
         } ?: "Data weryfikacji: Brak"
-        holder.clientDescriptionTextView.text = currentReceipt.clientDescriptionTextView() // Placeholder
+        holder.clientDescriptionTextView.text = client?.description ?: "Brak opisu klienta" // Wyświetl opis klienta lub "Brak opisu klienta"
     }
 
     override fun getItemCount() = receiptList.size
-
-    // Placeholder function - to be implemented in ViewModel to fetch client description
-    private fun Receipt.clientDescriptionTextView(): String {
-        return "Opis klienta: Brak (jeszcze niezaimplementowane)"
-    }
 }

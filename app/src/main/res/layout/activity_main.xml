@@ -14,6 +14,6 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
-        tools:listitem="@layout/store_item" /> <!-- Dodamy ten layout za chwilę -->
+        tools:listitem="@layout/store_item" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
