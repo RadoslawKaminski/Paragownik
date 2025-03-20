@@ -1,1 +1,156 @@
-a
+Szczegółowy Opis Projektu "Paragonownik"
+1. Cel Aplikacji
+
+Aplikacja "Paragonownik" jest systemem przeznaczonym dla ochrony drogerii. Jej głównym celem jest identyfikacja klientów (potencjalnych złodziei) na podstawie zgromadzonych paragonów. System ma umożliwiać ochronie szybkie przeglądanie paragonów przypisanych do poszczególnych drogerii i klientów, co ułatwi identyfikację podejrzanych osób na podstawie opisów i historii paragonów.
+
+2. Model Danych
+
+Aplikacja korzysta z lokalnej bazy danych Room i zdefiniowanego modelu danych, składającego się z następujących encji:
+
+Drogeria (Store):
+
+id (Long, klucz główny, autogenerowane): Unikalny identyfikator drogerii w bazie danych.
+
+storeNumber (String): Numer drogerii, unikalny identyfikator sklepu w sieci drogerii.
+
+Paragon (Receipt):
+
+id (Long, klucz główny, autogenerowane): Unikalny identyfikator paragonu w bazie danych.
+
+receiptNumber (String): Numer paragonu, identyfikator transakcji nadawany przez drogerię (unikalny w obrębie drogerii i dnia, ale nie globalnie).
+
+receiptDate (Date): Data wystawienia paragonu.
+
+storeId (Long, klucz obcy): Klucz obcy odnoszący się do encji Drogeria, identyfikujący drogerię, w której wystawiono paragon.
+
+verificationDate (Date, nullable): Data weryfikacji paragonu (opcjonalna).
+
+Klient (Client):
+
+id (Long, klucz główny, autogenerowane): Unikalny identyfikator klienta w bazie danych.
+
+description (String, nullable): Krótki opis klienta (np. cechy charakterystyczne, identyfikator, dodatkowe informacje).
+
+ClientReceiptCrossRef (Tabela Pośrednicząca):
+
+clientId (Long, klucz główny, klucz obcy do Client.id): Klucz obcy odnoszący się do identyfikatora klienta.
+
+receiptId (Long, klucz główny, klucz obcy do Receipt.id): Klucz obcy odnoszący się do identyfikatora paragonu.
+
+Relacje:
+
+One-to-Many (Drogeria - Paragon): Jedna drogeria może mieć wiele paragonów. Relacja zdefiniowana za pomocą klucza obcego storeId w encji Receipt.
+
+Many-to-Many (Klient - Paragon): Klient może mieć wiele paragonów, a paragon może być potencjalnie powiązany z klientem (choć w specyfikacji jest mowa o maksymalnie jednym paragonie na sklep dla klienta). Relacja Many-to-Many jest zaimplementowana za pomocą tabeli pośredniczącej ClientReceiptCrossRef.
+
+3. Interfejs Użytkownika (Widoki)
+
+Aplikacja składa się z trzech głównych ekranów:
+
+Ekran Główny – Lista Drogerii (MainActivity, activity_main.xml):
+
+Wyświetla listę numerów drogerii pobranych z bazy danych w RecyclerView.
+
+Każdy element listy to numer drogerii, wyśrodkowany, z większą czcionką, na jasnobrązowym tle.
+
+Po kliknięciu na numer drogerii, użytkownik jest przenoszony do Ekranu Szczegółowego – Lista Paragonów dla wybranej drogerii.
+
+Ekran Szczegółowy – Lista Paragonów (ReceiptListActivity, activity_receipt_list.xml):
+
+Wyświetla listę paragonów dla wybranej drogerii w RecyclerView.
+
+Każdy element listy paragonów (receipt_item.xml) zawiera:
+
+Numer paragonu.
+
+Datę paragonu (sformatowaną jako RRRR-MM-DD).
+
+Datę weryfikacji (sformatowaną jako RRRR-MM-DD, lub "Brak daty weryfikacji" jeśli nieustawiona).
+
+Opis klienta ("Brak opisu klienta" na obecnym etapie, docelowo opis klienta z bazy danych).
+
+W prawym dolnym rogu ekranu znajduje się przycisk FAB ("+") "Dodaj Klienta", który przenosi użytkownika do Ekranu Dodawania Klienta.
+
+Ekran Dodawania Klienta (AddClientActivity, activity_add_client.xml):
+
+Formularz umożliwiający dodanie nowego klienta i przypisanie mu paragonu.
+
+Zawiera pola:
+
+Numer paragonu: EditText (tylko numeryczna klawiatura).
+
+Data paragonu: EditText (format DD-MM-RRRR, automatyczne dodawanie myślników, klawiatura numeryczna).
+
+Data weryfikacji: EditText (format DD-MM-RRRR, opcjonalne, automatyczne dodawanie myślników, klawiatura numeryczna).
+
+Opis klienta: EditText (wieloliniowe pole tekstowe).
+
+Przycisk "Dodaj Klienta": Po kliknięciu dane z formularza są zapisywane do bazy danych (klient, paragon, relacja klient-paragon).
+
+Po pomyślnym dodaniu klienta i paragonu, użytkownik jest przenoszony z powrotem do Ekranu Szczegółowego – Lista Paragonów.
+
+4. Funkcjonalność
+
+Na obecnym etapie aplikacja umożliwia:
+
+Wyświetlanie listy drogerii pobranej z lokalnej bazy danych.
+
+Przechodzenie do ekranu szczegółów paragonów dla wybranej drogerii.
+
+Wyświetlanie listy paragonów (na razie podstawowych danych, bez opisu klienta z bazy danych).
+
+Dodawanie nowych klientów i paragonów poprzez formularz na Ekranie Dodawania Klienta.
+
+Zapisywanie danych klientów i paragonów do lokalnej bazy danych Room.
+
+Automatyczne formatowanie daty (DD-MM-RRRR) w polach daty na ekranie dodawania klienta.
+
+Walidację formatu daty przy dodawaniu paragonu.
+
+Wyświetlanie komunikatów o błędach (np. błąd formatu daty).
+
+Lokalne przechowywanie danych w bazie danych Room.
+
+5. Technologie i Biblioteki
+
+Android Studio: Środowisko programistyczne.
+
+Kotlin: Język programowania aplikacji Android.
+
+Android SDK: Minimalny SDK ustawiony na API 24 (Android 7.0 Nougat).
+
+Gradle (8.10.2) z Version Catalogs: System budowania projektu i zarządzania zależnościami.
+
+RecyclerView: Biblioteka do efektywnego wyświetlania list danych.
+
+Room Persistence Library: Biblioteka do obsługi lokalnej bazy danych SQLite.
+
+AndroidX Libraries:
+
+AppCompatActivity, Material Components - wsparcie dla wstecznej kompatybilności i nowoczesnego wyglądu.
+
+Lifecycle KTX, ViewModel, LiveData - komponenty architektury Android do zarządzania cyklem życia, danymi UI i logiką aplikacji.
+
+RecyclerView, ConstraintLayout, ScrollView - komponenty UI.
+
+6. Obecny Status i Dalsze Kroki
+
+Aplikacja jest w fazie wczesnego rozwoju. Obecnie mamy zaimplementowane podstawowe ekrany, model danych i funkcjonalność dodawania klientów i paragonów. Dane są zapisywane w lokalnej bazie danych Room i wyświetlane na listach.
+
+Dalsze kroki obejmują:
+
+dodanie opcji dodania kilku paragonów przy dodawaniu klienta
+
+poprawne wyświetlanie daty weryfikacji paragonu dla danego sklepu
+
+Implementacja edycji i usuwania klientów i paragonów.
+
+Dodanie funkcjonalności wyszukiwania i filtrowania paragonów.
+
+Rozbudowa interfejsu użytkownika i poprawa UX.
+
+Testowanie i poprawa błędów.
+
+Dodanie daty weryfikacji do formularza dodawania klienta i obsługa jej zapisu do bazy danych.
+
+Dalsza stylizacja i dopracowanie wyglądu aplikacji.
