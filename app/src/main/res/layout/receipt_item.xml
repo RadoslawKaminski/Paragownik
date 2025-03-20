@@ -12,7 +12,6 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:textSize="18sp"
-        android:textColor="@color/black"
         android:textStyle="bold"
         android:text="Numer paragonu: 12345" /> <!-- Przykładowy tekst -->
 
@@ -21,7 +20,6 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:textSize="16sp"
-        android:textColor="@color/black"
         android:text="Data paragonu: 2024-01-01" /> <!-- Przykładowy tekst -->
 
     <TextView
@@ -29,7 +27,6 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:textSize="16sp"
-        android:textColor="@color/black"
         android:text="Data weryfikacji: 2024-01-02" /> <!-- Przykładowy tekst -->
 
     <TextView
@@ -37,7 +34,6 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:textSize="16sp"
-        android:textColor="@color/black"
         android:text="Opis klienta: Brak" /> <!-- Przykładowy tekst -->
 
 </LinearLayout>

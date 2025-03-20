@@ -1,6 +1,6 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Base application theme. -->
-    <style name="Theme.Paragownik" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+    <style name="Base.Theme.Paragownik" parent="Theme.MaterialComponents.DayNight.NoActionBar">
         <!-- Primary brand color. -->
         <item name="colorPrimary">@color/purple_500</item>
         <item name="colorPrimaryVariant">@color/purple_700</item>
@@ -17,5 +17,15 @@
         <item name="android:windowBackground">@color/light_brown_background</item>
 
         <item name="android:textColor">@color/white_text</item>
+    </style>
+    <style name="Theme.Paragownik" parent="Base.Theme.Paragownik">
+        <item name="editTextStyle">@style/EditTextStyle</item> <!-- Dodaj styl EditText do motywu -->
+    </style>
+
+    <style name="EditTextStyle" parent="Widget.AppCompat.EditText">
+        <item name="android:textColor">@color/white_text</item> <!-- Kolor tekstu na biały -->
+        <item name="android:textColorHint">@color/sub_white_text</item> <!-- Kolor hintu -->
+        <item name="colorControlNormal">@color/sub_white_text</item> <!-- Kolor linii - stan normalny -->
+        <item name="colorControlActivated">@color/white_text</item> <!-- Kolor linii - stan aktywny (focus) -->
     </style>
 </resources>

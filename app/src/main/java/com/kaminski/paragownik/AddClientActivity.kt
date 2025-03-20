@@ -1,6 +1,10 @@
 package com.kaminski.paragownik
 
 import android.os.Bundle
+import android.text.Editable
+import android.text.InputType
+import android.text.TextWatcher
+import android.util.Log
 import android.widget.Button
 import android.widget.EditText
 import android.widget.Toast
@@ -33,6 +37,9 @@ class AddClientActivity : AppCompatActivity() {
 
         val storeId = intent.getLongExtra("STORE_ID", -1L)
 
+        setupDateEditText(receiptDateEditText) // Ustaw TextWatcher dla daty paragonu
+        setupDateEditText(verificationDateEditText) // Ustaw TextWatcher dla daty weryfikacji
+
         addClientButton.setOnClickListener {
             val receiptNumber = receiptNumberEditText.text.toString()
             val receiptDate = receiptDateEditText.text.toString()
@@ -61,5 +68,39 @@ class AddClientActivity : AppCompatActivity() {
                 }
             }
         }
+    }
+    private fun setupDateEditText(editText: EditText) {
+        editText.inputType = InputType.TYPE_CLASS_DATETIME
+        editText.addTextChangedListener(object : TextWatcher {
+            private var updating = false
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+
+            override fun afterTextChanged(editable: Editable?) {
+                if (updating) {
+                    updating = false
+                    return
+                }
+                updating = true
+                val originalText = editable.toString() // Pobierz oryginalny tekst PRZED formatowaniem
+                var formattedText = originalText // Użyj oryginalnego tekstu do formatowania
+                formattedText = formattedText.replace("-", "")
+                if (formattedText.length > 2) {
+                    formattedText = formattedText.substring(0, 2) + "-" + formattedText.substring(2)
+                    Log.d("AddClientActivity", "Formatted text: $formattedText")
+                }
+                if (formattedText.length > 5) {
+                    formattedText = formattedText.substring(0, 5) + "-" + formattedText.substring(5)
+                    Log.d("AddClientActivity", "Formatted text: $formattedText")
+                }
+                Log.d("AddClientActivity", "Formatted text: $formattedText, originalText: $originalText")
+                if (formattedText != originalText) { // Porównaj sformatowany tekst z ORYGINALNYM tekstem
+                    Log.d("AddClientActivity", "Updating text: $formattedText")
+                    editable?.replace(0, editable.length, formattedText)
+                    Log.d("AddClientActivity", "Updated text: $editable")
+                }
+                updating = false
+            }
+        })
     }
 }

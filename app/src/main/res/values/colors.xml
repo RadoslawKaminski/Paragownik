@@ -10,4 +10,5 @@
 
     <color name="light_brown_background">#9D6957</color> <!-- Jasnobrązowe tło (Beige) -->
     <color name="white_text">#FFFFFFFF</color> <!-- Biały tekst -->
+    <color name="sub_white_text">#9DFFFFFF</color> <!-- tekst hintu itp -->
 </resources>
