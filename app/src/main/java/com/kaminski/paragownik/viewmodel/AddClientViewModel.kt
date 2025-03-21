@@ -9,8 +9,9 @@ import com.kaminski.paragownik.data.Client
 import com.kaminski.paragownik.data.ClientReceiptCrossRef
 import com.kaminski.paragownik.data.Receipt
 import com.kaminski.paragownik.data.daos.ClientDao
-import com.kaminski.paragownik.data.daos.ReceiptDao
 import com.kaminski.paragownik.data.daos.ClientReceiptCrossRefDao
+import com.kaminski.paragownik.data.daos.ReceiptDao
+import com.kaminski.paragownik.data.daos.StoreDao
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
@@ -24,20 +25,23 @@ class AddClientViewModel(application: Application) : AndroidViewModel(applicatio
     private val receiptDao: ReceiptDao
     private val clientDao: ClientDao
     private val clientReceiptCrossRefDao: ClientReceiptCrossRefDao
+    private val storeDao: StoreDao // Dodaj StoreDao
 
     init {
         val database = AppDatabase.getDatabase(application)
         receiptDao = database.receiptDao()
         clientDao = database.clientDao()
         clientReceiptCrossRefDao = database.clientReceiptCrossRefDao()
+        storeDao = database.storeDao() // Zainicjalizuj StoreDao
     }
 
     suspend fun addClientAndReceipt(
-        storeId: Long,
+        storeId: Long, // storeId dla pierwszego paragonu (z MainActivity)
         receiptNumber: String,
         receiptDateString: String,
         verificationDateString: String?,
-        clientDescription: String?
+        clientDescription: String?,
+        storeNumberForReceipt: String? = null // Nowy parametr dla numeru drogerii (String) dla dodatkowych paragonów
     ): Boolean = suspendCancellableCoroutine { continuation ->
         viewModelScope.launch(Dispatchers.IO) {
             // 1. Utwórz Klienta
@@ -48,34 +52,47 @@ class AddClientViewModel(application: Application) : AndroidViewModel(applicatio
             val dateFormat = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault())
             dateFormat.isLenient = false
 
-            val verificationDateFormat = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault()) // Format dla daty weryfikacji
+            val verificationDateFormat = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault())
             verificationDateFormat.isLenient = false
 
             try {
                 val receiptDate: Date = dateFormat.parse(receiptDateString) as Date
-                val verificationDate: Date? = try { // Parsowanie daty weryfikacji - może się nie udać (opcjonalne pole)
+                val verificationDate: Date? = try {
                     if (!verificationDateString.isNullOrEmpty()) verificationDateFormat.parse(verificationDateString) as Date else null
                 } catch (e: Exception) {
-                    null // Jeśli parsowanie daty weryfikacji się nie powiedzie, ustaw null
+                    null
+                }
+
+                // Ustal poprawne storeId dla paragonu
+                var receiptStoreId = storeId // Domyślnie storeId z MainActivity (dla pierwszego paragonu)
+                if (storeNumberForReceipt != null) { // Jeśli podano storeNumberForReceipt (dla dodatkowych paragonów)
+                    val store = storeDao.getStoreByNumber(storeNumberForReceipt) // Znajdź Store po storeNumber
+                    if (store != null) {
+                        receiptStoreId = store.id // Użyj ID znalezionej Drogerii
+                    } else {
+                        Log.e("AddClientViewModel", "Nie znaleziono drogerii dla numeru drogerii: $storeNumberForReceipt")
+                        continuation.resume(false) // Nie znaleziono drogerii, niepowodzenie
+                        return@launch
+                    }
                 }
 
                 val receipt = Receipt(
                     receiptNumber = receiptNumber,
                     receiptDate = receiptDate,
-                    storeId = storeId,
-                    verificationDate = verificationDate // Ustaw datę weryfikacji (może być null)
+                    storeId = receiptStoreId, // Użyj ustalonego storeId
+                    verificationDate = verificationDate
                 )
                 val receiptId = receiptDao.insertReceipt(receipt)
 
-                // 3. Utwórz relację ClientReceiptCrossRef - TERAZ WSTAWIAMY DO TABELI POŚREDNICZĄCEJ
+                // 3. Utwórz relację ClientReceiptCrossRef
                 val crossRef = ClientReceiptCrossRef(clientId = clientId, receiptId = receiptId)
-                clientReceiptCrossRefDao.insert(crossRef) // Jawnie wstaw rekord do client_receipt_cross_ref
+                clientReceiptCrossRefDao.insert(crossRef)
 
-                Log.d("AddClientViewModel", "Client and Receipt added successfully. Client ID: $clientId, Receipt ID: $receiptId, Verification Date: $verificationDate, Client Description: $clientDescription")
+                Log.d("AddClientViewModel", "Klient i Paragon dodane pomyślnie. ID Klienta: $clientId, ID Paragonu: $receiptId, Data Weryfikacji: $verificationDate, Opis Klienta: $clientDescription, ID Drogerii: $receiptStoreId")
                 continuation.resume(true)
 
             } catch (e: Exception) {
-                Log.e("AddClientViewModel", "Error parsing receipt date: $receiptDateString", e)
+                Log.e("AddClientViewModel", "Błąd parsowania daty paragonu: $receiptDateString", e)
                 continuation.resume(false)
             }
         }

@@ -16,4 +16,7 @@ interface StoreDao {
 
     @Query("SELECT * FROM stores WHERE id = :storeId")
     suspend fun getStoreById(storeId: Long): Store?
+
+    @Query("SELECT * FROM stores WHERE storeNumber = :storeNumber") // Dodana funkcja
+    suspend fun getStoreByNumber(storeNumber: String): Store?
 }

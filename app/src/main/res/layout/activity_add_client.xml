@@ -16,52 +16,60 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Dodaj Klienta i Paragon"
+            android:text="Dodaj Klienta i Paragony"
             android:textSize="24sp"
             android:gravity="center"
             android:layout_marginBottom="24dp"/>
 
-        <TextView
+        <LinearLayout
+            android:id="@+id/receiptsContainer"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Numer paragonu:"
-            android:textSize="18sp" />
+            android:orientation="vertical">
 
-        <EditText
-            android:id="@+id/receiptNumberEditText"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:inputType="number"
-            android:hint="Wprowadź numer paragonu"
-            android:layout_marginBottom="16dp"/>
+            <!-- Pierwszy zestaw pól paragonu -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Numer paragonu:"
+                android:textSize="18sp" />
 
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Data paragonu (DD-MM-YYYY):"
-            android:textSize="18sp" />
+            <EditText
+                android:id="@+id/receiptNumberEditText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="number"
+                android:hint="Wprowadź numer paragonu"
+                android:layout_marginBottom="16dp"/>
 
-        <EditText
-            android:id="@+id/receiptDateEditText"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:inputType="date"
-            android:hint="DD-MM-YYYY"
-            android:layout_marginBottom="16dp"/>
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Data paragonu (DD-MM-YYYY):"
+                android:textSize="18sp" />
 
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Data weryfikacji (DD-MM-YYYY, opcjonalne):"
-            android:textSize="18sp" />
+            <EditText
+                android:id="@+id/receiptDateEditText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="date"
+                android:hint="DD-MM-YYYY"
+                android:layout_marginBottom="16dp"/>
 
-        <EditText
-            android:id="@+id/verificationDateEditText"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:inputType="date"
-            android:hint="DD-MM-YYYY (opcjonalne)"
-            android:layout_marginBottom="16dp"/>
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Data weryfikacji (DD-MM-YYYY, opcjonalne):"
+                android:textSize="18sp" />
+
+            <EditText
+                android:id="@+id/verificationDateEditText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="date"
+                android:hint="DD-MM-YYYY (opcjonalne)"
+                android:layout_marginBottom="16dp"/>
+        </LinearLayout>
 
         <TextView
             android:layout_width="match_parent"
@@ -79,10 +87,19 @@
             android:layout_marginBottom="24dp"/>
 
         <Button
+            android:id="@+id/addAdditionalReceiptButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Dodaj paragon kolejnej drogerii"
+            android:backgroundTint="@color/teal_700"
+            android:textColor="@color/white_text"
+            android:layout_marginBottom="16dp"/>
+
+        <Button
             android:id="@+id/addClientButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Dodaj Klienta"
+            android:text="Dodaj Klienta i Paragony"
             android:backgroundTint="@color/purple_500"
             android:textColor="@color/white_text"/>
 

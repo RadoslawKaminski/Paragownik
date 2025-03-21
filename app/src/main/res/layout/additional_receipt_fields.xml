@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:layout_marginTop="16dp">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Numer drogerii (dodatkowy paragon):"
+        android:textSize="18sp" />
+
+    <EditText
+        android:id="@+id/additionalStoreNumberEditText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:inputType="number"
+        android:hint="Wprowadź numer drogerii"
+        android:layout_marginBottom="16dp"/>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Numer paragonu (dodatkowy):"
+        android:textSize="18sp" />
+
+    <EditText
+        android:id="@+id/additionalReceiptNumberEditText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:inputType="number"
+        android:hint="Wprowadź numer paragonu"
+        android:layout_marginBottom="16dp"/>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Data paragonu (DD-MM-YYYY, dodatkowy):"
+        android:textSize="18sp" />
+
+    <EditText
+        android:id="@+id/additionalReceiptDateEditText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:inputType="date"
+        android:hint="DD-MM-YYYY"
+        android:layout_marginBottom="16dp"/>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/white_text"
+        android:layout_marginTop="8dp"/>
+
+</LinearLayout>
