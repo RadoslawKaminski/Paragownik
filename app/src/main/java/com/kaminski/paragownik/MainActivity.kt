@@ -6,13 +6,15 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.kaminski.paragownik.data.Store
 import com.kaminski.paragownik.viewmodel.StoreViewModel
 
-class MainActivity : AppCompatActivity(), StoreAdapter.OnItemClickListener { // Implementuj StoreAdapter.OnItemClickListener
+class MainActivity : AppCompatActivity(), StoreAdapter.OnItemClickListener {
 
     private lateinit var storeViewModel: StoreViewModel
     private lateinit var storeAdapter: StoreAdapter
+    private lateinit var fabAddClientMain: FloatingActionButton // Dodaj deklarację FAB
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -21,7 +23,7 @@ class MainActivity : AppCompatActivity(), StoreAdapter.OnItemClickListener { // 
         val storeRecyclerView: RecyclerView = findViewById(R.id.storeRecyclerView)
         storeRecyclerView.layoutManager = LinearLayoutManager(this)
 
-        storeAdapter = StoreAdapter(emptyList(), this) // Przekaż 'this' (MainActivity) jako OnItemClickListener
+        storeAdapter = StoreAdapter(emptyList(), this)
         storeRecyclerView.adapter = storeAdapter
 
         storeViewModel = ViewModelProvider(this).get(StoreViewModel::class.java)
@@ -42,6 +44,12 @@ class MainActivity : AppCompatActivity(), StoreAdapter.OnItemClickListener { // 
                 storeAdapter.notifyDataSetChanged()
             }
         }
+
+        fabAddClientMain = findViewById(R.id.fabAddClientMain) // Inicjalizacja FAB
+        fabAddClientMain.setOnClickListener { // Obsługa kliknięcia FAB
+            val intent = Intent(this, AddClientActivity::class.java)
+            startActivity(intent) // Uruchom AddClientActivity bez przekazywania STORE_ID
+        }
     }
 
     private fun insertSampleStores() {
@@ -51,9 +59,9 @@ class MainActivity : AppCompatActivity(), StoreAdapter.OnItemClickListener { // 
         storeViewModel.insertStore(Store(storeNumber = "101"))
     }
 
-    override fun onItemClick(storeId: Long) { // Implementacja metody onItemClick z interfejsu
+    override fun onItemClick(storeId: Long) {
         val intent = Intent(this, ReceiptListActivity::class.java)
-        intent.putExtra("STORE_ID", storeId) // Przekaż storeId jako extra do Intent
-        startActivity(intent) // Uruchom ReceiptListActivity
+        intent.putExtra("STORE_ID", storeId)
+        startActivity(intent)
     }
 }

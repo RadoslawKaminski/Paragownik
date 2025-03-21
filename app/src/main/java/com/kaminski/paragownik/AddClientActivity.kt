@@ -6,9 +6,11 @@ import android.text.InputType
 import android.text.TextWatcher
 import android.util.Log
 import android.view.LayoutInflater
+import android.view.View
 import android.widget.Button
 import android.widget.EditText
 import android.widget.LinearLayout
+import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
@@ -19,6 +21,8 @@ import java.util.ArrayList
 
 class AddClientActivity : AppCompatActivity() {
 
+    private lateinit var storeNumberEditTextFirstReceipt: EditText
+    private lateinit var storeNumberTextViewFirstReceipt: TextView
     private lateinit var receiptNumberEditText: EditText
     private lateinit var receiptDateEditText: EditText
     private lateinit var verificationDateEditText: EditText
@@ -30,7 +34,7 @@ class AddClientActivity : AppCompatActivity() {
     private val receiptFieldsList = ArrayList<ReceiptFields>()
 
     private data class ReceiptFields(
-        val storeNumberEditText: EditText? = null, // Numer drogerii dla dodatkowych paragonów - teraz EditText dla numeru drogerii
+        val storeNumberEditText: EditText? = null, // Numer drogerii dla dodatkowych paragonów
         val receiptNumberEditText: EditText,
         val receiptDateEditText: EditText
     )
@@ -39,6 +43,8 @@ class AddClientActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_add_client)
 
+        storeNumberEditTextFirstReceipt = findViewById(R.id.storeNumberEditText)
+        storeNumberTextViewFirstReceipt = findViewById(R.id.storeNumberTextView)
         receiptNumberEditText = findViewById(R.id.receiptNumberEditText)
         receiptDateEditText = findViewById(R.id.receiptDateEditText)
         verificationDateEditText = findViewById(R.id.verificationDateEditText)
@@ -49,12 +55,17 @@ class AddClientActivity : AppCompatActivity() {
 
         addClientViewModel = ViewModelProvider(this).get(AddClientViewModel::class.java)
 
-        val storeId = intent.getLongExtra("STORE_ID", -1L)
+
+        // Sprawdź, czy Activity zostało uruchomione z MainActivity (bez STORE_ID)
+        if (!intent.hasExtra("STORE_ID")) {
+            storeNumberEditTextFirstReceipt.visibility = View.VISIBLE
+            storeNumberTextViewFirstReceipt.visibility = View.VISIBLE
+        }
 
         setupDateEditText(receiptDateEditText)
         setupDateEditText(verificationDateEditText)
 
-        receiptFieldsList.add(ReceiptFields(null, receiptNumberEditText, receiptDateEditText)) // Pierwszy paragon - bez pola numeru drogerii
+        receiptFieldsList.add(ReceiptFields(null, receiptNumberEditText, receiptDateEditText))
 
         addAdditionalReceiptButton.setOnClickListener {
             addNewReceiptFields()
@@ -69,23 +80,23 @@ class AddClientActivity : AppCompatActivity() {
                 val storeNumberText = receiptFields.storeNumberEditText?.text?.toString()
                 val receiptNumber = receiptFields.receiptNumberEditText.text.toString()
                 val receiptDate = receiptFields.receiptDateEditText.text.toString()
-                val storeNumberForReceipt = receiptFields.storeNumberEditText?.text?.toString() // Pobierz numer drogerii dla dodatkowych paragonów
-                val storeIdForFirstReceipt = intent.getLongExtra("STORE_ID", -1L) // Pobierz storeId dla pierwszego paragonu
+                val storeNumberForReceipt = receiptFields.storeNumberEditText?.text?.toString()
+                val storeNumberForFirstReceipt = storeNumberEditTextFirstReceipt.text?.toString()
 
-                val currentStoreId: Long = if (receiptFields.storeNumberEditText == null) { // Dla pierwszego paragonu użyj storeId z intent
-                    storeIdForFirstReceipt
-                } else {
-                    -1L // Placeholder, zostanie rozwiązane w ViewModel przy użyciu storeNumberForReceipt
+                val currentStoreNumber: String = if (receiptFieldsList.indexOf(receiptFields) == 0) { // Dla pierwszego paragonu ZAWSZE pobierz numer drogerii z pola, niezależnie od punktu startowego
+                    storeNumberForFirstReceipt ?: ""
+                } else { // Dla dodatkowych paragonów użyj numeru drogerii z pola
+                    storeNumberForReceipt ?: ""
                 }
 
 
-                if (receiptNumber.isEmpty() || receiptDate.isEmpty() || (receiptFields.storeNumberEditText != null && storeNumberForReceipt.isNullOrEmpty())) {
+                if (receiptNumber.isEmpty() || receiptDate.isEmpty() || currentStoreNumber.isEmpty()) {
                     hasEmptyFields = true
                     break
                 }
 
                 receiptsToAdd.add(
-                    ReceiptData(storeNumberForReceipt ?: storeIdForFirstReceipt.toString(), receiptNumber, receiptDate) // Przekaż storeNumber lub storeId jako String dla ReceiptData
+                    ReceiptData(currentStoreNumber, receiptNumber, receiptDate) // Użyj currentStoreNumber
                 )
             }
 
@@ -102,20 +113,14 @@ class AddClientActivity : AppCompatActivity() {
             lifecycleScope.launch {
                 var allReceiptsAdded = true
                 for (receiptData in receiptsToAdd) {
-                    val storeIdLongForFirstReceipt = intent.getLongExtra("STORE_ID", -1L)
-                    val storeIdToUse: Long = if (receiptFieldsList[receiptsToAdd.indexOf(receiptData)].storeNumberEditText == null) {
-                        storeIdLongForFirstReceipt
-                    } else {
-                        -1L // Placeholder, zostanie rozwiązane w ViewModel przy użyciu storeNumberForReceipt
-                    }
 
                     val isSuccess = addClientViewModel.addClientAndReceipt(
-                        storeId = storeIdToUse, // Przekaż storeId dla pierwszego paragonu, -1L dla pozostałych (rozwiązane przy użyciu storeNumber)
+                        storeId = -1L, // NIEUŻYWANE - ustawione na -1L
                         receiptNumber = receiptData.receiptNumber,
                         receiptDateString = receiptData.receiptDate,
                         verificationDateString = null,
                         clientDescription = clientDescription,
-                        storeNumberForReceipt = if (receiptFieldsList[receiptsToAdd.indexOf(receiptData)].storeNumberEditText != null) receiptData.storeNumber else null // Przekaż storeNumber dla dodatkowych paragonów
+                        storeNumberForReceipt = receiptData.storeNumber // ZAWSZE przekazuj numer drogerii
                     )
                     if (!isSuccess) {
                         allReceiptsAdded = false

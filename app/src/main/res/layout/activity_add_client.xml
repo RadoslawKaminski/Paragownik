@@ -27,6 +27,25 @@
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
+            <!-- Numer drogerii dla pierwszego paragonu - widoczne tylko z ekranu głównego -->
+            <TextView
+                android:id="@+id/storeNumberTextView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Numer drogerii:"
+                android:textSize="18sp"
+                android:visibility="gone"/> <!-- Domyślnie ukryte -->
+
+            <EditText
+                android:id="@+id/storeNumberEditText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="number"
+                android:hint="Wprowadź numer drogerii"
+                android:layout_marginBottom="16dp"
+                android:visibility="gone"/> <!-- Domyślnie ukryte -->
+
+
             <!-- Pierwszy zestaw pól paragonu -->
             <TextView
                 android:layout_width="match_parent"
