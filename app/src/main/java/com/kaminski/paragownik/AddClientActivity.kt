@@ -8,6 +8,7 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.Button
+import android.widget.CheckBox
 import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.TextView
@@ -25,10 +26,10 @@ import java.util.Locale
 class AddClientActivity : AppCompatActivity() {
 
     private lateinit var storeNumberEditTextFirstReceipt: EditText
-    private lateinit var storeNumberTextViewFirstReceipt: TextView
     private lateinit var receiptNumberEditText: EditText
     private lateinit var receiptDateEditText: EditText
     private lateinit var verificationDateEditText: EditText
+    private lateinit var verificationDateTodayCheckBox: CheckBox // Dodaj deklarację
     private lateinit var clientDescriptionEditText: EditText
     private lateinit var addClientButton: Button
     private lateinit var addAdditionalReceiptButton: Button
@@ -48,11 +49,11 @@ class AddClientActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_add_client)
 
-        storeNumberEditTextFirstReceipt = findViewById(R.id.storeNumberEditText)
-        storeNumberTextViewFirstReceipt = findViewById(R.id.storeNumberTextView)
+        storeNumberEditTextFirstReceipt = findViewById(R.id.receiptStoreNumberEditText)
         receiptNumberEditText = findViewById(R.id.receiptNumberEditText)
         receiptDateEditText = findViewById(R.id.receiptDateEditText)
         verificationDateEditText = findViewById(R.id.verificationDateEditText)
+        verificationDateTodayCheckBox = findViewById(R.id.verificationDateTodayCheckBox) // Inicjalizacja CheckBox
         clientDescriptionEditText = findViewById(R.id.clientDescriptionEditText)
         addClientButton = findViewById(R.id.addClientButton)
         addAdditionalReceiptButton = findViewById(R.id.addAdditionalReceiptButton)
@@ -64,8 +65,6 @@ class AddClientActivity : AppCompatActivity() {
         // Sprawdź, czy Activity zostało uruchomione z ReceiptListActivity (z STORE_ID)
         if (intent.hasExtra("STORE_ID")) {
             storeIdFromIntent = intent.getLongExtra("STORE_ID", -1L)
-            storeNumberEditTextFirstReceipt.visibility = View.VISIBLE // Pokaż EditText, ale go zablokuj
-            storeNumberTextViewFirstReceipt.visibility = View.VISIBLE // Pokaż TextView
             storeNumberEditTextFirstReceipt.isEnabled = false // Zablokuj edycję EditText
 
             lifecycleScope.launch {
@@ -74,9 +73,6 @@ class AddClientActivity : AppCompatActivity() {
                     storeNumberEditTextFirstReceipt.setText(it.storeNumber) // Ustaw numer drogerii w EditText
                 }
             }
-        } else {
-            storeNumberEditTextFirstReceipt.visibility = View.VISIBLE
-            storeNumberTextViewFirstReceipt.visibility = View.VISIBLE
         }
 
         setupDateEditText(receiptDateEditText)
@@ -84,6 +80,18 @@ class AddClientActivity : AppCompatActivity() {
 
         receiptFieldsList.add(ReceiptFields(null, receiptNumberEditText, receiptDateEditText))
 
+        verificationDateTodayCheckBox.setOnCheckedChangeListener { _, isChecked ->
+            if (isChecked) {
+                // Ustaw aktualną datę i wyłącz EditText
+                val currentDate = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault()).format(java.util.Calendar.getInstance().time)
+                verificationDateEditText.setText(currentDate)
+                verificationDateEditText.isEnabled = false
+            } else {
+                // Włącz EditText i wyczyść tekst
+                verificationDateEditText.text.clear()
+                verificationDateEditText.isEnabled = true
+            }
+        }
         addAdditionalReceiptButton.setOnClickListener {
             addNewReceiptFields()
         }
