@@ -56,13 +56,18 @@ class AddClientViewModel(application: Application) : AndroidViewModel(applicatio
             val verificationDateFormat = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault())
             verificationDateFormat.isLenient = false
 
+            Log.d("AddClientViewModel", "verificationDateString przed parsowaniem: $verificationDateString") // DODAJ LOG
+
             try {
                 val receiptDate: Date = dateFormat.parse(receiptDateString) as Date
-                val verificationDate: Date? = try {
-                    if (!verificationDateString.isNullOrEmpty()) verificationDateFormat.parse(verificationDateString) as Date else null
-                } catch (e: Exception) {
-                    null
+                var verificationDate: Date? = null
+                if (!verificationDateString.isNullOrEmpty()) {
+                    verificationDate = verificationDateFormat.parse(verificationDateString) as Date
+                    Log.d("AddClientViewModel", "verificationDate po parsowaniu: $verificationDate") // DODAJ LOG
+                } else {
+                    Log.d("AddClientViewModel", "verificationDateString jest puste, data weryfikacji ustawiona na null") // DODAJ LOG
                 }
+
 
                 // Ustal poprawne storeId dla paragonu - ZAWSZE UŻYWAJ storeNumberForReceipt
                 var receiptStoreId: Long? = null
@@ -109,5 +114,4 @@ class AddClientViewModel(application: Application) : AndroidViewModel(applicatio
                 continuation.resume(false)
             }
         }
-    }
-}
+    }}

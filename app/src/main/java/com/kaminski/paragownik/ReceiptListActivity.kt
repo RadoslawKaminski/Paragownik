@@ -42,9 +42,11 @@ class ReceiptListActivity : AppCompatActivity() {
         }
 
         fabAddClient = findViewById(R.id.fabAddClient) // Inicjalizacja FAB
+        fabAddClient = findViewById(R.id.fabAddClient) // Inicjalizacja FAB
         fabAddClient.setOnClickListener { // Obsługa kliknięcia FAB
             val intent = Intent(this, AddClientActivity::class.java)
             intent.putExtra("STORE_ID", storeId) // Opcjonalnie, przekaż storeId do AddClientActivity, jeśli potrzebne
+            Log.d("ReceiptListActivity", "Uruchamiam AddClientActivity z STORE_ID: $storeId") // DODAJ LOG
             startActivity(intent) // Uruchom AddClientActivity
         }
     }

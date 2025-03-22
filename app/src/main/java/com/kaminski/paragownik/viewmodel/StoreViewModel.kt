@@ -27,4 +27,7 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
             storeDao.insertStore(store)
         }
     }
+    suspend fun getStoreById(storeId: Long): Store? {
+        return storeDao.getStoreById(storeId)
+    }
 }
