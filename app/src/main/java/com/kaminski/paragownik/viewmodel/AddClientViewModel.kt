@@ -6,11 +6,9 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.kaminski.paragownik.data.AppDatabase
 import com.kaminski.paragownik.data.Client
-import com.kaminski.paragownik.data.ClientReceiptCrossRef
 import com.kaminski.paragownik.data.Receipt
 import com.kaminski.paragownik.data.Store
 import com.kaminski.paragownik.data.daos.ClientDao
-import com.kaminski.paragownik.data.daos.ClientReceiptCrossRefDao
 import com.kaminski.paragownik.data.daos.ReceiptDao
 import com.kaminski.paragownik.data.daos.StoreDao
 import kotlinx.coroutines.Dispatchers
@@ -25,49 +23,52 @@ class AddClientViewModel(application: Application) : AndroidViewModel(applicatio
 
     private val receiptDao: ReceiptDao
     private val clientDao: ClientDao
-    private val clientReceiptCrossRefDao: ClientReceiptCrossRefDao
     private val storeDao: StoreDao
 
     init {
         val database = AppDatabase.getDatabase(application)
         receiptDao = database.receiptDao()
         clientDao = database.clientDao()
-        clientReceiptCrossRefDao = database.clientReceiptCrossRefDao()
         storeDao = database.storeDao()
     }
 
-    suspend fun addClientAndReceipt(
+    suspend fun insertClient(clientDescription: String?): Long = suspendCancellableCoroutine { continuation ->
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                val client = Client(description = clientDescription)
+                val clientId = clientDao.insertClient(client)
+                Log.d("AddClientViewModel", "Dodano klienta. ID Klienta: $clientId, Opis Klienta: $clientDescription")
+                continuation.resume(clientId)
+            } catch (e: Exception) {
+                Log.e("AddClientViewModel", "Błąd dodawania klienta.", e)
+                continuation.resume(-1L) // Zwróć -1L w przypadku błędu
+            }
+        }
+    }
+
+
+    suspend fun insertReceipt(
         storeId: Long, // storeId dla pierwszego paragonu (z ReceiptListActivity, może być -1L jeśli z ekranu głównego - NIEUŻYWANE)
         receiptNumber: String,
         receiptDateString: String,
         verificationDateString: String?,
-        clientDescription: String?,
-        storeNumberForReceipt: String? = null // Numer drogerii (String) dla wszystkich paragonów - UŻYWANE ZAWSZE
+        storeNumberForReceipt: String? = null, // Numer drogerii (String) dla wszystkich paragonów - UŻYWANE ZAWSZE
+        clientId: Long // ID Klienta, do którego przypisujemy paragon
     ): Boolean = suspendCancellableCoroutine { continuation ->
         viewModelScope.launch(Dispatchers.IO) {
-            // 1. Utwórz Klienta
-            val client = Client(description = clientDescription)
-            val clientId = clientDao.insertClient(client)
-
-            // 2. Utwórz Paragon
             val dateFormat = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault())
             dateFormat.isLenient = false
 
             val verificationDateFormat = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault())
             verificationDateFormat.isLenient = false
 
-            Log.d("AddClientViewModel", "verificationDateString przed parsowaniem: $verificationDateString") // DODAJ LOG
-
             try {
                 val receiptDate: Date = dateFormat.parse(receiptDateString) as Date
-                var verificationDate: Date? = null
-                if (!verificationDateString.isNullOrEmpty()) {
-                    verificationDate = verificationDateFormat.parse(verificationDateString) as Date
-                    Log.d("AddClientViewModel", "verificationDate po parsowaniu: $verificationDate") // DODAJ LOG
-                } else {
-                    Log.d("AddClientViewModel", "verificationDateString jest puste, data weryfikacji ustawiona na null") // DODAJ LOG
+                val verificationDate: Date? = try {
+                    if (!verificationDateString.isNullOrEmpty()) verificationDateFormat.parse(verificationDateString) as Date else null
+                } catch (e: Exception) {
+                    null
                 }
-
 
                 // Ustal poprawne storeId dla paragonu - ZAWSZE UŻYWAJ storeNumberForReceipt
                 var receiptStoreId: Long? = null
@@ -98,15 +99,13 @@ class AddClientViewModel(application: Application) : AndroidViewModel(applicatio
                     receiptNumber = receiptNumber,
                     receiptDate = receiptDate,
                     storeId = receiptStoreId, // Użyj ustalonego storeId
-                    verificationDate = verificationDate
+                    verificationDate = verificationDate,
+                    clientId = clientId // Przypisz clientId do paragonu
                 )
                 val receiptId = receiptDao.insertReceipt(receipt)
 
-                // 3. Utwórz relację ClientReceiptCrossRef
-                val crossRef = ClientReceiptCrossRef(clientId = clientId, receiptId = receiptId)
-                clientReceiptCrossRefDao.insert(crossRef)
 
-                Log.d("AddClientViewModel", "Klient i Paragon dodane pomyślnie. ID Klienta: $clientId, ID Paragonu: $receiptId, Data Weryfikacji: $verificationDate, Opis Klienta: $clientDescription, Numer Drogerii: $storeNumberForReceipt, ID Drogerii: $receiptStoreId")
+                Log.d("AddClientViewModel", "Paragon dodany pomyślnie. ID Paragonu: $receiptId, Data Weryfikacji: $verificationDate, Numer Drogerii: $storeNumberForReceipt, ID Drogerii: $receiptStoreId, ID Klienta: $clientId")
                 continuation.resume(true)
 
             } catch (e: Exception) {
@@ -114,4 +113,5 @@ class AddClientViewModel(application: Application) : AndroidViewModel(applicatio
                 continuation.resume(false)
             }
         }
-    }}
+    }
+}

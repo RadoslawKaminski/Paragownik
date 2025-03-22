@@ -8,16 +8,14 @@ import androidx.room.TypeConverters
 import com.kaminski.paragownik.data.daos.ClientDao
 import com.kaminski.paragownik.data.daos.ReceiptDao
 import com.kaminski.paragownik.data.daos.StoreDao
-import com.kaminski.paragownik.data.daos.ClientReceiptCrossRefDao // Dodaj import
 
-@Database(entities = [Store::class, Receipt::class, Client::class, ClientReceiptCrossRef::class], version = 1, exportSchema = false)
+@Database(entities = [Store::class, Receipt::class, Client::class], version = 2, exportSchema = false) // Zwiększ wersję bazy danych do 2
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
 
     abstract fun storeDao(): StoreDao
     abstract fun receiptDao(): ReceiptDao
     abstract fun clientDao(): ClientDao
-    abstract fun clientReceiptCrossRefDao(): ClientReceiptCrossRefDao // Dodaj ClientReceiptCrossRefDao
 
     companion object {
         @Volatile
@@ -30,7 +28,7 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "app_database"
                 )
-                    .fallbackToDestructiveMigration()
+                    .fallbackToDestructiveMigration() // Pamiętaj o migracjach w produkcji
                     .build()
                 INSTANCE = instance
                 instance

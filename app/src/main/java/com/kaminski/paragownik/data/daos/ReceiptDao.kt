@@ -15,7 +15,7 @@ interface ReceiptDao {
 
     @Transaction // Dodaj @Transaction
     @Query("SELECT * FROM receipts WHERE storeId = :storeId")
-    fun getReceiptsForStore(storeId: Long): Flow<List<ReceiptWithClient>> // Zmień typ zwracany na Flow<List<ReceiptWithClient>>
+    fun getReceiptsForStore(storeId: Long): Flow<List<ReceiptWithClient>> // Zwraca Flow<List<ReceiptWithClient>>
 
     @Query("SELECT * FROM receipts WHERE receiptNumber = :receiptNumber")
     suspend fun getReceiptByNumber(receiptNumber: String): Receipt?

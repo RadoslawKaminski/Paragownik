@@ -1,24 +1,18 @@
 package com.kaminski.paragownik.data
 
 import androidx.room.Entity
-import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
 import java.util.Date
 
 @Entity(tableName = "receipts",
-    indices = [Index("storeId")], // Dodaj indeks na storeId
-    foreignKeys = [ForeignKey(
-        entity = Store::class,
-        parentColumns = ["id"],
-        childColumns = ["storeId"],
-        onDelete = ForeignKey.CASCADE
-    )]
+    indices = [Index("clientId")] // Indeks na clientId zamiast storeId
 )
 data class Receipt(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
     val receiptNumber: String,
     val receiptDate: Date,
-    val storeId: Long,
-    val verificationDate: Date? = null
+    val storeId: Long, // Pozostawiamy storeId, relacja do drogerii zostaje
+    val verificationDate: Date? = null,
+    val clientId: Long // Dodana kolumna clientId
 )

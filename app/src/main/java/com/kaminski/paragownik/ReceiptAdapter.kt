@@ -27,9 +27,9 @@ class ReceiptAdapter(var receiptList: List<ReceiptWithClient>) :
     }
 
     override fun onBindViewHolder(holder: ReceiptViewHolder, position: Int) {
-        val currentReceiptWithClient = receiptList[position] // Zmień typ zmiennej
-        val currentReceipt = currentReceiptWithClient.receipt // Pobierz Receipt z ReceiptWithClient
-        val client = currentReceiptWithClient.clients.firstOrNull() // Pobierz pierwszego klienta z listy (powinien być co najwyżej jeden)
+        val currentReceiptWithClient = receiptList[position]
+        val currentReceipt = currentReceiptWithClient.receipt
+        val client = currentReceiptWithClient.client // Pobierz klienta bezpośrednio z ReceiptWithClient
         val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
 
         holder.receiptNumberTextView.text = "Numer paragonu: ${currentReceipt.receiptNumber}"
@@ -37,7 +37,7 @@ class ReceiptAdapter(var receiptList: List<ReceiptWithClient>) :
         holder.verificationDateTextView.text = currentReceipt.verificationDate?.let {
             "Data weryfikacji: ${dateFormat.format(it)}"
         } ?: "Data weryfikacji: Brak"
-        holder.clientDescriptionTextView.text = client?.description ?: "Brak opisu klienta" // Wyświetl opis klienta lub "Brak opisu klienta"
+        holder.clientDescriptionTextView.text = client?.description ?: "Brak opisu klienta" // Użyj client?.description
     }
 
     override fun getItemCount() = receiptList.size
