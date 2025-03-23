@@ -31,4 +31,10 @@ interface ReceiptDao {
     @Transaction
     @Query("SELECT * FROM receipts WHERE id = :receiptId")
     fun getReceiptWithClientFlow(receiptId: Long): Flow<ReceiptWithClient>
+
+    @Query("SELECT COUNT(*) FROM receipts WHERE clientId = :clientId") // Dodana funkcja
+    suspend fun getReceiptsForClientCount(clientId: Long): Int
+
+    @Query("SELECT COUNT(*) FROM receipts WHERE storeId = :storeId") // Dodana funkcja
+    suspend fun getReceiptsForStoreCount(storeId: Long): Int
 }

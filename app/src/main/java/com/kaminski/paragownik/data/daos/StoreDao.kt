@@ -3,6 +3,7 @@ package com.kaminski.paragownik.data.daos
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
+import androidx.room.Delete
 import com.kaminski.paragownik.data.Store
 import kotlinx.coroutines.flow.Flow
 
@@ -10,6 +11,9 @@ import kotlinx.coroutines.flow.Flow
 interface StoreDao {
     @Insert
     suspend fun insertStore(store: Store)
+
+    @Delete
+    suspend fun deleteStore(store: Store)
 
     @Query("SELECT * FROM stores")
     fun getAllStores(): Flow<List<Store>>

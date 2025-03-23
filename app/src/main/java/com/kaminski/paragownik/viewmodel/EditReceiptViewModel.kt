@@ -138,12 +138,48 @@ class EditReceiptViewModel(application: Application) : AndroidViewModel(applicat
         }
     }
 
-    suspend fun deleteReceipt(receipt: Receipt): Boolean = suspendCancellableCoroutine { continuation -> // Dodana funkcja deleteReceipt
+    suspend fun deleteReceipt(receipt: Receipt): Boolean = suspendCancellableCoroutine { continuation -> // Poprawiona funkcja deleteReceipt
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                receiptDao.deleteReceipt(receipt)
-                Log.d("EditReceiptViewModel", "Paragon usunięty pomyślnie. ID Paragonu: ${receipt.id}")
-                continuation.resume(true)
+                val receiptToDelete = receiptDao.getReceiptById(receipt.id) // Pobierz paragon do usunięcia (dla pewności)
+
+                receiptToDelete?.let {
+                    receiptDao.deleteReceipt(it) // Usuń paragon
+
+                    // Sprawdź, czy klient ma jeszcze jakieś paragony
+                    val clientId = it.clientId
+                    if (clientId != null) {
+                        val clientReceiptsCount = receiptDao.getReceiptsForClientCount(clientId) // Dodaj funkcję DAO
+                        if (clientReceiptsCount == 0) {
+                            // Usuń klienta, jeśli nie ma już paragonów
+                            val clientToDelete = clientDao.getClientById(clientId)
+                            clientToDelete?.let { client ->
+                                clientDao.deleteClient(client) // Usuń klienta
+                                Log.d("EditReceiptViewModel", "Klient usunięty automatycznie (brak paragonów). ID Klienta: ${client.id}")
+                            }
+                        }
+                    }
+
+                    // Sprawdź, czy drogeria ma jeszcze jakieś paragony
+                    val storeId = it.storeId
+                    val storeReceiptsCount = receiptDao.getReceiptsForStoreCount(storeId) // Dodaj funkcję DAO
+                    if (storeReceiptsCount == 0) {
+                        // Usuń drogerię, jeśli nie ma już paragonów
+                        val storeToDelete = storeDao.getStoreById(storeId)
+                        storeToDelete?.let { store ->
+                            storeDao.deleteStore(store) // Dodaj funkcję DAO
+                            Log.d("EditReceiptViewModel", "Drogeria usunięta automatycznie (brak paragonów). ID Drogerii: ${store.id}")
+                        }
+                    }
+
+                    Log.d("EditReceiptViewModel", "Paragon usunięty pomyślnie. ID Paragonu: ${receipt.id}")
+                    continuation.resume(true)
+                } ?: run {
+                    Log.e("EditReceiptViewModel", "Nie znaleziono paragonu do usunięcia. ID Paragonu: ${receipt.id}")
+                    continuation.resume(false)
+                }
+
+
             } catch (e: Exception) {
                 Log.e("EditReceiptViewModel", "Błąd podczas usuwania paragonu.", e)
                 continuation.resume(false)
