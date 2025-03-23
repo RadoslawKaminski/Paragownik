@@ -53,10 +53,8 @@ class MainActivity : AppCompatActivity(), StoreAdapter.OnItemClickListener {
     }
 
     private fun insertSampleStores() {
-        storeViewModel.insertStore(Store(storeNumber = "123"))
-        storeViewModel.insertStore(Store(storeNumber = "456"))
-        storeViewModel.insertStore(Store(storeNumber = "789"))
-        storeViewModel.insertStore(Store(storeNumber = "101"))
+        //storeViewModel.insertStore(Store(storeNumber = "123"))
+        //storeViewModel.insertStore(Store(storeNumber = "456"))
     }
 
     override fun onItemClick(storeId: Long) {
