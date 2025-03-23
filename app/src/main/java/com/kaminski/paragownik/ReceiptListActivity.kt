@@ -51,8 +51,6 @@ class ReceiptListActivity : AppCompatActivity(), ReceiptAdapter.OnEditButtonClic
         }
     }
     override fun onEditButtonClick(receiptId: Long) { // Implementacja metody interfejsu
-        // TODO: Uruchom EditReceiptActivity i przekaz receiptId
-        Log.d("ReceiptListActivity", "Edycja paragonu o ID: $receiptId") // Tymczasowy log
         val intent = Intent(this, EditReceiptActivity::class.java)
         intent.putExtra("RECEIPT_ID", receiptId) // Przekaz receiptId jako extra
         startActivity(intent) // Uruchom EditReceiptActivity
