@@ -137,4 +137,30 @@ class EditReceiptViewModel(application: Application) : AndroidViewModel(applicat
             }
         }
     }
+
+    suspend fun deleteReceipt(receipt: Receipt): Boolean = suspendCancellableCoroutine { continuation -> // Dodana funkcja deleteReceipt
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                receiptDao.deleteReceipt(receipt)
+                Log.d("EditReceiptViewModel", "Paragon usunięty pomyślnie. ID Paragonu: ${receipt.id}")
+                continuation.resume(true)
+            } catch (e: Exception) {
+                Log.e("EditReceiptViewModel", "Błąd podczas usuwania paragonu.", e)
+                continuation.resume(false)
+            }
+        }
+    }
+
+    suspend fun deleteClient(client: Client): Boolean = suspendCancellableCoroutine { continuation -> // Dodana funkcja deleteClient
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                clientDao.deleteClient(client)
+                Log.d("EditReceiptViewModel", "Klient i powiązane paragony usunięte pomyślnie. ID Klienta: ${client.id}")
+                continuation.resume(true)
+            } catch (e: Exception) {
+                Log.e("EditReceiptViewModel", "Błąd podczas usuwania klienta i paragonów.", e)
+                continuation.resume(false)
+            }
+        }
+    }
 }

@@ -1,6 +1,7 @@
 package com.kaminski.paragownik.data.daos
 
 import androidx.room.Dao
+import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Transaction
@@ -14,15 +15,18 @@ interface ReceiptDao {
     @Insert
     suspend fun insertReceipt(receipt: Receipt): Long
 
-    @Transaction // Dodaj @Transaction
-    @Query("SELECT * FROM receipts WHERE storeId = :storeId")
-    fun getReceiptsForStore(storeId: Long): Flow<List<ReceiptWithClient>>
+    @Update
+    suspend fun updateReceipt(receipt: Receipt)
+
+    @Delete // Dodana funkcja deleteReceipt
+    suspend fun deleteReceipt(receipt: Receipt)
 
     @Query("SELECT * FROM receipts WHERE id = :receiptId")
     suspend fun getReceiptById(receiptId: Long): Receipt?
 
-    @Update
-    suspend fun updateReceipt(receipt: Receipt)
+    @Transaction // Dodaj @Transaction
+    @Query("SELECT * FROM receipts WHERE storeId = :storeId")
+    fun getReceiptsForStore(storeId: Long): Flow<List<ReceiptWithClient>>
 
     @Transaction
     @Query("SELECT * FROM receipts WHERE id = :receiptId")

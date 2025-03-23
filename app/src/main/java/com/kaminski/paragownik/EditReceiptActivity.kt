@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Locale
+import androidx.appcompat.app.AlertDialog
 
 class EditReceiptActivity : AppCompatActivity() {
 
@@ -64,6 +65,12 @@ class EditReceiptActivity : AppCompatActivity() {
         saveReceiptButton.setOnClickListener {
             saveChanges()
         }
+        deleteReceiptButton.setOnClickListener { // Listener dla przycisku "Usuń paragon"
+            deleteReceiptDialog()
+        }
+        deleteClientButton.setOnClickListener { // Listener dla przycisku "Usuń klienta"
+            deleteClientDialog()
+        }
     }
 
     private fun saveChanges() {
@@ -112,6 +119,95 @@ class EditReceiptActivity : AppCompatActivity() {
         }
     }
 
+    private fun deleteReceiptDialog() { // Funkcja deleteReceiptDialog
+        AlertDialog.Builder(this)
+            .setTitle("Potwierdzenie usunięcia")
+            .setMessage("Czy na pewno chcesz usunąć ten paragon?")
+            .setPositiveButton("Usuń") { _, _ ->
+                deleteReceipt() // Wywołaj funkcję usuwania paragonu po potwierdzeniu
+            }
+            .setNegativeButton("Anuluj", null)
+            .setIcon(android.R.drawable.ic_dialog_alert)
+            .show()
+    }
+
+    private fun deleteReceipt() { // Funkcja deleteReceipt
+        lifecycleScope.launch {
+            // Pobierz ReceiptWithClient (tylko paragon jest potrzebny do usunięcia)
+            editReceiptViewModel.getReceiptWithClient(receiptId)
+                .collectLatest { pair ->
+                    val receiptWithClient = pair.first
+                    receiptWithClient?.receipt?.let { receiptToDelete ->
+                        val isSuccess = editReceiptViewModel.deleteReceipt(receiptToDelete)
+                        if (isSuccess) {
+                            Toast.makeText(
+                                this@EditReceiptActivity,
+                                "Paragon usunięty",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                            finish() // Powrót do ReceiptListActivity po usunięciu
+                        } else {
+                            Toast.makeText(
+                                this@EditReceiptActivity,
+                                "Błąd usuwania paragonu",
+                                Toast.LENGTH_LONG
+                            ).show()
+                        }
+                    } ?: run {
+                        Toast.makeText(
+                            this@EditReceiptActivity,
+                            "Nie można pobrać paragonu do usunięcia",
+                            Toast.LENGTH_LONG
+                        ).show()
+                    }
+                }
+        }
+    }
+
+    private fun deleteClientDialog() { // Funkcja deleteClientDialog
+        AlertDialog.Builder(this)
+            .setTitle("Potwierdzenie usunięcia klienta")
+            .setMessage("Czy na pewno chcesz usunąć tego klienta i WSZYSTKIE jego paragony?") // Dodano ostrzeżenie o paragonach
+            .setPositiveButton("Usuń") { _, _ ->
+                deleteClient() // Wywołaj funkcję usuwania klienta po potwierdzeniu
+            }
+            .setNegativeButton("Anuluj", null)
+            .setIcon(android.R.drawable.ic_dialog_alert)
+            .show()
+    }
+
+    private fun deleteClient() { // Funkcja deleteClient
+        lifecycleScope.launch {
+            // Pobierz ReceiptWithClient (klient jest potrzebny do usunięcia)
+            editReceiptViewModel.getReceiptWithClient(receiptId)
+                .collectLatest { pair ->
+                    val receiptWithClient = pair.first
+                    receiptWithClient?.client?.let { clientToDelete ->
+                        val isSuccess = editReceiptViewModel.deleteClient(clientToDelete)
+                        if (isSuccess) {
+                            Toast.makeText(
+                                this@EditReceiptActivity,
+                                "Klient i paragony usunięte",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                            finish() // Powrót do ReceiptListActivity po usunięciu
+                        } else {
+                            Toast.makeText(
+                                this@EditReceiptActivity,
+                                "Błąd usuwania klienta i paragonów",
+                                Toast.LENGTH_LONG
+                            ).show()
+                        }
+                    } ?: run {
+                        Toast.makeText(
+                            this@EditReceiptActivity,
+                            "Nie można pobrać klienta do usunięcia",
+                            Toast.LENGTH_LONG
+                        ).show()
+                    }
+                }
+        }
+    }
 
     private fun setupVerificationDateCheckBox() {
         editVerificationDateTodayCheckBox.setOnCheckedChangeListener { _, isChecked ->
