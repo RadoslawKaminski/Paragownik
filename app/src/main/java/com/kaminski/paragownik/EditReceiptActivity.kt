@@ -1,5 +1,6 @@
 package com.kaminski.paragownik
 
+import android.content.Intent
 import android.os.Bundle
 import android.text.InputType
 import android.widget.Button
@@ -169,6 +170,7 @@ class EditReceiptActivity : AppCompatActivity() {
             .setTitle("Potwierdzenie usunięcia klienta")
             .setMessage("Czy na pewno chcesz usunąć tego klienta i WSZYSTKIE jego paragony?") // Dodano ostrzeżenie o paragonach
             .setPositiveButton("Usuń") { _, _ ->
+                EditReceiptViewModel.receiptIdForDeletion = receiptId // Ustaw receiptIdForDeletion
                 deleteClient() // Wywołaj funkcję usuwania klienta po potwierdzeniu
             }
             .setNegativeButton("Anuluj", null)
@@ -190,7 +192,9 @@ class EditReceiptActivity : AppCompatActivity() {
                                 "Klient i paragony usunięte",
                                 Toast.LENGTH_SHORT
                             ).show()
-                            finish() // Powrót do ReceiptListActivity po usunięciu
+                            // finish() // Usuń finish() - nie wracaj do ReceiptListActivity
+                            finishAffinity() // Zamknięcie EditReceiptActivity i ReceiptListActivity
+                            startActivity(Intent(this@EditReceiptActivity, MainActivity::class.java)) // Powrót do MainActivity - EKRAN GŁÓWNY
                         } else {
                             Toast.makeText(
                                 this@EditReceiptActivity,

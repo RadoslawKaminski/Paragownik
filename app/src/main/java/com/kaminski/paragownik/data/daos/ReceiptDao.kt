@@ -37,4 +37,8 @@ interface ReceiptDao {
 
     @Query("SELECT COUNT(*) FROM receipts WHERE storeId = :storeId") // Dodana funkcja
     suspend fun getReceiptsForStoreCount(storeId: Long): Int
+
+    @Transaction
+    @Query("SELECT * FROM receipts WHERE id = :receiptId")
+    suspend fun getReceiptWithClient(receiptId: Long): ReceiptWithClient? // Dodana funkcja suspend
 }

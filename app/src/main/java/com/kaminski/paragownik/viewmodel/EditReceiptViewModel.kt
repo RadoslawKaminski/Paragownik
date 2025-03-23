@@ -12,8 +12,10 @@ import com.kaminski.paragownik.data.Store
 import com.kaminski.paragownik.data.daos.ClientDao
 import com.kaminski.paragownik.data.daos.ReceiptDao
 import com.kaminski.paragownik.data.daos.StoreDao
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.flatMapConcat
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
@@ -187,16 +189,62 @@ class EditReceiptViewModel(application: Application) : AndroidViewModel(applicat
         }
     }
 
-    suspend fun deleteClient(client: Client): Boolean = suspendCancellableCoroutine { continuation -> // Dodana funkcja deleteClient
-        viewModelScope.launch(Dispatchers.IO) {
+    suspend fun deleteClient(client: Client): Boolean = suspendCancellableCoroutine { continuation -> // Poprawiona funkcja deleteClient
+        viewModelScope.launch(Dispatchers.IO, CoroutineStart.UNDISPATCHED) { // ZMIANA - CoroutineStart.UNDISPATCHED
+            Log.d("EditReceiptViewModel", "deleteClient: Rozpoczęto usuwanie klienta. ID Klienta: ${client.id}")
             try {
-                clientDao.deleteClient(client)
-                Log.d("EditReceiptViewModel", "Klient i powiązane paragony usunięte pomyślnie. ID Klienta: ${client.id}")
-                continuation.resume(true)
+                val clientToDelete = clientDao.getClientById(client.id) // Pobierz klienta do usunięcia (dla pewności)
+                clientToDelete?.let {
+                    Log.d("EditReceiptViewModel", "deleteClient: Klient pobrany z bazy danych. ID Klienta: ${client.id}")
+
+                    // Pobierz storeId paragonu klienta PRZED usunięciem klienta (potrzebne do sprawdzenia drogerii)
+                    var storeIdToDeleteCheck: Long? = null
+
+                    // Użyj runBlocking, aby jednorazowo pobrać ReceiptWithClient i storeId
+                    storeIdToDeleteCheck = receiptDao.getReceiptWithClient(receiptIdForDeletion)?.receipt?.storeId
+
+
+                    Log.d("EditReceiptViewModel", "deleteClient: storeId paragonu pobrane. storeId: $storeIdToDeleteCheck")
+
+
+                    Log.d("EditReceiptViewModel", "deleteClient: Usuwanie klienta z bazy danych. ID Klienta: ${client.id}")
+                    clientDao.deleteClient(it) // Usuń klienta - kaskada powinna usunąć paragony
+                    Log.d("EditReceiptViewModel", "deleteClient: Klient usunięty z bazy danych. ID Klienta: ${client.id}")
+
+
+                    Log.d("EditReceiptViewModel", "deleteClient: Sprawdzanie drogerii do automatycznego usunięcia.")
+                    // Sprawdź, czy drogeria ma jeszcze jakieś paragony (po usunięciu klienta i jego paragonów)
+                    storeIdToDeleteCheck?.let { storeId ->
+                        val storeReceiptsCount = receiptDao.getReceiptsForStoreCount(storeId)
+                        Log.d("EditReceiptViewModel", "deleteClient: Liczba paragonów drogerii po usunięciu klienta: $storeReceiptsCount, ID Drogerii: $storeId")
+                        if (storeReceiptsCount == 0) {
+                            // Usuń drogerię, jeśli nie ma już paragonów
+                            val storeToDelete = storeDao.getStoreById(storeId)
+                            storeToDelete?.let { store ->
+                                Log.d("EditReceiptViewModel", "deleteClient: Usuwanie drogerii z bazy danych. ID Drogerii: ${store.id}")
+                                storeDao.deleteStore(store)
+                                Log.d("EditReceiptViewModel", "deleteClient: Drogeria usunięta z bazy danych. ID Drogerii: ${store.id}")
+                            }
+                        }
+                    }
+
+                    Log.d("EditReceiptViewModel", "deleteClient: Usuwanie klienta zakończone sukcesem. ID Klienta: ${client.id}")
+                    continuation.resume(true)
+
+                } ?: run {
+                    Log.e("EditReceiptViewModel", "deleteClient: Nie znaleziono klienta do usunięcia. ID Klienta: ${client.id}")
+                    continuation.resume(false)
+                }
+
+
             } catch (e: Exception) {
-                Log.e("EditReceiptViewModel", "Błąd podczas usuwania klienta i paragonów.", e)
+                Log.e("EditReceiptViewModel", "deleteClient: Błąd podczas usuwania klienta i paragonów.", e)
                 continuation.resume(false)
             }
         }
+    }
+
+    companion object {
+        var receiptIdForDeletion: Long = -1L
     }
 }
