@@ -3,16 +3,23 @@ package com.kaminski.paragownik
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
-import com.kaminski.paragownik.data.Receipt
 import com.kaminski.paragownik.data.ReceiptWithClient
 import java.text.SimpleDateFormat
 import java.util.Locale
 
-class ReceiptAdapter(var receiptList: List<ReceiptWithClient>) :
+class ReceiptAdapter(
+    var receiptList: List<ReceiptWithClient>,
+    private val editButtonClickListener: OnEditButtonClickListener
+
+) :
     RecyclerView.Adapter<ReceiptAdapter.ReceiptViewHolder>() {
 
+    interface OnEditButtonClickListener {
+        fun onEditButtonClick(receiptId: Long)
+    }
     class ReceiptViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val receiptNumberTextView: TextView = itemView.findViewById(R.id.receiptNumberTextView)
         val receiptDateTextView: TextView = itemView.findViewById(R.id.receiptDateTextView)
@@ -38,6 +45,10 @@ class ReceiptAdapter(var receiptList: List<ReceiptWithClient>) :
             "Data weryfikacji: ${dateFormat.format(it)}"
         } ?: "Data weryfikacji: Brak"
         holder.clientDescriptionTextView.text = client?.description ?: "Brak opisu klienta" // Użyj client?.description
+
+        holder.itemView.findViewById<Button>(R.id.editReceiptButton).setOnClickListener { // Dodaj listener kliknięcia
+            editButtonClickListener.onEditButtonClick(currentReceipt.id)
+        }
     }
 
     override fun getItemCount() = receiptList.size

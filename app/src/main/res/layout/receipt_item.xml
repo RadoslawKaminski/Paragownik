@@ -1,11 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
     android:padding="16dp"
-    android:background="@color/light_brown_background"> <!-- Opcjonalnie, tło elementu listy też może być brązowe -->
+    android:background="@color/light_brown_background">
 
     <TextView
         android:id="@+id/receiptNumberTextView"
@@ -13,27 +12,51 @@
         android:layout_height="wrap_content"
         android:textSize="18sp"
         android:textStyle="bold"
-        android:text="Numer paragonu: 12345" /> <!-- Przykładowy tekst -->
+        android:text="Numer paragonu: 12345" />
 
     <TextView
         android:id="@+id/receiptDateTextView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:textSize="16sp"
-        android:text="Data paragonu: 2024-01-01" /> <!-- Przykładowy tekst -->
+        android:text="Data paragonu: 2024-01-01" />
 
     <TextView
         android:id="@+id/verificationDateTextView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:textSize="16sp"
-        android:text="Data weryfikacji: 2024-01-02" /> <!-- Przykładowy tekst -->
+        android:text="Data weryfikacji: 2024-01-02" />
 
-    <TextView
-        android:id="@+id/clientDescriptionTextView"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textSize="16sp"
-        android:text="Opis klienta: Brak" /> <!-- Przykładowy tekst -->
+        android:orientation="horizontal"
+        android:gravity="center_vertical"> <!-- Dodano LinearLayout poziomy -->
+
+        <TextView
+            android:id="@+id/clientDescriptionTextView"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:textSize="16sp"
+            android:text="Opis klienta: Brak" />
+
+        <Button
+            android:id="@+id/editReceiptButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="e"
+            android:textSize="16sp"
+            android:padding="8dp"
+            android:minWidth="0dp"
+            android:minHeight="0dp"
+            android:insetTop="0dp"
+            android:insetBottom="0dp"
+            android:insetLeft="0dp"
+            android:insetRight="0dp"
+            android:backgroundTint="@color/teal_700"
+            android:textColor="@color/white_text" />
+    </LinearLayout>
 
 </LinearLayout>

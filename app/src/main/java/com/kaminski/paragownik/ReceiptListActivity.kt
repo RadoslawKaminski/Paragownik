@@ -10,7 +10,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.kaminski.paragownik.viewmodel.ReceiptViewModel
 
-class ReceiptListActivity : AppCompatActivity() {
+class ReceiptListActivity : AppCompatActivity(), ReceiptAdapter.OnEditButtonClickListener {
 
     private lateinit var receiptRecyclerView: RecyclerView
     private lateinit var receiptAdapter: ReceiptAdapter
@@ -24,7 +24,7 @@ class ReceiptListActivity : AppCompatActivity() {
         receiptRecyclerView = findViewById(R.id.receiptRecyclerView)
         receiptRecyclerView.layoutManager = LinearLayoutManager(this)
 
-        receiptAdapter = ReceiptAdapter(emptyList())
+        receiptAdapter = ReceiptAdapter(emptyList(), this)
         receiptRecyclerView.adapter = receiptAdapter
 
         receiptViewModel = ViewModelProvider(this).get(ReceiptViewModel::class.java)
@@ -49,5 +49,12 @@ class ReceiptListActivity : AppCompatActivity() {
             Log.d("ReceiptListActivity", "Uruchamiam AddClientActivity z STORE_ID: $storeId") // DODAJ LOG
             startActivity(intent) // Uruchom AddClientActivity
         }
+    }
+    override fun onEditButtonClick(receiptId: Long) { // Implementacja metody interfejsu
+        // TODO: Uruchom EditReceiptActivity i przekaz receiptId
+        Log.d("ReceiptListActivity", "Edycja paragonu o ID: $receiptId") // Tymczasowy log
+        val intent = Intent(this, EditReceiptActivity::class.java)
+        intent.putExtra("RECEIPT_ID", receiptId) // Przekaz receiptId jako extra
+        startActivity(intent) // Uruchom EditReceiptActivity
     }
 }
