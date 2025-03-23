@@ -5,6 +5,7 @@ import android.text.InputType
 import android.widget.Button
 import android.widget.CheckBox
 import android.widget.EditText
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
@@ -59,6 +60,35 @@ class EditReceiptActivity : AppCompatActivity() {
         setupVerificationDateCheckBox()
 
         loadReceiptData() // Załaduj dane paragonu
+
+        saveReceiptButton.setOnClickListener {
+            saveChanges()
+        }
+    }
+
+    private fun saveChanges() {
+        val storeNumberString = editReceiptStoreNumberEditText.text.toString()
+        val receiptNumber = editReceiptNumberEditText.text.toString()
+        val receiptDateString = editReceiptDateEditText.text.toString()
+        val verificationDateString = editVerificationDateEditText.text.toString()
+        val clientDescription = editClientDescriptionEditText.text.toString()
+
+        lifecycleScope.launch {
+            val isSuccess = editReceiptViewModel.updateReceiptAndClient(
+                receiptId = receiptId,
+                storeNumberString = storeNumberString,
+                receiptNumber = receiptNumber,
+                receiptDateString = receiptDateString,
+                verificationDateString = verificationDateString,
+                clientDescription = clientDescription
+            )
+            if (isSuccess) {
+                Toast.makeText(this@EditReceiptActivity, "Zmiany zapisane", Toast.LENGTH_SHORT).show()
+                finish() // Powrót do ReceiptListActivity po zapisaniu
+            } else {
+                Toast.makeText(this@EditReceiptActivity, "Błąd zapisu zmian", Toast.LENGTH_LONG).show()
+            }
+        }
     }
 
     private fun loadReceiptData() {

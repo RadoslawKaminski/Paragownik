@@ -3,6 +3,7 @@ package com.kaminski.paragownik.data.daos
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
+import androidx.room.Update
 import com.kaminski.paragownik.data.Client
 import kotlinx.coroutines.flow.Flow
 
@@ -10,6 +11,9 @@ import kotlinx.coroutines.flow.Flow
 interface ClientDao {
     @Insert
     suspend fun insertClient(client: Client): Long
+
+    @Update // Dodana funkcja updateClient
+    suspend fun updateClient(client: Client)
 
     @Query("SELECT * FROM clients")
     fun getAllClients(): Flow<List<Client>>
