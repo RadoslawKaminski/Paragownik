@@ -146,7 +146,9 @@ class EditReceiptActivity : AppCompatActivity() {
                                 "Paragon usunięty",
                                 Toast.LENGTH_SHORT
                             ).show()
-                            finish() // Powrót do ReceiptListActivity po usunięciu
+                            //finish() // Powrót do ReceiptListActivity po usunięciu
+                            finishAffinity() // Zamknięcie EditReceiptActivity i ReceiptListActivity
+                            startActivity(Intent(this@EditReceiptActivity, MainActivity::class.java)) // Powrót do MainActivity - EKRAN GŁÓWNY
                         } else {
                             Toast.makeText(
                                 this@EditReceiptActivity,
