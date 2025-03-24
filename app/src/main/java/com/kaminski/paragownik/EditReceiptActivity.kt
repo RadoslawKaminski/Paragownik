@@ -3,6 +3,7 @@ package com.kaminski.paragownik
 import android.content.Intent
 import android.os.Bundle
 import android.text.InputType
+import android.view.View
 import android.widget.Button
 import android.widget.CheckBox
 import android.widget.EditText
@@ -72,6 +73,12 @@ class EditReceiptActivity : AppCompatActivity() {
         deleteClientButton.setOnClickListener { // Listener dla przycisku "Usuń klienta"
             deleteClientDialog()
         }
+        // Wymuś warstwę programową dla EditTextów (jeśli warstwa sprzętowa w stylu nie działa)
+        editReceiptStoreNumberEditText.setLayerType(View.LAYER_TYPE_SOFTWARE, null)
+        editReceiptNumberEditText.setLayerType(View.LAYER_TYPE_SOFTWARE, null)
+        editReceiptDateEditText.setLayerType(View.LAYER_TYPE_SOFTWARE, null)
+        editVerificationDateEditText.setLayerType(View.LAYER_TYPE_SOFTWARE, null)
+        editClientDescriptionEditText.setLayerType(View.LAYER_TYPE_SOFTWARE, null)
     }
 
     private fun saveChanges() {

@@ -43,7 +43,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:textSize="18sp"
-                        android:text="Numer drogerii:"/>
+                        android:text="Drogeria:"/>
 
                     <EditText
                         android:id="@+id/receiptStoreNumberEditText"
@@ -65,7 +65,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:textSize="18sp"
-                        android:text="Numer paragonu:"/>
+                        android:text="Paragon:"/>
 
                     <EditText
                         android:id="@+id/receiptNumberEditText"
@@ -94,7 +94,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:textSize="18sp"
-                        android:text="Data paragonu:"/>
+                        android:text="Data:"/>
 
                     <EditText
                         android:id="@+id/receiptDateEditText"
@@ -115,7 +115,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:textSize="18sp"
-                        android:text="Data weryfikacji:"/>
+                        android:text="Weryfikacja:"/>
                     <CheckBox
                         android:id="@+id/verificationDateTodayCheckBox"
                         android:layout_width="wrap_content"
@@ -131,15 +131,6 @@
                         android:hint="DD-MM-YYYY (opcjonalne)" />
                 </LinearLayout>
             </LinearLayout>
-
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:background="@color/white_text"
-                android:layout_marginTop="16dp"
-                android:layout_marginBottom="16dp"
-                android:layout_marginStart="16dp"
-                android:layout_marginEnd="16dp"/>
         </LinearLayout>
 
         <!-- Pole opisu klienta przeniesione tutaj -->
@@ -147,6 +138,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:textSize="18sp"
+            android:layout_marginTop="16dp"
             android:text="Opis klienta:"/>
 
         <EditText
@@ -158,6 +150,14 @@
             android:hint="Wprowadź opis klienta"
             android:layout_marginBottom="24dp"/>
 
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@color/white_text"
+            android:layout_marginTop="0dp"
+            android:layout_marginBottom="16dp"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="16dp"/>
 
         <LinearLayout
             android:id="@+id/receiptsContainer"

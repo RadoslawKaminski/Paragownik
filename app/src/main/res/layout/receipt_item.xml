@@ -12,21 +12,21 @@
         android:layout_height="wrap_content"
         android:textSize="18sp"
         android:textStyle="bold"
-        android:text="Numer paragonu: 12345" />
+        android:text="Paragon: 12345" />
 
     <TextView
         android:id="@+id/receiptDateTextView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:textSize="16sp"
-        android:text="Data paragonu: 2024-01-01" />
+        android:text="Data: 2024-01-01" />
 
     <TextView
         android:id="@+id/verificationDateTextView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:textSize="16sp"
-        android:text="Data weryfikacji: 2024-01-02" />
+        android:text="Weryfikacja: 2024-01-02" />
 
     <LinearLayout
         android:layout_width="match_parent"

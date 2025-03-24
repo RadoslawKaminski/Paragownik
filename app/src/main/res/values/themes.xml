@@ -27,5 +27,11 @@
         <item name="android:textColorHint">@color/sub_white_text</item> <!-- Kolor hintu -->
         <item name="colorControlNormal">@color/sub_white_text</item> <!-- Kolor linii - stan normalny -->
         <item name="colorControlActivated">@color/white_text</item> <!-- Kolor linii - stan aktywny (focus) -->
+
+        <item name="android:background">@drawable/rounded_edittext_background</item> <!-- Dodaj tło z zaokrąglonymi rogami -->
+        <item name="android:padding">12dp</item> <!-- Dodaj padding wewnątrz EditTexta -->
+        <item name="android:layout_marginBottom">8dp</item> <!-- Dodaj domyślny margin bottom, jeśli chcesz -->
+
+        <item name="android:layerType">hardware</item> <!-- Dodaj warstwę sprzętową -->
     </style>
 </resources>
