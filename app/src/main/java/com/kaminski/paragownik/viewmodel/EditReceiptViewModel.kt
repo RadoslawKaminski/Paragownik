@@ -176,7 +176,7 @@ class EditReceiptViewModel(application: Application) : AndroidViewModel(applicat
 
                     Log.d("EditReceiptViewModel", "Paragon usunięty pomyślnie. ID Paragonu: ${receipt.id}")
                     continuation.resume(true)
-                } ?: run {
+                } ?: {
                     Log.e("EditReceiptViewModel", "Nie znaleziono paragonu do usunięcia. ID Paragonu: ${receipt.id}")
                     continuation.resume(false)
                 }
@@ -231,7 +231,7 @@ class EditReceiptViewModel(application: Application) : AndroidViewModel(applicat
                     Log.d("EditReceiptViewModel", "deleteClient: Usuwanie klienta zakończone sukcesem. ID Klienta: ${client.id}")
                     continuation.resume(true)
 
-                } ?: run {
+                } ?: {
                     Log.e("EditReceiptViewModel", "deleteClient: Nie znaleziono klienta do usunięcia. ID Klienta: ${client.id}")
                     continuation.resume(false)
                 }
