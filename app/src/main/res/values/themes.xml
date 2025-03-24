@@ -15,23 +15,21 @@
 
         <!-- Background color for the entire window -->
         <item name="android:windowBackground">@color/main_color_dark</item>
-
         <item name="android:textColor">@color/white_text</item>
     </style>
+
     <style name="Theme.Paragownik" parent="Base.Theme.Paragownik">
-        <item name="editTextStyle">@style/EditTextStyle</item> <!-- Dodaj styl EditText do motywu -->
+        <item name="editTextStyle">@style/EditTextStyle</item>
+        <item name="android:forceDarkAllowed" tools:targetApi="q">false</item>
     </style>
 
     <style name="EditTextStyle" parent="Widget.AppCompat.EditText">
-        <item name="android:textColor">@color/white_text</item> <!-- Kolor tekstu na biały -->
-        <item name="android:textColorHint">@color/sub_white_text</item> <!-- Kolor hintu -->
-        <item name="colorControlNormal">@color/sub_white_text</item> <!-- Kolor linii - stan normalny -->
-        <item name="colorControlActivated">@color/white_text</item> <!-- Kolor linii - stan aktywny (focus) -->
-
-        <item name="android:background">@drawable/rounded_edittext_background</item> <!-- Dodaj tło z zaokrąglonymi rogami -->
-        <item name="android:padding">12dp</item> <!-- Dodaj padding wewnątrz EditTexta -->
-        <item name="android:layout_marginBottom">8dp</item> <!-- Dodaj domyślny margin bottom, jeśli chcesz -->
-
-        <item name="android:layerType">hardware</item> <!-- Dodaj warstwę sprzętową -->
+        <item name="android:textColor">@color/white_text</item>
+        <item name="android:textColorHint">@color/sub_white_text</item>
+        <item name="colorControlNormal">@color/sub_white_text</item>
+        <item name="colorControlActivated">@color/white_text</item>
+        <item name="android:background">@drawable/rounded_edittext_background</item>
+        <item name="android:padding">12dp</item>
+        <item name="android:layout_marginBottom">8dp</item>
     </style>
 </resources>

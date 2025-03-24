@@ -170,18 +170,6 @@ class AddClientActivity : AppCompatActivity() {
                 }
             }
         }
-        // Wymuś warstwę programową dla EditTextów
-        storeNumberEditTextFirstReceipt.setLayerType(View.LAYER_TYPE_SOFTWARE, null)
-        receiptNumberEditText.setLayerType(View.LAYER_TYPE_SOFTWARE, null)
-        receiptDateEditText.setLayerType(View.LAYER_TYPE_SOFTWARE, null)
-        verificationDateEditText.setLayerType(View.LAYER_TYPE_SOFTWARE, null)
-        clientDescriptionEditText.setLayerType(View.LAYER_TYPE_SOFTWARE, null)
-        // Dodaj warstwy programowe dla dodatkowych EditTextów, jeśli dynamicznie dodajesz je
-        receiptFieldsList.forEach {
-            it.storeNumberEditText?.setLayerType(View.LAYER_TYPE_SOFTWARE, null)
-            it.receiptNumberEditText.setLayerType(View.LAYER_TYPE_SOFTWARE, null)
-            it.receiptDateEditText.setLayerType(View.LAYER_TYPE_SOFTWARE, null)
-        }
     }
 
     private fun addNewReceiptFields() {

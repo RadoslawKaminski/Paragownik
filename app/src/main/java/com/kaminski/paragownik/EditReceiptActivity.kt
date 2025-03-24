@@ -73,12 +73,6 @@ class EditReceiptActivity : AppCompatActivity() {
         deleteClientButton.setOnClickListener { // Listener dla przycisku "Usuń klienta"
             deleteClientDialog()
         }
-        // Wymuś warstwę programową dla EditTextów (jeśli warstwa sprzętowa w stylu nie działa)
-        editReceiptStoreNumberEditText.setLayerType(View.LAYER_TYPE_SOFTWARE, null)
-        editReceiptNumberEditText.setLayerType(View.LAYER_TYPE_SOFTWARE, null)
-        editReceiptDateEditText.setLayerType(View.LAYER_TYPE_SOFTWARE, null)
-        editVerificationDateEditText.setLayerType(View.LAYER_TYPE_SOFTWARE, null)
-        editClientDescriptionEditText.setLayerType(View.LAYER_TYPE_SOFTWARE, null)
     }
 
     private fun saveChanges() {

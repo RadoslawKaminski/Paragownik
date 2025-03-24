@@ -6,6 +6,7 @@
     android:layout_height="match_parent"
     android:background="@color/main_color_dark"
     android:padding="16dp"
+    android:theme="@style/Theme.Paragownik"
     tools:context=".AddClientActivity">
 
     <LinearLayout
@@ -21,12 +22,12 @@
             android:textSize="24sp"
             android:layout_marginBottom="24dp"/>
 
+        <!-- Pierwszy paragon -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
-            <!-- Pierwszy paragon -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -39,19 +40,15 @@
                     android:orientation="vertical"
                     android:layout_marginEnd="8dp">
 
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:textSize="18sp"
-                        android:text="Drogeria:"/>
-
                     <EditText
                         android:id="@+id/receiptStoreNumberEditText"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:inputType="number"
                         android:maxLength="4"
-                        android:hint="Numer drogerii" />
+                        android:hint="Nume drogerii"
+
+                        android:background="@drawable/rounded_edittext_background"/>
                 </LinearLayout>
 
                 <LinearLayout
@@ -60,12 +57,6 @@
                     android:layout_weight="1"
                     android:orientation="vertical"
                     android:layout_marginStart="8dp">
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:textSize="18sp"
-                        android:text="Paragon:"/>
 
                     <EditText
                         android:id="@+id/receiptNumberEditText"
@@ -73,83 +64,87 @@
                         android:layout_height="wrap_content"
                         android:inputType="number"
                         android:maxLength="4"
-                        android:hint="Numer paragonu" />
+                        android:hint="Numer paragonu"
+                        android:background="@drawable/rounded_edittext_background"/>
                 </LinearLayout>
+
             </LinearLayout>
+
+            <EditText
+                android:id="@+id/receiptDateEditText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="date"
+                android:hint="Data paragonu (DD-MM-YYYY)"
+                android:background="@drawable/rounded_edittext_background"
+                android:layout_marginTop="20dp"/>
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
+                android:orientation="vertical"
                 android:layout_marginTop="16dp">
 
-                <LinearLayout
-                    android:layout_width="0dp"
+                <TextView
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:orientation="vertical"
-                    android:layout_marginEnd="8dp">
+                    android:textSize="18sp"
+                    android:text="Weryfikacja (opcjonalne):"
+                    android:layout_marginBottom="16dp"/>
 
-                    <TextView
-                        android:layout_width="match_parent"
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+                    <LinearLayout
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:textSize="18sp"
-                        android:text="Data:"/>
-
-                    <EditText
-                        android:id="@+id/receiptDateEditText"
-                        android:layout_width="match_parent"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+                        <EditText
+                            android:id="@+id/verificationDateEditText"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="date"
+                            android:hint="DD-MM-YYYY"
+                            android:background="@drawable/rounded_edittext_background"/>
+                    </LinearLayout>
+                    <LinearLayout
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:inputType="date"
-                        android:hint="DD-MM-YYYY" />
+                        android:layout_weight="1"
+                        android:orientation="vertical"
+                        android:layout_marginStart="8dp">
+                        <CheckBox
+                            android:id="@+id/verificationDateTodayCheckBox"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Dzisiaj"
+                            android:textColor="@color/white_text" />
                 </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:orientation="vertical"
-                    android:layout_marginStart="8dp">
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:textSize="18sp"
-                        android:text="Weryfikacja:"/>
-                    <CheckBox
-                        android:id="@+id/verificationDateTodayCheckBox"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Dzisiaj"
-                        android:textColor="@color/white_text" />
-
-                    <EditText
-                        android:id="@+id/verificationDateEditText"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:inputType="date"
-                        android:hint="DD-MM-YYYY (opcjonalne)" />
                 </LinearLayout>
             </LinearLayout>
-        </LinearLayout>
 
-        <!-- Pole opisu klienta przeniesione tutaj -->
+        <!-- Pole opisu klienta -->
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:textSize="18sp"
             android:layout_marginTop="16dp"
-            android:text="Opis klienta:"/>
+            android:layout_marginBottom="16dp"
+            android:text="Opis klienta (opcjonalne):"/>
 
         <EditText
             android:id="@+id/clientDescriptionEditText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:inputType="textMultiLine"
-            android:lines="3"
-            android:hint="Wprowadź opis klienta"
-            android:layout_marginBottom="24dp"/>
+            android:lines="2"
+            android:hint="Opis klienta"
+            android:layout_marginBottom="24dp"
+            android:background="@drawable/rounded_edittext_background"/>
 
+        </LinearLayout>
         <View
             android:layout_width="match_parent"
             android:layout_height="1dp"
