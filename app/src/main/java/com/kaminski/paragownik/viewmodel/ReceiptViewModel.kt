@@ -15,7 +15,8 @@ class ReceiptViewModel(application: Application) : AndroidViewModel(application)
 
     private var _receiptsForStore: LiveData<List<ReceiptWithClient>>? = null
     val receiptsForStore: LiveData<List<ReceiptWithClient>>
-        get() = _receiptsForStore ?: throw IllegalStateException("Receipts not loaded for store yet")
+        get() = _receiptsForStore
+            ?: throw IllegalStateException("Receipts not loaded for store yet")
 
     init {
         val database = AppDatabase.getDatabase(application)

@@ -80,7 +80,10 @@ class AddClientActivity : AppCompatActivity() {
 
         verificationDateTodayCheckBox.setOnCheckedChangeListener { _, isChecked ->
             if (isChecked) {
-                val currentDate = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault()).format(java.util.Calendar.getInstance().time)
+                val currentDate = SimpleDateFormat(
+                    "dd-MM-yyyy",
+                    Locale.getDefault()
+                ).format(java.util.Calendar.getInstance().time)
                 verificationDateEditText.setText(currentDate)
                 verificationDateEditText.isEnabled = false
             } else {
@@ -105,11 +108,12 @@ class AddClientActivity : AppCompatActivity() {
                 val storeNumberForReceipt = receiptFields.storeNumberEditText?.text?.toString()
                 val storeNumberForFirstReceipt = storeNumberEditTextFirstReceipt.text?.toString()
 
-                val currentStoreNumber: String = if (receiptFieldsList.indexOf(receiptFields) == 0) {
-                    storeNumberForFirstReceipt ?: ""
-                } else {
-                    storeNumberForReceipt ?: ""
-                }
+                val currentStoreNumber: String =
+                    if (receiptFieldsList.indexOf(receiptFields) == 0) {
+                        storeNumberForFirstReceipt ?: ""
+                    } else {
+                        storeNumberForReceipt ?: ""
+                    }
 
                 if (receiptNumber.isEmpty() || receiptDate.isEmpty() || currentStoreNumber.isEmpty()) {
                     hasEmptyFields = true
@@ -122,7 +126,11 @@ class AddClientActivity : AppCompatActivity() {
             }
 
             if (hasEmptyFields) {
-                Toast.makeText(this, "Wypełnij wszystkie wymagane pola paragonów", Toast.LENGTH_SHORT).show()
+                Toast.makeText(
+                    this,
+                    "Wypełnij wszystkie wymagane pola paragonów",
+                    Toast.LENGTH_SHORT
+                ).show()
                 return@setOnClickListener
             }
             if (receiptsToAdd.isEmpty()) {
@@ -133,21 +141,27 @@ class AddClientActivity : AppCompatActivity() {
             lifecycleScope.launch {
                 var allReceiptsAdded = true
                 // Utwórz klienta TYLKO RAZ przed pętlą paragonów
-                val clientId = addClientViewModel.insertClient(clientDescription) // Dodaj klienta i pobierz jego ID
+                val clientId =
+                    addClientViewModel.insertClient(clientDescription) // Dodaj klienta i pobierz jego ID
 
                 if (clientId == -1L) { // Obsługa błędu dodawania klienta
-                    Toast.makeText(this@AddClientActivity, "Błąd dodawania klienta.", Toast.LENGTH_LONG).show()
+                    Toast.makeText(
+                        this@AddClientActivity,
+                        "Błąd dodawania klienta.",
+                        Toast.LENGTH_LONG
+                    ).show()
                     return@launch
                 }
 
 
                 for (i in receiptsToAdd.indices) { // Użyj indeksów zamiast iteracji po obiektach
                     val receiptData = receiptsToAdd[i]
-                    val currentVerificationDateString: String? = if (i == 0) { // Użyj indeksu 'i' zamiast indexOf(receiptData)
-                        verificationDateString
-                    } else {
-                        null
-                    }
+                    val currentVerificationDateString: String? =
+                        if (i == 0) { // Użyj indeksu 'i' zamiast indexOf(receiptData)
+                            verificationDateString
+                        } else {
+                            null
+                        }
 
                     val isSuccess = addClientViewModel.insertReceipt(
                         storeId = -1L, // NIEUŻYWANE - ustawione na -1L
@@ -163,10 +177,18 @@ class AddClientActivity : AppCompatActivity() {
                 }
 
                 if (allReceiptsAdded) {
-                    Toast.makeText(this@AddClientActivity, "Klient i paragony dodane", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(
+                        this@AddClientActivity,
+                        "Klient i paragony dodane",
+                        Toast.LENGTH_SHORT
+                    ).show()
                     finish()
                 } else {
-                    Toast.makeText(this@AddClientActivity, "Błąd formatu daty lub numeru drogerii.", Toast.LENGTH_LONG).show()
+                    Toast.makeText(
+                        this@AddClientActivity,
+                        "Błąd formatu daty lub numeru drogerii.",
+                        Toast.LENGTH_LONG
+                    ).show()
                 }
             }
         }
@@ -174,15 +196,25 @@ class AddClientActivity : AppCompatActivity() {
 
     private fun addNewReceiptFields() {
         val inflater = LayoutInflater.from(this)
-        val receiptFieldsView = inflater.inflate(R.layout.additional_receipt_fields, receiptsContainer, false)
+        val receiptFieldsView =
+            inflater.inflate(R.layout.additional_receipt_fields, receiptsContainer, false)
 
-        val storeNumberEditText = receiptFieldsView.findViewById<EditText>(R.id.additionalStoreNumberEditText)
-        val receiptNumberEditText = receiptFieldsView.findViewById<EditText>(R.id.additionalReceiptNumberEditText)
-        val receiptDateEditText = receiptFieldsView.findViewById<EditText>(R.id.additionalReceiptDateEditText)
+        val storeNumberEditText =
+            receiptFieldsView.findViewById<EditText>(R.id.additionalStoreNumberEditText)
+        val receiptNumberEditText =
+            receiptFieldsView.findViewById<EditText>(R.id.additionalReceiptNumberEditText)
+        val receiptDateEditText =
+            receiptFieldsView.findViewById<EditText>(R.id.additionalReceiptDateEditText)
 
         setupDateEditText(receiptDateEditText)
 
-        receiptFieldsList.add(ReceiptFields(storeNumberEditText, receiptNumberEditText, receiptDateEditText))
+        receiptFieldsList.add(
+            ReceiptFields(
+                storeNumberEditText,
+                receiptNumberEditText,
+                receiptDateEditText
+            )
+        )
         receiptsContainer.addView(receiptFieldsView)
     }
 

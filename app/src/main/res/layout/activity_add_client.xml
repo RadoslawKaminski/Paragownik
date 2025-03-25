@@ -12,159 +12,163 @@
     <ScrollView
         android:layout_width="0dp"
         android:layout_height="0dp"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintBottom_toTopOf="@+id/addClientButton"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintBottom_toTopOf="@+id/addClientButton">
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical">
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center"
-            android:text="Dodaj paragony klienta"
-            android:textSize="24sp"
-            android:layout_marginBottom="24dp"/>
-
-        <!-- Pierwszy paragon -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="24dp"
+                android:gravity="center"
+                android:text="Dodaj paragony klienta"
+                android:textSize="24sp" />
+
+            <!-- Pierwszy paragon -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal">
-
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="4"
-                    android:orientation="vertical"
-                    android:layout_marginEnd="8dp">
-
-                    <EditText
-                        android:id="@+id/receiptStoreNumberEditText"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:inputType="number"
-                        android:maxLength="4"
-                        android:hint="Dogeria" />
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="5"
-                    android:orientation="vertical"
-                    android:layout_marginStart="8dp">
-
-                    <EditText
-                        android:id="@+id/receiptNumberEditText"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:inputType="number"
-                        android:maxLength="4"
-                        android:hint="Numer paragonu"/>
-                </LinearLayout>
-
-            </LinearLayout>
-
-            <EditText
-                android:id="@+id/receiptDateEditText"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:inputType="date"
-                android:hint="Data paragonu (DD-MM-YYYY)"
-                android:layout_marginTop="20dp"/>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:layout_marginTop="16dp">
-
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:textSize="18sp"
-                    android:text="Weryfikacja (opcjonalne):"
-                    android:layout_marginBottom="16dp"/>
+                android:orientation="vertical">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal">
+
                     <LinearLayout
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_weight="5"
+                        android:layout_marginEnd="8dp"
+                        android:layout_weight="4"
                         android:orientation="vertical">
+
                         <EditText
-                            android:id="@+id/verificationDateEditText"
+                            android:id="@+id/receiptStoreNumberEditText"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:inputType="date"
-                            android:hint="DD-MM-YYYY"/>
+                            android:hint="Dogeria"
+                            android:inputType="number"
+                            android:maxLength="4" />
                     </LinearLayout>
+
                     <LinearLayout
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_weight="3"
-                        android:orientation="vertical"
-                        android:layout_marginStart="8dp">
-                        <CheckBox
-                            android:id="@+id/verificationDateTodayCheckBox"
-                            android:layout_width="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:layout_weight="5"
+                        android:orientation="vertical">
+
+                        <EditText
+                            android:id="@+id/receiptNumberEditText"
+                            android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:text="Dzisiaj"
-                            android:textColor="@color/white_text" />
+                            android:hint="Numer paragonu"
+                            android:inputType="number"
+                            android:maxLength="4" />
+                    </LinearLayout>
+
                 </LinearLayout>
+
+                <EditText
+                    android:id="@+id/receiptDateEditText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="20dp"
+                    android:hint="Data paragonu (DD-MM-YYYY)"
+                    android:inputType="date" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="16dp"
+                        android:text="Weryfikacja (opcjonalne):"
+                        android:textSize="18sp" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal">
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="5"
+                            android:orientation="vertical">
+
+                            <EditText
+                                android:id="@+id/verificationDateEditText"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:hint="DD-MM-YYYY"
+                                android:inputType="date" />
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="8dp"
+                            android:layout_weight="3"
+                            android:orientation="vertical">
+
+                            <CheckBox
+                                android:id="@+id/verificationDateTodayCheckBox"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Dzisiaj"
+                                android:textColor="@color/white_text" />
+                        </LinearLayout>
+                    </LinearLayout>
                 </LinearLayout>
+
+                <!-- Pole opisu klienta -->
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:layout_marginBottom="16dp"
+                    android:text="Opis klienta (opcjonalne):"
+                    android:textSize="18sp" />
+
+                <EditText
+                    android:id="@+id/clientDescriptionEditText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Opis klienta"
+                    android:inputType="textMultiLine"
+                    android:lines="2" />
+
             </LinearLayout>
 
-        <!-- Pole opisu klienta -->
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:textSize="18sp"
-            android:layout_marginTop="16dp"
-            android:layout_marginBottom="16dp"
-            android:text="Opis klienta (opcjonalne):"/>
+            <LinearLayout
+                android:id="@+id/receiptsContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+                <!-- Dodatkowe paragony będą dodawane tutaj -->
+            </LinearLayout>
 
-        <EditText
-            android:id="@+id/clientDescriptionEditText"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:inputType="textMultiLine"
-            android:lines="2"
-            android:hint="Opis klienta"/>
+            <Button
+                android:id="@+id/addAdditionalReceiptButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:backgroundTint="@color/scnd_color_bright"
+                android:text="Dodaj paragon kolejnej drogerii"
+                android:textColor="@color/white_text" />
 
         </LinearLayout>
-
-        <LinearLayout
-            android:id="@+id/receiptsContainer"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical">
-            <!-- Dodatkowe paragony będą dodawane tutaj -->
-        </LinearLayout>
-
-        <Button
-            android:id="@+id/addAdditionalReceiptButton"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:backgroundTint="@color/scnd_color_bright"
-            android:textColor="@color/white_text"
-            android:text="Dodaj paragon kolejnej drogerii"
-            android:layout_marginTop="16dp"/>
-
-    </LinearLayout>
 
     </ScrollView>
 
@@ -173,12 +177,12 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:backgroundTint="@color/green_save"
-        android:textColor="@color/white_text"
-        android:text="Zapisz"
         android:paddingVertical="24dp"
+        android:text="Zapisz"
+        android:textColor="@color/white_text"
         android:textSize="18sp"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

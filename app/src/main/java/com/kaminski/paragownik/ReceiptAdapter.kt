@@ -20,12 +20,16 @@ class ReceiptAdapter(
     interface OnEditButtonClickListener {
         fun onEditButtonClick(receiptId: Long)
     }
+
     class ReceiptViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val receiptNumberTextView: TextView = itemView.findViewById(R.id.receiptNumberTextView)
         val receiptDateTextView: TextView = itemView.findViewById(R.id.receiptDateTextView)
-        val verificationDateTextView: TextView = itemView.findViewById(R.id.verificationDateTextView)
-        val clientDescriptionTextView: TextView = itemView.findViewById(R.id.clientDescriptionTextView)
-        val editReceiptButton: ImageView = itemView.findViewById(R.id.editReceiptButton) // Zmiana na ImageView
+        val verificationDateTextView: TextView =
+            itemView.findViewById(R.id.verificationDateTextView)
+        val clientDescriptionTextView: TextView =
+            itemView.findViewById(R.id.clientDescriptionTextView)
+        val editReceiptButton: ImageView =
+            itemView.findViewById(R.id.editReceiptButton) // Zmiana na ImageView
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ReceiptViewHolder {
@@ -37,15 +41,18 @@ class ReceiptAdapter(
     override fun onBindViewHolder(holder: ReceiptViewHolder, position: Int) {
         val currentReceiptWithClient = receiptList[position]
         val currentReceipt = currentReceiptWithClient.receipt
-        val client = currentReceiptWithClient.client // Pobierz klienta bezpośrednio z ReceiptWithClient
+        val client =
+            currentReceiptWithClient.client // Pobierz klienta bezpośrednio z ReceiptWithClient
         val dateFormat = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault())
 
         holder.receiptNumberTextView.text = currentReceipt.receiptNumber // Bez "Numer paragonu: "
-        holder.receiptDateTextView.text = dateFormat.format(currentReceipt.receiptDate) // Bez "Data paragonu: "
+        holder.receiptDateTextView.text =
+            dateFormat.format(currentReceipt.receiptDate) // Bez "Data paragonu: "
         holder.verificationDateTextView.text = currentReceipt.verificationDate?.let {
             dateFormat.format(it)
         } ?: "Brak" // Zmieniono "Data weryfikacji: Brak" na "Brak"
-        holder.clientDescriptionTextView.text = client?.description ?: "Brak opisu klienta" // Użyj client?.description
+        holder.clientDescriptionTextView.text =
+            client?.description ?: "Brak opisu klienta" // Użyj client?.description
 
         holder.editReceiptButton.setOnClickListener { // Listener kliknięcia dla ImageView
             editButtonClickListener.onEditButtonClick(currentReceipt.id)

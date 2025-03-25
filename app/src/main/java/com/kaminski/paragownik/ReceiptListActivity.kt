@@ -45,11 +45,18 @@ class ReceiptListActivity : AppCompatActivity(), ReceiptAdapter.OnEditButtonClic
         fabAddClient = findViewById(R.id.fabAddClient) // Inicjalizacja FAB
         fabAddClient.setOnClickListener { // Obsługa kliknięcia FAB
             val intent = Intent(this, AddClientActivity::class.java)
-            intent.putExtra("STORE_ID", storeId) // Opcjonalnie, przekaż storeId do AddClientActivity, jeśli potrzebne
-            Log.d("ReceiptListActivity", "Uruchamiam AddClientActivity z STORE_ID: $storeId") // DODAJ LOG
+            intent.putExtra(
+                "STORE_ID",
+                storeId
+            ) // Opcjonalnie, przekaż storeId do AddClientActivity, jeśli potrzebne
+            Log.d(
+                "ReceiptListActivity",
+                "Uruchamiam AddClientActivity z STORE_ID: $storeId"
+            ) // DODAJ LOG
             startActivity(intent) // Uruchom AddClientActivity
         }
     }
+
     override fun onEditButtonClick(receiptId: Long) { // Implementacja metody interfejsu
         val intent = Intent(this, EditReceiptActivity::class.java)
         intent.putExtra("RECEIPT_ID", receiptId) // Przekaz receiptId jako extra

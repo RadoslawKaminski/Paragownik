@@ -92,10 +92,12 @@ class EditReceiptActivity : AppCompatActivity() {
                 clientDescription = clientDescription
             )
             if (isSuccess) {
-                Toast.makeText(this@EditReceiptActivity, "Zmiany zapisane", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this@EditReceiptActivity, "Zmiany zapisane", Toast.LENGTH_SHORT)
+                    .show()
                 finish() // Powrót do ReceiptListActivity po zapisaniu
             } else {
-                Toast.makeText(this@EditReceiptActivity, "Błąd zapisu zmian", Toast.LENGTH_LONG).show()
+                Toast.makeText(this@EditReceiptActivity, "Błąd zapisu zmian", Toast.LENGTH_LONG)
+                    .show()
             }
         }
     }
@@ -111,9 +113,19 @@ class EditReceiptActivity : AppCompatActivity() {
                         // Wypełnij pola danymi paragonu i klienta
                         editReceiptStoreNumberEditText.setText(storeNumber ?: "")
                         editReceiptNumberEditText.setText(it.receipt.receiptNumber)
-                        editReceiptDateEditText.setText(SimpleDateFormat("dd-MM-yyyy", Locale.getDefault()).format(it.receipt.receiptDate))
+                        editReceiptDateEditText.setText(
+                            SimpleDateFormat(
+                                "dd-MM-yyyy",
+                                Locale.getDefault()
+                            ).format(it.receipt.receiptDate)
+                        )
                         it.receipt.verificationDate?.let { verificationDate ->
-                            editVerificationDateEditText.setText(SimpleDateFormat("dd-MM-yyyy", Locale.getDefault()).format(verificationDate))
+                            editVerificationDateEditText.setText(
+                                SimpleDateFormat(
+                                    "dd-MM-yyyy",
+                                    Locale.getDefault()
+                                ).format(verificationDate)
+                            )
                         }
                         editClientDescriptionEditText.setText(it.client?.description ?: "")
                     }
@@ -149,7 +161,12 @@ class EditReceiptActivity : AppCompatActivity() {
                             ).show()
                             //finish() // Powrót do ReceiptListActivity po usunięciu
                             finishAffinity() // Zamknięcie EditReceiptActivity i ReceiptListActivity
-                            startActivity(Intent(this@EditReceiptActivity, MainActivity::class.java)) // Powrót do MainActivity - EKRAN GŁÓWNY
+                            startActivity(
+                                Intent(
+                                    this@EditReceiptActivity,
+                                    MainActivity::class.java
+                                )
+                            ) // Powrót do MainActivity - EKRAN GŁÓWNY
                         } else {
                             Toast.makeText(
                                 this@EditReceiptActivity,
@@ -197,7 +214,12 @@ class EditReceiptActivity : AppCompatActivity() {
                             ).show()
                             // finish() // Usuń finish() - nie wracaj do ReceiptListActivity
                             finishAffinity() // Zamknięcie EditReceiptActivity i ReceiptListActivity
-                            startActivity(Intent(this@EditReceiptActivity, MainActivity::class.java)) // Powrót do MainActivity - EKRAN GŁÓWNY
+                            startActivity(
+                                Intent(
+                                    this@EditReceiptActivity,
+                                    MainActivity::class.java
+                                )
+                            ) // Powrót do MainActivity - EKRAN GŁÓWNY
                         } else {
                             Toast.makeText(
                                 this@EditReceiptActivity,
@@ -220,7 +242,10 @@ class EditReceiptActivity : AppCompatActivity() {
         editVerificationDateTodayCheckBox.setOnCheckedChangeListener { _, isChecked ->
             if (isChecked) {
                 // Ustaw aktualną datę i wyłącz EditText
-                val currentDate = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault()).format(java.util.Calendar.getInstance().time)
+                val currentDate = SimpleDateFormat(
+                    "dd-MM-yyyy",
+                    Locale.getDefault()
+                ).format(java.util.Calendar.getInstance().time)
                 editVerificationDateEditText.setText(currentDate)
                 editVerificationDateEditText.isEnabled = false
             } else {

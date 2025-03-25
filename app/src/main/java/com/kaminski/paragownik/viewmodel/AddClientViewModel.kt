@@ -32,19 +32,23 @@ class AddClientViewModel(application: Application) : AndroidViewModel(applicatio
         storeDao = database.storeDao()
     }
 
-    suspend fun insertClient(clientDescription: String?): Long = suspendCancellableCoroutine { continuation ->
-        viewModelScope.launch(Dispatchers.IO) {
-            try {
-                val client = Client(description = clientDescription)
-                val clientId = clientDao.insertClient(client)
-                Log.d("AddClientViewModel", "Dodano klienta. ID Klienta: $clientId, Opis Klienta: $clientDescription")
-                continuation.resume(clientId)
-            } catch (e: Exception) {
-                Log.e("AddClientViewModel", "Błąd dodawania klienta.", e)
-                continuation.resume(-1L) // Zwróć -1L w przypadku błędu
+    suspend fun insertClient(clientDescription: String?): Long =
+        suspendCancellableCoroutine { continuation ->
+            viewModelScope.launch(Dispatchers.IO) {
+                try {
+                    val client = Client(description = clientDescription)
+                    val clientId = clientDao.insertClient(client)
+                    Log.d(
+                        "AddClientViewModel",
+                        "Dodano klienta. ID Klienta: $clientId, Opis Klienta: $clientDescription"
+                    )
+                    continuation.resume(clientId)
+                } catch (e: Exception) {
+                    Log.e("AddClientViewModel", "Błąd dodawania klienta.", e)
+                    continuation.resume(-1L) // Zwróć -1L w przypadku błędu
+                }
             }
         }
-    }
 
 
     suspend fun insertReceipt(
@@ -65,7 +69,9 @@ class AddClientViewModel(application: Application) : AndroidViewModel(applicatio
             try {
                 val receiptDate: Date = dateFormat.parse(receiptDateString) as Date
                 val verificationDate: Date? = try {
-                    if (!verificationDateString.isNullOrEmpty()) verificationDateFormat.parse(verificationDateString) as Date else null
+                    if (!verificationDateString.isNullOrEmpty()) verificationDateFormat.parse(
+                        verificationDateString
+                    ) as Date else null
                 } catch (e: Exception) {
                     null
                 }
@@ -78,8 +84,12 @@ class AddClientViewModel(application: Application) : AndroidViewModel(applicatio
                         // Drogeria nie istnieje, dodaj nową
                         store = Store(storeNumber = storeNumberForReceipt)
                         storeDao.insertStore(store)
-                        store = storeDao.getStoreByNumber(storeNumberForReceipt) // Pobierz nowo dodaną drogerię
-                        Log.d("AddClientViewModel", "Dodano nową drogerię o numerze: ${storeNumberForReceipt}")
+                        store =
+                            storeDao.getStoreByNumber(storeNumberForReceipt) // Pobierz nowo dodaną drogerię
+                        Log.d(
+                            "AddClientViewModel",
+                            "Dodano nową drogerię o numerze: ${storeNumberForReceipt}"
+                        )
                     }
                     receiptStoreId = store?.id // Użyj ID znalezionej lub nowo dodanej Drogerii
                 } else {
@@ -105,7 +115,10 @@ class AddClientViewModel(application: Application) : AndroidViewModel(applicatio
                 val receiptId = receiptDao.insertReceipt(receipt)
 
 
-                Log.d("AddClientViewModel", "Paragon dodany pomyślnie. ID Paragonu: $receiptId, Data Weryfikacji: $verificationDate, Numer Drogerii: $storeNumberForReceipt, ID Drogerii: $receiptStoreId, ID Klienta: $clientId")
+                Log.d(
+                    "AddClientViewModel",
+                    "Paragon dodany pomyślnie. ID Paragonu: $receiptId, Data Weryfikacji: $verificationDate, Numer Drogerii: $storeNumberForReceipt, ID Drogerii: $receiptStoreId, ID Klienta: $clientId"
+                )
                 continuation.resume(true)
 
             } catch (e: Exception) {

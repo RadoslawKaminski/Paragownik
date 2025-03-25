@@ -3,123 +3,123 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical"
     android:layout_marginTop="24dp"
+    android:background="@color/main_color_dark"
+    android:orientation="vertical"
     android:paddingStart="16dp"
-    android:paddingEnd="16dp"
-    android:background="@color/main_color_dark">
+    android:paddingEnd="16dp">
 
     <!-- Kontener na blok tekstu i ikonę edycji (poziomy) -->
     <LinearLayout
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:orientation="horizontal"> <!-- Poziomy kontener na tekst i ikonę -->
-
-    <!-- Blok z tekstem (numer, data, weryfikacja, opis) -->
-    <LinearLayout
-        android:layout_width="0dp"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:orientation="vertical">
+        android:orientation="horizontal"> <!-- Poziomy kontener na tekst i ikonę -->
 
-        <!-- Numer paragonu i Data paragonu w jednej linii -->
+        <!-- Blok z tekstem (numer, data, weryfikacja, opis) -->
         <LinearLayout
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical">
+            android:layout_weight="1"
+            android:orientation="vertical">
 
-            <TextView
-                android:id="@+id/receiptNumberTextView"
-                android:layout_width="wrap_content"
+            <!-- Numer paragonu i Data paragonu w jednej linii -->
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textSize="26sp"
-                android:textStyle="bold"
-                android:text="1234"
-                android:layout_marginStart="8dp"
-                android:layout_marginEnd="8dp"/> <!-- Marginesy boczne -->
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
 
-            <View
-                android:layout_width="1dp"
-                android:layout_height="match_parent"
-                android:background="@color/white_text"
-                android:layout_marginStart="8dp"
-                android:layout_marginEnd="8dp"/>
+                <TextView
+                    android:id="@+id/receiptNumberTextView"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:layout_marginEnd="8dp"
+                    android:text="1234"
+                    android:textSize="26sp"
+                    android:textStyle="bold" /> <!-- Marginesy boczne -->
 
-            <TextView
-                android:id="@+id/receiptDateTextView"
-                android:layout_width="wrap_content"
+                <View
+                    android:layout_width="1dp"
+                    android:layout_height="match_parent"
+                    android:layout_marginStart="8dp"
+                    android:layout_marginEnd="8dp"
+                    android:background="@color/white_text" />
+
+                <TextView
+                    android:id="@+id/receiptDateTextView"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:layout_marginEnd="8dp"
+                    android:text="01-01-2024"
+                    android:textSize="26sp"
+                    android:textStyle="bold" /> <!-- Marginesy boczne -->
+            </LinearLayout>
+
+            <!-- Data weryfikacji -->
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textSize="26sp"
-                android:textStyle="bold"
-                android:text="01-01-2024"
-                android:layout_marginStart="8dp"
-                android:layout_marginEnd="8dp"/> <!-- Marginesy boczne -->
+                android:layout_marginTop="8dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Weryfikacja: "
+                    android:textSize="18sp" />
+
+                <TextView
+                    android:id="@+id/verificationDateTextView"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="02-01-2024"
+                    android:textSize="24sp" />
+            </LinearLayout>
+
+            <!-- Opis klienta -->
+            <TextView
+                android:id="@+id/clientDescriptionTextView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="Opis klienta lorem ipsum dolor sit amet siala lala lalala lalala"
+                android:textSize="20sp" />
+
         </LinearLayout>
 
-        <!-- Data weryfikacji -->
+        <!-- Blok z ikoną edycji (po prawej stronie) -->
         <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:layout_marginTop="8dp">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textSize="18sp"
-                android:text="Weryfikacja: " />
-
-            <TextView
-                android:id="@+id/verificationDateTextView"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:textSize="24sp"
-                android:text="02-01-2024" />
-        </LinearLayout>
-
-        <!-- Opis klienta -->
-        <TextView
-            android:id="@+id/clientDescriptionTextView"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:textSize="20sp"
-            android:layout_marginTop="8dp"
-            android:text="Opis klienta lorem ipsum dolor sit amet siala lala lalala lalala" />
-
-    </LinearLayout>
-
-    <!-- Blok z ikoną edycji (po prawej stronie) -->
-    <LinearLayout
-        android:layout_width="wrap_content"
-        android:layout_height="match_parent"
-        android:gravity="center_vertical"
-        android:orientation="vertical">
-
-        <ImageView
-            android:id="@+id/editReceiptButton"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:clickable="true"
-            android:focusable="true"
-            android:minWidth="50dp"
-            android:minHeight="50dp"
-            android:padding="8dp"
-            android:src="@drawable/ic_edit_icon"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="Edytuj paragon" />
-    </LinearLayout>
+            android:layout_height="match_parent"
+            android:gravity="center_vertical"
+            android:orientation="vertical">
+
+            <ImageView
+                android:id="@+id/editReceiptButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:clickable="true"
+                android:contentDescription="Edytuj paragon"
+                android:focusable="true"
+                android:minWidth="50dp"
+                android:minHeight="50dp"
+                android:padding="8dp"
+                android:src="@drawable/ic_edit_icon" />
+        </LinearLayout>
     </LinearLayout>
 
-        <!-- Linia separatora - teraz poniżej poziomego kontenera -->
+    <!-- Linia separatora - teraz poniżej poziomego kontenera -->
     <View
         android:layout_width="match_parent"
         android:layout_height="1dp"
-        android:background="@color/white_text"
-        android:layout_marginTop="24dp"
         android:layout_marginStart="16dp"
-        android:layout_marginEnd="24dp" />
+        android:layout_marginTop="24dp"
+        android:layout_marginEnd="24dp"
+        android:background="@color/white_text" />
 
 </LinearLayout>
