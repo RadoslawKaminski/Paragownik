@@ -12,7 +12,6 @@
     <color name="scnd_color_bright">#698db7</color> <!-- Jasnoniebieskie tło (Beige) -->
     <color name="green_save">#64D14C</color> <!-- Zielony przycisk -->
     <color name="white_text">#f8f9f3</color> <!-- Biały tekst -->
-    <color name="gray">#dde1e0</color> <!-- Biały tekst -->
     <color name="sub_white_text">#9Df8f9f3</color> <!-- tekst hintu itp -->
     <color name="edit_text_background">#2E3743</color> <!-- Delikatnie jaśniejsze szare tło dla EditText -->
 

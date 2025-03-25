@@ -10,6 +10,7 @@ import android.view.View
 import android.widget.Button
 import android.widget.CheckBox
 import android.widget.EditText
+import android.widget.ImageButton
 import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -205,17 +206,23 @@ class AddClientActivity : AppCompatActivity() {
             receiptFieldsView.findViewById<EditText>(R.id.additionalReceiptNumberEditText)
         val receiptDateEditText =
             receiptFieldsView.findViewById<EditText>(R.id.additionalReceiptDateEditText)
+        val removeReceiptButton =
+            receiptFieldsView.findViewById<ImageButton>(R.id.removeReceiptButton)
 
         setupDateEditText(receiptDateEditText)
 
-        receiptFieldsList.add(
-            ReceiptFields(
-                storeNumberEditText,
-                receiptNumberEditText,
-                receiptDateEditText
-            )
+        val newReceiptFields = ReceiptFields(
+            storeNumberEditText,
+            receiptNumberEditText,
+            receiptDateEditText
         )
+        receiptFieldsList.add(newReceiptFields)
         receiptsContainer.addView(receiptFieldsView)
+
+        removeReceiptButton.setOnClickListener {
+            receiptsContainer.removeView(receiptFieldsView) // Usuń widok z kontenera
+            receiptFieldsList.remove(newReceiptFields) // Usuń z listy
+        }
     }
 
     private fun setupDateEditText(editText: EditText) {
