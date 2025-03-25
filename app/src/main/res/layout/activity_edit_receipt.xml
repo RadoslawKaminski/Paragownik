@@ -9,24 +9,16 @@
     tools:context=".EditReceiptActivity">
 
     <LinearLayout
+        android:paddingVertical="16dp"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical">
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center"
-            android:text="Edytuj Paragon i Klienta"
-            android:textSize="24sp"
-            android:layout_marginBottom="24dp"/>
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
-            <!-- Numer drogerii i Numer paragonu -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -35,15 +27,9 @@
                 <LinearLayout
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
+                    android:layout_weight="4"
                     android:orientation="vertical"
                     android:layout_marginEnd="8dp">
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:textSize="18sp"
-                        android:text="Drogeria:"/>
 
                     <EditText
                         android:id="@+id/editReceiptStoreNumberEditText"
@@ -51,21 +37,17 @@
                         android:layout_height="wrap_content"
                         android:inputType="number"
                         android:maxLength="4"
-                        android:hint="Numer drogerii" />
+                        android:hint="Dogeria"
+
+                        android:background="@drawable/rounded_edittext_background"/>
                 </LinearLayout>
 
                 <LinearLayout
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
+                    android:layout_weight="5"
                     android:orientation="vertical"
                     android:layout_marginStart="8dp">
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:textSize="18sp"
-                        android:text="Paragon:"/>
 
                     <EditText
                         android:id="@+id/editReceiptNumberEditText"
@@ -73,93 +55,98 @@
                         android:layout_height="wrap_content"
                         android:inputType="number"
                         android:maxLength="4"
-                        android:hint="Numer paragonu" />
+                        android:hint="Numer paragonu"
+                        android:background="@drawable/rounded_edittext_background"/>
                 </LinearLayout>
+
             </LinearLayout>
 
-            <!-- Data paragonu i Data weryfikacji -->
+            <EditText
+                android:id="@+id/editReceiptDateEditText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="date"
+                android:hint="Data paragonu (DD-MM-YYYY)"
+                android:background="@drawable/rounded_edittext_background"
+                android:layout_marginTop="20dp"/>
+
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
+                android:orientation="vertical"
                 android:layout_marginTop="16dp">
 
-                <LinearLayout
-                    android:layout_width="0dp"
+                <TextView
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:orientation="vertical"
-                    android:layout_marginEnd="8dp">
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:textSize="18sp"
-                        android:text="Data:"/>
-
-                    <EditText
-                        android:id="@+id/editReceiptDateEditText"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:inputType="date"
-                        android:hint="DD-MM-YYYY" />
-                </LinearLayout>
+                    android:textSize="18sp"
+                    android:text="Weryfikacja (opcjonalne):"
+                    android:layout_marginBottom="16dp"/>
 
                 <LinearLayout
-                    android:layout_width="0dp"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:orientation="vertical"
-                    android:layout_marginStart="8dp">
-
-                    <TextView
-                        android:layout_width="match_parent"
+                    android:orientation="horizontal">
+                    <LinearLayout
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:textSize="18sp"
-                        android:text="Weryfikacja:"/>
-                    <CheckBox
-                        android:id="@+id/editVerificationDateTodayCheckBox"
-                        android:layout_width="wrap_content"
+                        android:layout_weight="5"
+                        android:orientation="vertical">
+                        <EditText
+                            android:id="@+id/editVerificationDateEditText"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="date"
+                            android:hint="DD-MM-YYYY"
+                            android:background="@drawable/rounded_edittext_background"/>
+                    </LinearLayout>
+                    <LinearLayout
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:text="Dzisiaj"
-                        android:textColor="@color/white_text" />
-
-                    <EditText
-                        android:id="@+id/editVerificationDateEditText"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:inputType="date"
-                        android:hint="DD-MM-YYYY (opcjonalne)" />
+                        android:layout_weight="3"
+                        android:orientation="vertical"
+                        android:layout_marginStart="8dp">
+                        <CheckBox
+                            android:id="@+id/editVerificationDateTodayCheckBox"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Dzisiaj"
+                            android:textColor="@color/white_text" />
+                    </LinearLayout>
                 </LinearLayout>
             </LinearLayout>
+
+            <!-- Pole opisu klienta -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="18sp"
+                android:layout_marginTop="16dp"
+                android:layout_marginBottom="16dp"
+                android:text="Opis klienta (opcjonalne):"/>
+
+            <EditText
+                android:id="@+id/editClientDescriptionEditText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="textMultiLine"
+                android:lines="2"
+                android:hint="Opis klienta"
+                android:background="@drawable/rounded_edittext_background"/>
+
         </LinearLayout>
-
-        <!-- Pole opisu klienta -->
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:textSize="18sp"
-            android:layout_marginTop="16dp"
-            android:text="Opis klienta:"/>
-
-        <EditText
-            android:id="@+id/editClientDescriptionEditText"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:inputType="textMultiLine"
-            android:lines="3"
-            android:hint="Wprowadź opis klienta"
-            android:layout_marginBottom="24dp"/>
 
 
         <Button
             android:id="@+id/saveReceiptButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:backgroundTint="@color/purple_500"
+            android:backgroundTint="@color/green_save"
             android:textColor="@color/white_text"
             android:text="Zapisz zmiany"
-            android:layout_marginBottom="16dp"/>
+            android:paddingVertical="24dp"
+            android:layout_marginVertical="24dp"
+            android:textSize="18sp"/>
 
         <Button
             android:id="@+id/deleteReceiptButton"
