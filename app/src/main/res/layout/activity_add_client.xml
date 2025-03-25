@@ -54,9 +54,7 @@
                         android:layout_height="wrap_content"
                         android:inputType="number"
                         android:maxLength="4"
-                        android:hint="Dogeria"
-
-                        android:background="@drawable/rounded_edittext_background"/>
+                        android:hint="Dogeria" />
                 </LinearLayout>
 
                 <LinearLayout
@@ -72,8 +70,7 @@
                         android:layout_height="wrap_content"
                         android:inputType="number"
                         android:maxLength="4"
-                        android:hint="Numer paragonu"
-                        android:background="@drawable/rounded_edittext_background"/>
+                        android:hint="Numer paragonu"/>
                 </LinearLayout>
 
             </LinearLayout>
@@ -84,7 +81,6 @@
                 android:layout_height="wrap_content"
                 android:inputType="date"
                 android:hint="Data paragonu (DD-MM-YYYY)"
-                android:background="@drawable/rounded_edittext_background"
                 android:layout_marginTop="20dp"/>
 
             <LinearLayout
@@ -114,8 +110,7 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:inputType="date"
-                            android:hint="DD-MM-YYYY"
-                            android:background="@drawable/rounded_edittext_background"/>
+                            android:hint="DD-MM-YYYY"/>
                     </LinearLayout>
                     <LinearLayout
                         android:layout_width="0dp"
@@ -148,8 +143,7 @@
             android:layout_height="wrap_content"
             android:inputType="textMultiLine"
             android:lines="2"
-            android:hint="Opis klienta"
-            android:background="@drawable/rounded_edittext_background"/>
+            android:hint="Opis klienta"/>
 
         </LinearLayout>
 
