@@ -10,7 +10,7 @@
         android:id="@+id/storeNameTextView"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:textSize="24sp"
+        android:textSize="32sp"
         android:textStyle="bold"
         android:gravity="center"
         tools:text="123"
