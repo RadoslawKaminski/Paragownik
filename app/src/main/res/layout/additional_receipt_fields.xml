@@ -3,26 +3,28 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:layout_marginTop="16dp">
+    android:layout_marginTop="24dp">
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/white_text"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"/>
 
     <!-- Dodatkowy paragon - Numer drogerii i Numer paragonu w jednej linii -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal">
+        android:orientation="horizontal"
+        android:layout_marginTop="24dp">
 
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
+            android:layout_weight="4"
             android:orientation="vertical"
             android:layout_marginEnd="8dp">
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:textSize="18sp"
-                android:text="Drogeria:"/>
 
             <EditText
                 android:id="@+id/additionalStoreNumberEditText"
@@ -30,21 +32,17 @@
                 android:layout_height="wrap_content"
                 android:inputType="number"
                 android:maxLength="4"
-                android:hint="Numer drogerii" />
+                android:hint="Dogeria"
+
+                android:background="@drawable/rounded_edittext_background"/>
         </LinearLayout>
 
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
+            android:layout_weight="5"
             android:orientation="vertical"
             android:layout_marginStart="8dp">
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:textSize="18sp"
-                android:text="Paragon:"/>
 
             <EditText
                 android:id="@+id/additionalReceiptNumberEditText"
@@ -52,33 +50,19 @@
                 android:layout_height="wrap_content"
                 android:inputType="number"
                 android:maxLength="4"
-                android:hint="Numer paragonu" />
+                android:hint="Numer paragonu"
+                android:background="@drawable/rounded_edittext_background"/>
         </LinearLayout>
-    </LinearLayout>
 
-    <!-- Data paragonu dla dodatkowego paragonu - pełna szerokość -->
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:textSize="18sp"
-        android:layout_marginTop="16dp"
-        android:text="Data:"/>
+    </LinearLayout>
 
     <EditText
         android:id="@+id/additionalReceiptDateEditText"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:inputType="date"
-        android:hint="DD-MM-YYYY" />
-
-
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:background="@color/white_text"
-        android:layout_marginTop="16dp"
-        android:layout_marginBottom="8dp"
-        android:layout_marginStart="16dp"
-        android:layout_marginEnd="16dp"/>
+        android:hint="Data paragonu (DD-MM-YYYY)"
+        android:background="@drawable/rounded_edittext_background"
+        android:layout_marginTop="20dp"/>
 
 </LinearLayout>
