@@ -3,7 +3,7 @@ package com.kaminski.paragownik
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.kaminski.paragownik.data.ReceiptWithClient
@@ -25,6 +25,7 @@ class ReceiptAdapter(
         val receiptDateTextView: TextView = itemView.findViewById(R.id.receiptDateTextView)
         val verificationDateTextView: TextView = itemView.findViewById(R.id.verificationDateTextView)
         val clientDescriptionTextView: TextView = itemView.findViewById(R.id.clientDescriptionTextView)
+        val editReceiptButton: ImageView = itemView.findViewById(R.id.editReceiptButton) // Zmiana na ImageView
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ReceiptViewHolder {
@@ -37,16 +38,16 @@ class ReceiptAdapter(
         val currentReceiptWithClient = receiptList[position]
         val currentReceipt = currentReceiptWithClient.receipt
         val client = currentReceiptWithClient.client // Pobierz klienta bezpośrednio z ReceiptWithClient
-        val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+        val dateFormat = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault())
 
-        holder.receiptNumberTextView.text = "Numer paragonu: ${currentReceipt.receiptNumber}"
-        holder.receiptDateTextView.text = "Data paragonu: ${dateFormat.format(currentReceipt.receiptDate)}"
+        holder.receiptNumberTextView.text = currentReceipt.receiptNumber // Bez "Numer paragonu: "
+        holder.receiptDateTextView.text = dateFormat.format(currentReceipt.receiptDate) // Bez "Data paragonu: "
         holder.verificationDateTextView.text = currentReceipt.verificationDate?.let {
-            "Data weryfikacji: ${dateFormat.format(it)}"
-        } ?: "Data weryfikacji: Brak"
+            dateFormat.format(it)
+        } ?: "Brak" // Zmieniono "Data weryfikacji: Brak" na "Brak"
         holder.clientDescriptionTextView.text = client?.description ?: "Brak opisu klienta" // Użyj client?.description
 
-        holder.itemView.findViewById<Button>(R.id.editReceiptButton).setOnClickListener { // Dodaj listener kliknięcia
+        holder.editReceiptButton.setOnClickListener { // Listener kliknięcia dla ImageView
             editButtonClickListener.onEditButtonClick(currentReceipt.id)
         }
     }
