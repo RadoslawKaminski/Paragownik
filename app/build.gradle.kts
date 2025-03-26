@@ -55,4 +55,10 @@ dependencies {
     implementation(libs.room.ktx)
     kapt(libs.room.compiler)
     implementation(libs.lifecycle.livedata.ktx)
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3") // Lub nowsza wersja
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3") // Lub nowsza wersja
+
+    // Zależności cyklu życia dla lifecycleScope
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.7.0") // Lub nowsza wersja
+    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.7.0") // Lub nowsza wersja
 }

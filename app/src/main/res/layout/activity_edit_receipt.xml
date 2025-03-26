@@ -12,13 +12,24 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:paddingVertical="16dp">
+        android:paddingBottom="16dp"> <!-- Dodany padding na dole dla przycisków -->
 
+        <!-- Tytuł (opcjonalnie, jeśli nie używasz Toolbar/ActionBar) -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="24dp"
+            android:gravity="center"
+            android:text="Edytuj Paragon i Klienta"
+            android:textSize="24sp" />
+
+        <!-- Sekcja danych paragonu -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
+            <!-- Numer drogerii i paragonu -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -57,14 +68,16 @@
                 </LinearLayout>
             </LinearLayout>
 
+            <!-- Data paragonu -->
             <EditText
                 android:id="@+id/editReceiptDateEditText"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="20dp"
                 android:hint="Data paragonu (DD-MM-YYYY)"
-                android:inputType="date" />
+                android:inputType="date" /> <!-- Zmienione przez TextWatcher -->
 
+            <!-- Sekcja daty weryfikacji -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -74,7 +87,7 @@
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="16dp"
+                    android:layout_marginBottom="8dp"
                     android:text="Weryfikacja (opcjonalne):"
                     android:textSize="18sp" />
 
@@ -94,7 +107,7 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:hint="DD-MM-YYYY"
-                            android:inputType="date" />
+                            android:inputType="date" /> <!-- Zmienione przez TextWatcher -->
                     </LinearLayout>
 
                     <LinearLayout
@@ -102,6 +115,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginStart="8dp"
                         android:layout_weight="3"
+                        android:gravity="center_vertical"
                         android:orientation="vertical">
 
                         <CheckBox
@@ -112,55 +126,88 @@
                             android:textColor="@color/white_text" />
                     </LinearLayout>
                 </LinearLayout>
-            </LinearLayout>
+            </LinearLayout> <!-- Koniec sekcji daty weryfikacji -->
 
-            <!-- Pole opisu klienta -->
+        </LinearLayout> <!-- Koniec sekcji danych paragonu -->
+
+        <!-- Sekcja danych klienta -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:orientation="vertical">
+
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:layout_marginBottom="16dp"
-                android:text="Opis klienta (opcjonalne):"
+                android:layout_marginBottom="8dp"
+                android:text="Dane klienta (opcjonalne):"
                 android:textSize="18sp" />
 
+            <!-- Opis klienta -->
             <EditText
                 android:id="@+id/editClientDescriptionEditText"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:hint="Opis klienta"
                 android:inputType="textMultiLine"
-                android:lines="2" />
+                android:lines="2"
+                android:gravity="top"/>
 
-        </LinearLayout>
+            <!--  NOWE POLA KLIENTA  -->
+            <EditText
+                android:id="@+id/editClientAppNumberEditText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:hint="Numer aplikacji klienta"
+                android:inputType="number"
+                android:maxLength="14" />
+
+            <EditText
+                android:id="@+id/editAmoditNumberEditText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:hint="Numer Amodit"
+                android:inputType="number"
+                android:maxLength="8" />
+            <!-- KONIEC NOWYCH PÓL KLIENTA  -->
+
+        </LinearLayout> <!-- Koniec sekcji danych klienta -->
 
 
+        <!-- Przyciski akcji -->
         <Button
             android:id="@+id/saveReceiptButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginVertical="24dp"
-            android:backgroundTint="@color/green_save"
-            android:paddingVertical="24dp"
-            android:text="Zapisz zmiany"
-            android:textColor="@color/white_text"
-            android:textSize="18sp" />
+            android:layout_marginTop="24dp"
+        android:layout_marginBottom="16dp"
+        android:backgroundTint="@color/green_save"
+        android:paddingVertical="16dp"
+        android:text="Zapisz zmiany"
+        android:textColor="@color/white_text"
+        android:textSize="18sp" />
 
         <Button
             android:id="@+id/deleteReceiptButton"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="8dp"
-            android:backgroundTint="@android:color/holo_red_dark"
-            android:text="Usuń paragon"
-            android:textColor="@color/white_text" />
+            app:strokeColor="@android:color/holo_red_dark"
+            android:textColor="@android:color/holo_red_dark"
+            android:text="Usuń ten paragon" />
 
         <Button
             android:id="@+id/deleteClientButton"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:backgroundTint="@android:color/holo_red_dark"
-            android:text="Usuń klienta i paragony"
-            android:textColor="@color/white_text" />
+            app:strokeColor="@android:color/holo_red_dark"
+            android:textColor="@android:color/holo_red_dark"
+            android:text="Usuń klienta i wszystkie paragony" />
 
     </LinearLayout>
 </ScrollView>
