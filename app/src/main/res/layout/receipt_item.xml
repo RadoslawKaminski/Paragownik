@@ -2,6 +2,7 @@
 <!-- Layout pojedynczego elementu listy paragonów w ReceiptListActivity. -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginTop="16dp"
@@ -11,21 +12,34 @@
     android:paddingTop="8dp"
     android:paddingEnd="16dp">
 
-    <!-- Kontener poziomy na główną treść (tekst) i ikonę edycji. -->
+    <!-- Kontener poziomy na miniaturę, treść (tekst) i ikonę edycji. -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:baselineAligned="false"
+        android:gravity="center_vertical"
         android:orientation="horizontal">
 
-        <!-- Kontener pionowy na wszystkie informacje tekstowe (zajmuje dostępną szerokość). -->
+        <!-- Miniatura zdjęcia klienta -->
+        <ImageView
+            android:id="@+id/receiptItemClientPhotoImageView"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:layout_marginEnd="12dp"
+            android:background="@drawable/rounded_edittext_background"
+            android:contentDescription="@string/cd_receipt_item_client_photo"
+            android:padding="3dp"
+            android:scaleType="centerCrop"
+            app:srcCompat="@drawable/ic_photo_placeholder" />
+
+        <!-- Kontener pionowy na wszystkie informacje tekstowe. -->
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:orientation="vertical">
 
-            <!-- Numer paragonu i Data paragonu w jednej linii. -->
+            <!-- Numer paragonu i Data paragonu. -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -43,7 +57,7 @@
                     android:textStyle="bold"
                     tools:text="1234" />
 
-                <!-- Separator pionowy. -->
+                <!-- Separator. -->
                 <View
                     android:layout_width="1dp"
                     android:layout_height="match_parent"
@@ -71,15 +85,15 @@
                 android:gravity="center_vertical"
                 android:orientation="horizontal">
 
-                <!-- Etykieta "Weryfikacja:". Padding dodany dla odstępu. -->
+                <!-- Etykieta "Weryfikacja:". -->
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@string/verification_label"
                     android:paddingEnd="4dp"
+                    android:text="@string/verification_label"
                     android:textSize="16sp" />
 
-                <!-- Wartość daty weryfikacji (lub "Brak"). -->
+                <!-- Wartość daty weryfikacji. -->
                 <TextView
                     android:id="@+id/verificationDateTextView"
                     android:layout_width="0dp"
@@ -98,7 +112,7 @@
                 android:textSize="18sp"
                 tools:text="Opis klienta lorem ipsum dolor sit amet siala lala lalala lalala" />
 
-            <!-- Numer aplikacji klienta (domyślnie ukryty). -->
+            <!-- Numer aplikacji klienta. -->
             <TextView
                 android:id="@+id/clientAppNumberTextView"
                 android:layout_width="match_parent"
@@ -110,7 +124,7 @@
                 tools:text="Nr app: 12345678901234"
                 tools:visibility="visible" />
 
-            <!-- Numer Amodit (domyślnie ukryty). -->
+            <!-- Numer Amodit. -->
             <TextView
                 android:id="@+id/amoditNumberTextView"
                 android:layout_width="match_parent"
@@ -124,7 +138,7 @@
 
         </LinearLayout> <!-- Koniec bloku z tekstem -->
 
-        <!-- Kontener na ikonę edycji (po prawej stronie). -->
+        <!-- Kontener na ikonę edycji. -->
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
@@ -133,7 +147,7 @@
             android:paddingStart="8dp"
             android:paddingEnd="8dp">
 
-            <!-- Ikona edycji (ImageView). -->
+            <!-- Ikona edycji. -->
             <ImageView
                 android:id="@+id/editReceiptButton"
                 android:layout_width="wrap_content"
@@ -149,7 +163,7 @@
         </LinearLayout>
     </LinearLayout>
 
-    <!-- Linia separatora na dole elementu. -->
+    <!-- Linia separatora na dole. -->
     <View
         android:layout_width="match_parent"
         android:layout_height="1dp"

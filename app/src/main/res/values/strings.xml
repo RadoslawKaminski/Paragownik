@@ -85,6 +85,8 @@
     <!-- Photo Handling -->
     <string name="cd_client_photo_placeholder">Miniatura zdjęcia klienta</string>
     <string name="cd_add_change_photo_button">Dodaj lub zmień zdjęcie klienta</string>
-    <string name="error_copying_image">Błąd podczas kopiowania zdjęcia.</string> <!-- Dodano -->
+    <string name="error_copying_image">Błąd podczas kopiowania zdjęcia.</string>
+    <string name="cd_receipt_item_client_photo">Miniatura zdjęcia klienta powiązanego z paragonem</string> <!-- Dodano -->
+    <string name="cd_client_item_client_photo">Miniatura zdjęcia klienta</string> <!-- Dodano -->
 
 </resources>

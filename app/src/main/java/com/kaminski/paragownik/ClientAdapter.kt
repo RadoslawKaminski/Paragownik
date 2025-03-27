@@ -1,69 +1,62 @@
 package com.kaminski.paragownik
 
-import android.content.Context // Potrzebne do pobierania stringów z zasobów
+import android.content.Context
+import android.util.Log // Do logowania błędów
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView // Potrzebny dla ImageView
 import android.widget.TextView
+import androidx.core.net.toUri // Potrzebny do konwersji String na Uri
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.RecyclerView
-import com.kaminski.paragownik.data.Client // Import modelu danych Client
+import com.kaminski.paragownik.data.Client
 
 /**
  * Adapter dla RecyclerView wyświetlającego listę klientów w [ClientListActivity].
+ * Pokazuje miniaturę zdjęcia klienta.
  */
 class ClientAdapter(
-    // Lista obiektów Client do wyświetlenia.
     var clientList: List<Client>,
-    // Listener (np. Aktywność), który będzie powiadamiany o kliknięciu elementu listy.
     private val itemClickListener: OnClientClickListener
 ) : RecyclerView.Adapter<ClientAdapter.ClientViewHolder>() {
 
-    // Przechowuje kontekst, potrzebny do dostępu do zasobów (np. stringów)
     private lateinit var context: Context
 
     /**
-     * Interfejs definiujący metodę zwrotną (callback) wywoływaną po kliknięciu
-     * elementu listy klientów.
+     * Interfejs dla obsługi kliknięcia elementu listy.
      */
     interface OnClientClickListener {
-        /**
-         * Wywoływane, gdy użytkownik kliknie element reprezentujący klienta.
-         * @param clientId ID klikniętego klienta.
-         */
         fun onClientClick(clientId: Long)
     }
 
     /**
-     * ViewHolder przechowuje referencje do widoków (TextView)
-     * w pojedynczym elemencie listy (layout `client_item.xml`).
+     * ViewHolder przechowujący referencje do widoków elementu listy.
      */
     class ClientViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        // Referencje do widoków w layoucie client_item.xml
         val descriptionTextView: TextView = itemView.findViewById(R.id.clientDescriptionTextView)
         val appNumberTextView: TextView = itemView.findViewById(R.id.clientAppNumberTextView)
         val amoditNumberTextView: TextView = itemView.findViewById(R.id.amoditNumberTextView)
-        // TODO: Dodać referencję do ImageView dla zdjęcia
+        val clientPhotoImageView: ImageView = itemView.findViewById(R.id.clientItemPhotoImageView) // Referencja do ImageView zdjęcia
     }
 
     /**
-     * Tworzy nowy obiekt ViewHolder, gdy RecyclerView potrzebuje nowego elementu do wyświetlenia.
-     * Influje widok z pliku XML `client_item.xml` i pobiera kontekst.
+     * Tworzy nowy ViewHolder.
      */
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ClientViewHolder {
-        context = parent.context // Pobranie kontekstu
+        context = parent.context
         val itemView = LayoutInflater.from(context)
             .inflate(R.layout.client_item, parent, false)
         return ClientViewHolder(itemView)
     }
 
     /**
-     * Łączy dane klienta z określonej pozycji listy (`position`) z widokami wewnątrz ViewHoldera (`holder`).
+     * Łączy dane z widokami w ViewHolderze, w tym ładuje miniaturę zdjęcia.
      */
     override fun onBindViewHolder(holder: ClientViewHolder, position: Int) {
         val currentClient = clientList[position]
 
-        // Ustawienie opisu klienta lub ID, jeśli opis jest pusty
+        // Ustawienie danych tekstowych klienta
         holder.descriptionTextView.text =
             if (currentClient.description.isNullOrBlank()) {
                 context.getString(R.string.client_item_id_prefix) + currentClient.id.toString()
@@ -71,19 +64,31 @@ class ClientAdapter(
                 currentClient.description
             }
 
-        // Ustawienie numeru aplikacji klienta z jawnym dodaniem spacji
         val appNumberText = currentClient.clientAppNumber?.takeIf { it.isNotBlank() }?.let {
-            context.getString(R.string.client_item_app_number_prefix) + " " + it // Dodano spację
+            context.getString(R.string.client_item_app_number_prefix) + " " + it
         }
         holder.appNumberTextView.text = appNumberText
         holder.appNumberTextView.isVisible = appNumberText != null
 
-        // Ustawienie numeru Amodit z jawnym dodaniem spacji
         val amoditNumberText = currentClient.amoditNumber?.takeIf { it.isNotBlank() }?.let {
-            context.getString(R.string.client_item_amodit_number_prefix) + " " + it // Dodano spację
+            context.getString(R.string.client_item_amodit_number_prefix) + " " + it
         }
         holder.amoditNumberTextView.text = amoditNumberText
         holder.amoditNumberTextView.isVisible = amoditNumberText != null
+
+        // Ładowanie miniatury zdjęcia klienta
+        // UWAGA: Bezpośrednie użycie setImageURI w adapterze może być nieefektywne.
+        if (!currentClient.photoUri.isNullOrBlank()) {
+            try {
+                val photoUri = currentClient.photoUri!!.toUri() // Bezpieczne, bo sprawdziliśmy isNullOrBlank
+                holder.clientPhotoImageView.setImageURI(photoUri)
+            } catch (e: Exception) {
+                Log.w("ClientAdapter", "Błąd ładowania zdjęcia dla klienta ${currentClient.id}, URI: ${currentClient.photoUri}", e)
+                holder.clientPhotoImageView.setImageResource(R.drawable.ic_photo_placeholder)
+            }
+        } else {
+            holder.clientPhotoImageView.setImageResource(R.drawable.ic_photo_placeholder)
+        }
 
         // Ustawienie listenera dla kliknięcia całego elementu listy
         holder.itemView.setOnClickListener {
@@ -92,7 +97,7 @@ class ClientAdapter(
     }
 
     /**
-     * Zwraca całkowitą liczbę elementów na liście danych.
+     * Zwraca liczbę elementów listy.
      */
     override fun getItemCount() = clientList.size
 }

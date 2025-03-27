@@ -2,48 +2,69 @@
 <!-- Layout pojedynczego elementu listy klientów w ClientListActivity. -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical"
+    android:orientation="horizontal"
     android:padding="16dp"
     android:layout_marginBottom="8dp"
+    android:gravity="center_vertical"
     android:background="@drawable/rounded_edittext_background"
-    android:contentDescription="@string/cd_client_list_item"> <!-- Opis zawartości dla dostępności -->
+    android:contentDescription="@string/cd_client_list_item">
 
-    <!-- Główny opis klienta lub jego ID -->
-    <TextView
-        android:id="@+id/clientDescriptionTextView"
-        android:layout_width="match_parent"
+    <!-- Miniatura zdjęcia klienta -->
+    <ImageView
+        android:id="@+id/clientItemPhotoImageView"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:layout_marginEnd="16dp"
+        android:background="@drawable/rounded_edittext_background"
+        android:contentDescription="@string/cd_client_item_client_photo"
+        android:padding="3dp"
+        android:scaleType="centerCrop"
+        app:srcCompat="@drawable/ic_photo_placeholder" />
+
+    <!-- Kontener na dane tekstowe klienta -->
+    <LinearLayout
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:textSize="18sp"
-        android:textStyle="bold"
-        android:textColor="@color/white_text"
-        tools:text="Wysoki blondyn w czerwonej kurtce"/>
+        android:layout_weight="1"
+        android:orientation="vertical">
 
-    <!-- Numer aplikacji klienta (jeśli istnieje) -->
-    <TextView
-        android:id="@+id/clientAppNumberTextView"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
-        android:textSize="14sp"
-        android:textColor="@color/sub_white_text"
-        android:visibility="gone"
-        tools:text="Nr app: 12345678901234"
-        tools:visibility="visible"/>
+        <!-- Główny opis klienta lub jego ID -->
+        <TextView
+            android:id="@+id/clientDescriptionTextView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="@color/white_text"
+            tools:text="Wysoki blondyn w czerwonej kurtce"/>
 
-    <!-- Numer Amodit (jeśli istnieje) -->
-    <TextView
-        android:id="@+id/amoditNumberTextView"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="2dp"
-        android:textSize="14sp"
-        android:textColor="@color/sub_white_text"
-        android:visibility="gone"
-        tools:text="Amodit: 12345678"
-        tools:visibility="visible"/>
+        <!-- Numer aplikacji klienta (jeśli istnieje) -->
+        <TextView
+            android:id="@+id/clientAppNumberTextView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:textSize="14sp"
+            android:textColor="@color/sub_white_text"
+            android:visibility="gone"
+            tools:text="Nr app: 12345678901234"
+            tools:visibility="visible"/>
 
-    <!-- TODO: W przyszłości dodać ImageView na miniaturę zdjęcia -->
+        <!-- Numer Amodit (jeśli istnieje) -->
+        <TextView
+            android:id="@+id/amoditNumberTextView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:textSize="14sp"
+            android:textColor="@color/sub_white_text"
+            android:visibility="gone"
+            tools:text="Amodit: 12345678"
+            tools:visibility="visible"/>
+
+    </LinearLayout>
 
 </LinearLayout>

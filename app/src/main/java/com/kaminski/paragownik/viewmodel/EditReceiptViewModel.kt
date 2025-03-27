@@ -2,8 +2,9 @@ package com.kaminski.paragownik.viewmodel
 
 import android.app.Application
 import android.util.Log
+import androidx.core.net.toUri // Potrzebny do parsowania URI
 import androidx.lifecycle.AndroidViewModel
-import com.kaminski.paragownik.R // Potrzebne dla zasobów string
+import com.kaminski.paragownik.R
 import com.kaminski.paragownik.data.AppDatabase
 import com.kaminski.paragownik.data.Client
 import com.kaminski.paragownik.data.Receipt
@@ -19,6 +20,7 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
+import java.io.File // Potrzebny do operacji na plikach
 import java.text.ParseException
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -27,11 +29,10 @@ import java.util.Locale
 /**
  * ViewModel dla EditReceiptActivity.
  * Odpowiada za logikę biznesową związaną z edycją i usuwaniem paragonów/klientów,
- * w tym obsługę URI zdjęcia klienta.
+ * w tym obsługę URI zdjęcia klienta oraz usuwanie plików zdjęć.
  */
 class EditReceiptViewModel(application: Application) : AndroidViewModel(application) {
 
-    // Referencje do bazy danych i DAO
     private val database: AppDatabase = AppDatabase.getDatabase(application)
     private val receiptDao: ReceiptDao = database.receiptDao()
     private val storeDao: StoreDao = database.storeDao()
@@ -52,7 +53,6 @@ class EditReceiptViewModel(application: Application) : AndroidViewModel(applicat
 
     /**
      * Pobiera Flow emitujący parę: [ReceiptWithClient?] oraz numer sklepu [String?].
-     * Reaguje na zmiany w danych paragonu, klienta i sklepu.
      */
     @OptIn(ExperimentalCoroutinesApi::class)
     fun getReceiptWithClientAndStoreNumber(receiptId: Long): Flow<Pair<ReceiptWithClient?, String?>> {
@@ -72,17 +72,6 @@ class EditReceiptViewModel(application: Application) : AndroidViewModel(applicat
 
     /**
      * Aktualizuje dane istniejącego paragonu oraz powiązanego z nim klienta, w tym URI zdjęcia.
-     *
-     * @param receiptId ID edytowanego paragonu.
-     * @param storeNumberString Nowy numer sklepu.
-     * @param receiptNumber Nowy numer paragonu.
-     * @param receiptDateString Nowa data paragonu (DD-MM-YYYY).
-     * @param verificationDateString Nowa data weryfikacji (DD-MM-YYYY, opcjonalna).
-     * @param clientDescription Nowy opis klienta.
-     * @param clientAppNumber Nowy numer aplikacji klienta.
-     * @param amoditNumber Nowy numer Amodit klienta.
-     * @param photoUri Nowe URI zdjęcia klienta jako String (może być null).
-     * @return [EditResult] Enum wskazujący wynik operacji.
      */
     suspend fun updateReceiptAndClient(
         receiptId: Long,
@@ -93,13 +82,13 @@ class EditReceiptViewModel(application: Application) : AndroidViewModel(applicat
         clientDescription: String?,
         clientAppNumber: String?,
         amoditNumber: String?,
-        photoUri: String? // Akceptuje URI zdjęcia
+        photoUri: String?
     ): EditResult = withContext(Dispatchers.IO) {
         val dateFormat = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault())
         dateFormat.isLenient = false
 
         try {
-            // Krok 1: Pobierz istniejące dane
+            // Pobierz istniejące dane
             val existingReceiptWithClient = receiptDao.getReceiptWithClient(receiptId)
             if (existingReceiptWithClient == null || existingReceiptWithClient.client == null) {
                 Log.e("EditReceiptViewModel", "Nie znaleziono paragonu (ID: $receiptId) lub klienta do edycji.")
@@ -108,7 +97,7 @@ class EditReceiptViewModel(application: Application) : AndroidViewModel(applicat
             val existingReceipt = existingReceiptWithClient.receipt
             val existingClient = existingReceiptWithClient.client
 
-            // Krok 2: Walidacja i parsowanie dat
+            // Walidacja i parsowanie dat
             val receiptDate: Date = try {
                 dateFormat.parse(receiptDateString) as Date
             } catch (e: ParseException) {
@@ -126,7 +115,7 @@ class EditReceiptViewModel(application: Application) : AndroidViewModel(applicat
                 null
             }
 
-            // Krok 3: Walidacja i obsługa numeru sklepu
+            // Walidacja i obsługa numeru sklepu
             if (storeNumberString.isBlank()) {
                 Log.e("EditReceiptViewModel", "Brak numeru drogerii podczas edycji.")
                 return@withContext EditResult.ERROR_STORE_NUMBER_MISSING
@@ -141,19 +130,18 @@ class EditReceiptViewModel(application: Application) : AndroidViewModel(applicat
                     throw DatabaseException(getApplication<Application>().getString(R.string.error_creating_store_edit, storeNumberString))
                 }
                 storeId = store.id
-                Log.d("EditReceiptViewModel", "Edycja: Dodano nową drogerię: $storeNumberString, ID: $storeId")
             } else {
                 storeId = store.id
             }
 
-            // Krok 4: Walidacja duplikatów paragonów (z wykluczeniem samego siebie)
+            // Walidacja duplikatów paragonów
             val potentialDuplicate = receiptDao.findByNumberDateStore(receiptNumber, receiptDate, storeId)
             if (potentialDuplicate != null && potentialDuplicate.id != receiptId) {
                 Log.e("EditReceiptViewModel", "Edycja: Znaleziono inny paragon (ID: ${potentialDuplicate.id}) z tymi samymi danymi.")
                 return@withContext EditResult.ERROR_DUPLICATE_RECEIPT
             }
 
-            // Krok 5: Aktualizacja Paragonu
+            // Aktualizacja Paragonu
             val updatedReceipt = existingReceipt.copy(
                 receiptNumber = receiptNumber,
                 receiptDate = receiptDate,
@@ -162,14 +150,12 @@ class EditReceiptViewModel(application: Application) : AndroidViewModel(applicat
             )
             receiptDao.updateReceipt(updatedReceipt)
 
-            // Krok 6: Aktualizacja Klienta (w tym photoUri)
+            // Aktualizacja Klienta (w tym photoUri)
             val updatedClient = existingClient.copy(
                 description = clientDescription?.takeIf { it.isNotBlank() },
                 clientAppNumber = clientAppNumber?.takeIf { it.isNotBlank() },
                 amoditNumber = amoditNumber?.takeIf { it.isNotBlank() },
                 // Użyj nowego photoUri, jeśli nie jest null/pusty, w przeciwnym razie zostaw stare.
-                // Pozwala to na zachowanie zdjęcia, jeśli użytkownik go nie zmienił.
-                // Jeśli chcemy umożliwić usunięcie zdjęcia, trzeba by dodać osobną logikę (np. przycisk usuń zdjęcie).
                 photoUri = photoUri?.takeIf { it.isNotBlank() } ?: existingClient.photoUri
             )
             clientDao.updateClient(updatedClient)
@@ -187,7 +173,8 @@ class EditReceiptViewModel(application: Application) : AndroidViewModel(applicat
     }
 
     /**
-     * Usuwa podany paragon z bazy danych i czyści ewentualnie osieroconych klientów/sklepy.
+     * Usuwa podany paragon z bazy danych i czyści ewentualnie osieroconych klientów/sklepy,
+     * w tym usuwa plik zdjęcia klienta, jeśli klient jest usuwany.
      */
     suspend fun deleteReceipt(receipt: Receipt): EditResult = withContext(Dispatchers.IO) {
         try {
@@ -200,20 +187,24 @@ class EditReceiptViewModel(application: Application) : AndroidViewModel(applicat
             val clientId = receiptToDelete.clientId
             val storeId = receiptToDelete.storeId
 
+            // Usuń paragon
             receiptDao.deleteReceipt(receiptToDelete)
             Log.d("EditReceiptViewModel", "Paragon usunięty. ID: ${receipt.id}")
 
-            // Czyszczenie Klienta
+            // Sprawdź, czy klient stał się osierocony
             val clientReceiptsCount = receiptDao.getReceiptsForClientCount(clientId)
             if (clientReceiptsCount == 0) {
                 val clientToDelete = clientDao.getClientById(clientId)
                 clientToDelete?.let {
+                    // Usuń plik zdjęcia PRZED usunięciem klienta z bazy
+                    deleteImageFile(it.photoUri)
+                    // Usuń klienta
                     clientDao.deleteClient(it)
                     Log.d("EditReceiptViewModel", "Klient (ID: $clientId) usunięty automatycznie.")
                 }
             }
 
-            // Czyszczenie Sklepu
+            // Sprawdź, czy sklep stał się osierocony
             val storeReceiptsCount = receiptDao.getReceiptsForStoreCount(storeId)
             if (storeReceiptsCount == 0) {
                 val storeToDelete = storeDao.getStoreById(storeId)
@@ -231,7 +222,8 @@ class EditReceiptViewModel(application: Application) : AndroidViewModel(applicat
     }
 
     /**
-     * Usuwa podanego klienta (i kaskadowo jego paragony) oraz czyści ewentualnie osierocone sklepy.
+     * Usuwa podanego klienta (i kaskadowo jego paragony), usuwa powiązany plik zdjęcia
+     * oraz czyści ewentualnie osierocone sklepy.
      */
     suspend fun deleteClient(client: Client): EditResult = withContext(Dispatchers.IO) {
         try {
@@ -244,6 +236,9 @@ class EditReceiptViewModel(application: Application) : AndroidViewModel(applicat
             // Zbierz ID sklepów powiązanych z klientem PRZED usunięciem
             val associatedStoreIds = receiptDao.getStoreIdsForClient(clientToDelete.id)
             Log.d("EditReceiptViewModel", "Sklepy powiązane z klientem ${clientToDelete.id} przed usunięciem: $associatedStoreIds")
+
+            // Usuń plik zdjęcia PRZED usunięciem klienta z bazy
+            deleteImageFile(clientToDelete.photoUri)
 
             // Usuń klienta (paragony usuną się kaskadowo)
             clientDao.deleteClient(clientToDelete)
@@ -266,6 +261,41 @@ class EditReceiptViewModel(application: Application) : AndroidViewModel(applicat
         } catch (e: Exception) {
             Log.e("EditReceiptViewModel", "Błąd podczas usuwania klienta (ID: ${client.id}).", e)
             EditResult.ERROR_DATABASE
+        }
+    }
+
+    /**
+     * Usuwa plik zdjęcia z wewnętrznego magazynu aplikacji na podstawie jego URI.
+     * @param photoUriString URI zdjęcia jako String (powinno być w formacie file://...).
+     */
+    private fun deleteImageFile(photoUriString: String?) {
+        if (photoUriString.isNullOrBlank()) {
+            return // Brak URI do usunięcia
+        }
+
+        try {
+            val fileUri = photoUriString.toUri()
+            // Sprawdź, czy to URI pliku ('file' scheme) i czy ścieżka zaczyna się od katalogu plików aplikacji
+            if (fileUri.scheme == "file" && fileUri.path?.startsWith(getApplication<Application>().filesDir.absolutePath) == true) {
+                // Utwórz obiekt File na podstawie ścieżki z URI
+                val fileToDelete = File(fileUri.path!!) // Wykrzyknik jest bezpieczny, bo path nie będzie null dla file:// URI
+                if (fileToDelete.exists()) {
+                    if (fileToDelete.delete()) {
+                        Log.d("EditReceiptViewModel", "Usunięto plik zdjęcia: $photoUriString")
+                    } else {
+                        Log.w("EditReceiptViewModel", "Nie udało się usunąć pliku zdjęcia: $photoUriString")
+                    }
+                } else {
+                    // Plik mógł zostać już usunięty lub URI jest nieaktualne
+                    Log.w("EditReceiptViewModel", "Plik zdjęcia do usunięcia nie istnieje: $photoUriString")
+                }
+            } else {
+                // Logujemy ostrzeżenie, jeśli URI nie jest z oczekiwanego źródła
+                Log.w("EditReceiptViewModel", "Próba usunięcia pliku z nieobsługiwanego URI lub spoza magazynu aplikacji: $photoUriString")
+            }
+        } catch (e: Exception) {
+            // Złap wszelkie błędy (np. parsowania URI, SecurityException - choć mało prawdopodobne dla plików wewnętrznych)
+            Log.e("EditReceiptViewModel", "Błąd podczas próby usunięcia pliku zdjęcia: $photoUriString", e)
         }
     }
 
