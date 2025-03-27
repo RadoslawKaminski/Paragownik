@@ -205,6 +205,41 @@
                     android:inputType="number"
                     android:maxLength="8" />
 
+                <!-- Kontener na zdjęcie i przycisk dodawania zdjęcia -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <!-- Miniatura zdjęcia klienta -->
+                    <ImageView
+                        android:id="@+id/clientPhotoImageView"
+                        android:layout_width="80dp"
+                        android:layout_height="80dp"
+                        android:layout_marginEnd="16dp"
+                        android:background="@drawable/rounded_edittext_background"
+                        android:contentDescription="@string/cd_client_photo_placeholder"
+                        android:padding="4dp"
+                        android:scaleType="centerCrop"
+                        app:srcCompat="@drawable/ic_photo_placeholder" /> <!-- Placeholder -->
+
+                    <!-- Przycisk dodawania/zmiany zdjęcia -->
+                    <ImageButton
+                        android:id="@+id/addChangePhotoButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:contentDescription="@string/cd_add_change_photo_button"
+                        android:minWidth="48dp"
+                        android:minHeight="48dp"
+                        android:padding="8dp"
+                        app:srcCompat="@drawable/ic_add_a_photo"
+                        app:tint="@color/scnd_color_bright" />
+
+                </LinearLayout>
+
             </LinearLayout> <!-- Koniec sekcji danych klienta -->
 
 
