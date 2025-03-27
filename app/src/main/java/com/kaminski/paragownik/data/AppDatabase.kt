@@ -1,13 +1,13 @@
 package com.kaminski.paragownik.data
 
 import android.content.Context
-import android.util.Log
+import android.util.Log // Dodano import dla Log
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
-import androidx.room.migration.Migration // Import klasy Migration
-import androidx.sqlite.db.SupportSQLiteDatabase // Import interfejsu SupportSQLiteDatabase
+import androidx.room.migration.Migration
+import androidx.sqlite.db.SupportSQLiteDatabase
 import com.kaminski.paragownik.data.daos.ClientDao
 import com.kaminski.paragownik.data.daos.ReceiptDao
 import com.kaminski.paragownik.data.daos.StoreDao
@@ -21,7 +21,7 @@ import com.kaminski.paragownik.data.daos.StoreDao
  * @property version Numer wersji schematu bazy danych. Należy go zwiększać przy każdej zmianie schematu.
  * @property exportSchema Czy eksportować schemat bazy do pliku JSON (przydatne do testów i dokumentacji).
  */
-// Zwiększona wersja bazy danych do 3 po dodaniu pól do tabeli Client
+// Zwiększona wersja bazy danych do 4 po dodaniu indeksu do tabeli Receipt
 @Database(entities = [Store::class, Receipt::class, Client::class], version = 4, exportSchema = false)
 @TypeConverters(Converters::class) // Rejestracja konwerterów typów (np. dla Date)
 abstract class AppDatabase : RoomDatabase() {
@@ -54,9 +54,9 @@ abstract class AppDatabase : RoomDatabase() {
                 db.execSQL("ALTER TABLE clients ADD COLUMN photoUri TEXT")         // URI zdjęcia (tekst, nullable)
             }
         }
-        // --- KONIEC DEFINICJI MIGRACJI ---
+        // --- KONIEC DEFINICJI MIGRACJI 2 -> 3 ---
 
-        // --- MIGRACJA 3 -> 4 ---
+        // --- DEFINICJA MIGRACJI Z WERSJI 3 DO 4 ---
         /**
          * Migracja z wersji 3 do 4.
          * Dodaje indeks do kolumny 'storeId' w tabeli 'receipts'
@@ -70,7 +70,7 @@ abstract class AppDatabase : RoomDatabase() {
                 Log.i("AppDatabaseMigration", "Migracja 3->4: Dodano indeks index_receipts_storeId.") // Opcjonalny log
             }
         }
-        // --- KONIEC NOWEJ MIGRACJI 3 -> 4 ---
+        // --- KONIEC DEFINICJI MIGRACJI 3 -> 4 ---
 
         /**
          * Zwraca instancję Singleton bazy danych [AppDatabase].
@@ -91,7 +91,7 @@ abstract class AppDatabase : RoomDatabase() {
                 )
                     // Dodaj zdefiniowane migracje do budowniczego.
                     // Room użyje odpowiedniej migracji w zależności od starej i nowej wersji bazy.
-                    .addMigrations(MIGRATION_2_3, MIGRATION_3_4)
+                    .addMigrations(MIGRATION_2_3, MIGRATION_3_4) // Dodano MIGRATION_3_4
                     // Zbuduj instancję bazy danych.
                     .build()
                 // Przypisz nowo utworzoną instancję do INSTANCE.
@@ -102,4 +102,3 @@ abstract class AppDatabase : RoomDatabase() {
         }
     }
 }
-

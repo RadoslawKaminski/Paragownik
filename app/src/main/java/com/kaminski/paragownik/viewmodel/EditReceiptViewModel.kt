@@ -1,9 +1,12 @@
 package com.kaminski.paragownik.viewmodel
 
+// import androidx.lifecycle.viewModelScope // Nie jest bezpośrednio używany, ale withContext go wymaga
+// import kotlinx.coroutines.flow.combine // Nieużywany
+// import kotlinx.coroutines.flow.filterNotNull // Nieużywany
+// import kotlinx.coroutines.launch // Nieużywany
 import android.app.Application
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.viewModelScope // Import dla viewModelScope
 import com.kaminski.paragownik.data.AppDatabase
 import com.kaminski.paragownik.data.Client
 import com.kaminski.paragownik.data.Receipt
@@ -12,23 +15,20 @@ import com.kaminski.paragownik.data.Store
 import com.kaminski.paragownik.data.daos.ClientDao
 import com.kaminski.paragownik.data.daos.ReceiptDao
 import com.kaminski.paragownik.data.daos.StoreDao
-import kotlinx.coroutines.Dispatchers // Import Dispatchers
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.combine // Import combine do łączenia Flow (nieużywane tutaj, ale może być przydatne)
-import kotlinx.coroutines.flow.filterNotNull // Import filterNotNull
-import kotlinx.coroutines.flow.firstOrNull // Import firstOrNull do pobrania pierwszej wartości z Flow
-import kotlinx.coroutines.flow.flatMapLatest // Import flatMapLatest do dynamicznego przełączania Flow
-import kotlinx.coroutines.flow.flowOn // Import flowOn do określenia kontekstu Flow
-import kotlinx.coroutines.flow.map // Import map do transformacji danych w Flow
-import kotlinx.coroutines.launch // Import launch
-import kotlinx.coroutines.withContext // Import withContext
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.withContext
 import java.text.ParseException
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
 /**
- * ViewModel dla [EditReceiptActivity].
+ * ViewModel dla EditReceiptActivity.
  * Odpowiada za logikę biznesową związaną z:
  * - Pobieraniem danych paragonu i powiązanego klienta do edycji.
  * - Aktualizowaniem danych paragonu i klienta.
@@ -76,6 +76,7 @@ class EditReceiptViewModel(application: Application) : AndroidViewModel(applicat
      * @param receiptId ID paragonu do obserwacji.
      * @return [Flow] emitujący parę `(ReceiptWithClient?, String?)`.
      */
+    @OptIn(ExperimentalCoroutinesApi::class) // Wymagane dla flatMapLatest
     fun getReceiptWithClientAndStoreNumber(receiptId: Long): Flow<Pair<ReceiptWithClient?, String?>> {
         // 1. Obserwuj Flow dla ReceiptWithClient o podanym ID
         return receiptDao.getReceiptWithClientFlow(receiptId)
@@ -347,4 +348,3 @@ class EditReceiptViewModel(application: Application) : AndroidViewModel(applicat
         }
     }
 }
-

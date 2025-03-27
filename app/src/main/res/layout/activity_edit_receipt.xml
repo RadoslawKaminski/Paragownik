@@ -6,8 +6,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/main_color_dark" 
-    android:padding="16dp" 
+    android:background="@color/main_color_dark"
+    android:padding="16dp"
     tools:context=".EditReceiptActivity">
 
     <!-- Główny kontener LinearLayout (pionowy) wewnątrz ScrollView. -->
@@ -23,7 +23,7 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="24dp"
             android:gravity="center"
-            android:text="Edytuj Paragon i Klienta"
+            android:text="@string/edit_receipt_client_title"
             android:textSize="24sp" />
 
         <!-- Sekcja edycji danych paragonu. -->
@@ -36,6 +36,7 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:baselineAligned="false"
                 android:orientation="horizontal">
 
                 <!-- Kontener dla numeru drogerii. -->
@@ -43,7 +44,7 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_marginEnd="8dp"
-                    android:layout_weight="4" 
+                    android:layout_weight="4"
                     android:orientation="vertical">
 
                     <!-- Pole edycji numeru drogerii. -->
@@ -51,9 +52,10 @@
                         android:id="@+id/editReceiptStoreNumberEditText"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:hint="Dogeria"
-                        android:inputType="number" 
-                        android:maxLength="4" /> 
+                        android:autofillHints="postalCode"
+                        android:hint="@string/store_number_hint"
+                        android:inputType="number"
+                        android:maxLength="4" />
                 </LinearLayout>
 
                 <!-- Kontener dla numeru paragonu. -->
@@ -61,7 +63,7 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="8dp"
-                    android:layout_weight="5" 
+                    android:layout_weight="5"
                     android:orientation="vertical">
 
                     <!-- Pole edycji numeru paragonu. -->
@@ -69,9 +71,10 @@
                         android:id="@+id/editReceiptNumberEditText"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:hint="Numer paragonu"
-                        android:inputType="number" 
-                        android:maxLength="4" /> 
+                        android:autofillHints="postalCode"
+                        android:hint="@string/receipt_number_hint"
+                        android:inputType="number"
+                        android:maxLength="4" />
                 </LinearLayout>
             </LinearLayout>
 
@@ -81,7 +84,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="20dp"
-                android:hint="Data paragonu (DD-MM-YYYY)"
+                android:autofillHints="date"
+                android:hint="@string/receipt_date_hint"
                 android:inputType="date" /> <!-- Zmieniane przez TextWatcher -->
 
             <!-- Sekcja edycji daty weryfikacji. -->
@@ -96,20 +100,21 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="8dp"
-                    android:text="Weryfikacja (opcjonalne):"
+                    android:text="@string/verification_section_title"
                     android:textSize="18sp" />
 
                 <!-- Pole daty weryfikacji i checkbox "Dzisiaj" w jednej linii. -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:baselineAligned="false"
                     android:orientation="horizontal">
 
                     <!-- Kontener dla pola daty weryfikacji. -->
                     <LinearLayout
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_weight="5" 
+                        android:layout_weight="5"
                         android:orientation="vertical">
 
                         <!-- Pole edycji daty weryfikacji. -->
@@ -117,7 +122,8 @@
                             android:id="@+id/editVerificationDateEditText"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:hint="DD-MM-YYYY"
+                            android:autofillHints="date"
+                            android:hint="@string/verification_date_hint"
                             android:inputType="date" /> <!-- Zmieniane przez TextWatcher -->
                     </LinearLayout>
 
@@ -126,8 +132,8 @@
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="8dp"
-                        android:layout_weight="3" 
-                        android:gravity="center_vertical" 
+                        android:layout_weight="3"
+                        android:gravity="center_vertical"
                         android:orientation="vertical">
 
                         <!-- Checkbox "Dzisiaj". -->
@@ -135,7 +141,7 @@
                             android:id="@+id/editVerificationDateTodayCheckBox"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Dzisiaj"
+                            android:text="@string/today"
                             android:textColor="@color/white_text" />
                     </LinearLayout>
                 </LinearLayout>
@@ -155,7 +161,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="8dp"
-                android:text="Dane klienta (opcjonalne):"
+                android:text="@string/client_data_section_title"
                 android:textSize="18sp" />
 
             <!-- Pole edycji opisu klienta (wieloliniowe). -->
@@ -163,10 +169,11 @@
                 android:id="@+id/editClientDescriptionEditText"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Opis klienta"
-                android:inputType="textMultiLine" 
-                android:lines="2" 
-                android:gravity="top"/> 
+                android:autofillHints="text"
+                android:gravity="top"
+                android:hint="@string/client_description_hint"
+                android:inputType="textMultiLine"
+                android:lines="2" />
 
             <!-- Pole edycji numeru aplikacji klienta. -->
             <EditText
@@ -174,9 +181,10 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                android:hint="Numer aplikacji klienta"
-                android:inputType="number" 
-                android:maxLength="14" /> 
+                android:autofillHints="number"
+                android:hint="@string/client_app_number_hint"
+                android:inputType="number"
+                android:maxLength="14" />
 
             <!-- Pole edycji numeru Amodit. -->
             <EditText
@@ -184,9 +192,10 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                android:hint="Numer Amodit"
-                android:inputType="number" 
-                android:maxLength="8" /> 
+                android:autofillHints="number"
+                android:hint="@string/amodit_number_hint"
+                android:inputType="number"
+                android:maxLength="8" />
 
         </LinearLayout> <!-- Koniec sekcji danych klienta -->
 
@@ -198,34 +207,33 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="24dp"
-            android:layout_marginBottom="16dp" 
-            android:backgroundTint="@color/green_save" 
-            android:paddingVertical="16dp" 
-            android:text="Zapisz zmiany"
-            android:textColor="@color/white_text" 
+            android:layout_marginBottom="16dp"
+            android:backgroundTint="@color/green_save"
+            android:paddingVertical="16dp"
+            android:text="@string/save_changes_button_text"
+            android:textColor="@color/white_text"
             android:textSize="18sp" />
 
         <!-- Przycisk usuwania tylko tego paragonu (styl Outlined). -->
         <Button
             android:id="@+id/deleteReceiptButton"
-            style="@style/Widget.MaterialComponents.Button.OutlinedButton" 
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="8dp"
-            app:strokeColor="@android:color/holo_red_dark" 
-            android:textColor="@android:color/holo_red_dark" 
-            android:text="Usuń ten paragon" />
+            android:text="@string/delete_receipt_button_text"
+            android:textColor="@android:color/holo_red_dark"
+            app:strokeColor="@android:color/holo_red_dark" />
 
         <!-- Przycisk usuwania klienta i wszystkich jego paragonów (styl Outlined). -->
         <Button
             android:id="@+id/deleteClientButton"
-            style="@style/Widget.MaterialComponents.Button.OutlinedButton" 
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:strokeColor="@android:color/holo_red_dark" 
-            android:textColor="@android:color/holo_red_dark" 
-            android:text="Usuń klienta i wszystkie paragony" />
+            android:text="@string/delete_client_button_text"
+            android:textColor="@android:color/holo_red_dark"
+            app:strokeColor="@android:color/holo_red_dark" />
 
     </LinearLayout>
 </ScrollView>
-

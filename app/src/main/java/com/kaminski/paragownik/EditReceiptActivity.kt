@@ -15,15 +15,15 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import com.kaminski.paragownik.viewmodel.EditReceiptViewModel
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Locale
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.isActive
-import java.text.ParseException // Potrzebne do obsługi błędów parsowania daty w TextWatcherze
+
 
 /**
  * Aktywność odpowiedzialna za edycję istniejącego paragonu oraz powiązanych danych klienta.
@@ -80,7 +80,7 @@ class EditReceiptActivity : AppCompatActivity() {
 
         // Sprawdź, czy ID paragonu jest poprawne. Jeśli nie, zakończ aktywność.
         if (receiptId == -1L) {
-            Toast.makeText(this, "Błąd: Nieprawidłowe ID paragonu.", Toast.LENGTH_LONG).show()
+            Toast.makeText(this, R.string.error_invalid_store_id, Toast.LENGTH_LONG).show()
             Log.e("EditReceiptActivity", "Nieprawidłowe RECEIPT_ID przekazane w Intencie.")
             finish() // Zamknij aktywność
             return   // Zakończ wykonywanie onCreate
@@ -233,7 +233,7 @@ class EditReceiptActivity : AppCompatActivity() {
 
         // Podstawowa walidacja pustych pól wymaganych dla paragonu w UI
         if (storeNumberString.isEmpty() || receiptNumber.isEmpty() || receiptDateString.isEmpty()) {
-            Toast.makeText(this, "Wypełnij numer sklepu, numer paragonu i datę paragonu.", Toast.LENGTH_LONG).show()
+            Toast.makeText(this, R.string.error_fill_required_edit_fields, Toast.LENGTH_LONG).show()
             return // Zakończ, jeśli brakuje podstawowych danych
         }
 
@@ -255,30 +255,19 @@ class EditReceiptActivity : AppCompatActivity() {
             )
 
             // Obsługa wyniku operacji zapisu zwróconego przez ViewModel
-            when (result) {
+            val message = when (result) {
                 EditReceiptViewModel.EditResult.SUCCESS -> {
-                    Toast.makeText(this@EditReceiptActivity, "Zmiany zapisane pomyślnie", Toast.LENGTH_SHORT).show()
                     finish() // Powrót do poprzedniej aktywności (ReceiptListActivity) po sukcesie
+                    "Zmiany zapisane pomyślnie"
                 }
-                EditReceiptViewModel.EditResult.ERROR_NOT_FOUND -> {
-                    Toast.makeText(this@EditReceiptActivity, "Błąd: Nie znaleziono paragonu do aktualizacji.", Toast.LENGTH_LONG).show()
-                }
-                EditReceiptViewModel.EditResult.ERROR_DATE_FORMAT -> {
-                    Toast.makeText(this@EditReceiptActivity, "Błąd: Nieprawidłowy format daty (DD-MM-YYYY)", Toast.LENGTH_LONG).show()
-                }
-                EditReceiptViewModel.EditResult.ERROR_DUPLICATE_RECEIPT -> {
-                    Toast.makeText(this@EditReceiptActivity, "Błąd: Inny paragon o podanym numerze, dacie i sklepie już istnieje", Toast.LENGTH_LONG).show()
-                }
-                EditReceiptViewModel.EditResult.ERROR_STORE_NUMBER_MISSING -> {
-                    Toast.makeText(this@EditReceiptActivity, "Błąd: Numer drogerii nie może być pusty", Toast.LENGTH_LONG).show()
-                }
-                EditReceiptViewModel.EditResult.ERROR_DATABASE -> {
-                    Toast.makeText(this@EditReceiptActivity, "Błąd: Wystąpił problem z bazą danych podczas zapisu", Toast.LENGTH_LONG).show()
-                }
-                EditReceiptViewModel.EditResult.ERROR_UNKNOWN -> {
-                    Toast.makeText(this@EditReceiptActivity, "Błąd: Wystąpił nieznany błąd podczas zapisu", Toast.LENGTH_LONG).show()
-                }
+                EditReceiptViewModel.EditResult.ERROR_NOT_FOUND -> "Błąd: Nie znaleziono paragonu do aktualizacji."
+                EditReceiptViewModel.EditResult.ERROR_DATE_FORMAT -> "Błąd: Nieprawidłowy format daty (DD-MM-YYYY)"
+                EditReceiptViewModel.EditResult.ERROR_DUPLICATE_RECEIPT -> "Błąd: Inny paragon o podanym numerze, dacie i sklepie już istnieje"
+                EditReceiptViewModel.EditResult.ERROR_STORE_NUMBER_MISSING -> "Błąd: Numer drogerii nie może być pusty"
+                EditReceiptViewModel.EditResult.ERROR_DATABASE -> "Błąd: Wystąpił problem z bazą danych podczas zapisu"
+                EditReceiptViewModel.EditResult.ERROR_UNKNOWN -> "Błąd: Wystąpił nieznany błąd podczas zapisu"
             }
+            Toast.makeText(this@EditReceiptActivity, message, if (result == EditReceiptViewModel.EditResult.SUCCESS) Toast.LENGTH_SHORT else Toast.LENGTH_LONG).show()
         }
     }
 
@@ -288,13 +277,13 @@ class EditReceiptActivity : AppCompatActivity() {
      */
     private fun showDeleteReceiptDialog() {
         AlertDialog.Builder(this)
-            .setTitle("Potwierdzenie usunięcia")
-            .setMessage("Czy na pewno chcesz usunąć ten paragon?\n\n(Jeśli to ostatni paragon klienta lub drogerii, zostaną oni również usunięci).")
-            .setPositiveButton("Usuń") { _, _ ->
+            .setTitle(R.string.delete_receipt_confirmation_title)
+            .setMessage(R.string.delete_receipt_confirmation_message)
+            .setPositiveButton(R.string.delete) { _, _ ->
                 // Po kliknięciu "Usuń" wywołaj funkcję usuwającą paragon
                 deleteReceipt()
             }
-            .setNegativeButton("Anuluj", null) // "Anuluj" nic nie robi, dialog się zamyka
+            .setNegativeButton(R.string.cancel, null) // "Anuluj" nic nie robi, dialog się zamyka
             .setIcon(android.R.drawable.ic_dialog_alert) // Standardowa ikona ostrzeżenia
             .show() // Pokaż dialog
     }
@@ -316,7 +305,7 @@ class EditReceiptActivity : AppCompatActivity() {
             // Sprawdź, czy udało się pobrać paragon
             if (currentReceipt == null) {
                 // Jeśli nie (np. został usunięty w międzyczasie), pokaż błąd i zakończ
-                Toast.makeText(this@EditReceiptActivity, "Błąd: Nie można pobrać danych paragonu do usunięcia.", Toast.LENGTH_LONG).show()
+                Toast.makeText(this@EditReceiptActivity, R.string.error_cannot_get_receipt_data, Toast.LENGTH_LONG).show()
                 Log.e("EditReceiptActivity", "Nie udało się pobrać Receipt (id: $receiptId) do usunięcia.")
                 return@launch // Zakończ korutynę
             }
@@ -325,26 +314,23 @@ class EditReceiptActivity : AppCompatActivity() {
             val result = editReceiptViewModel.deleteReceipt(currentReceipt)
 
             // Obsługa wyniku operacji usuwania
-            when (result) {
+            val message: String? = when (result) {
                 EditReceiptViewModel.EditResult.SUCCESS -> {
-                    Toast.makeText(this@EditReceiptActivity, "Paragon usunięty", Toast.LENGTH_SHORT).show()
                     // Po pomyślnym usunięciu paragonu, wróć do MainActivity, czyszcząc stos
                     finishAffinity() // Zamknij bieżącą aktywność i wszystkie poprzednie w zadaniu
                     // Uruchom MainActivity jako nowe zadanie
                     startActivity(Intent(this@EditReceiptActivity, MainActivity::class.java).apply {
                         flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
                     })
+                    "Paragon usunięty" // Zwróć null, bo aktywność jest zamykana
                 }
-                EditReceiptViewModel.EditResult.ERROR_NOT_FOUND -> {
-                    // Ten błąd nie powinien wystąpić, bo sprawdziliśmy istnienie paragonu wcześniej
-                    Toast.makeText(this@EditReceiptActivity, "Błąd: Nie znaleziono paragonu do usunięcia.", Toast.LENGTH_LONG).show()
-                }
-                EditReceiptViewModel.EditResult.ERROR_DATABASE -> {
-                    Toast.makeText(this@EditReceiptActivity, "Błąd: Wystąpił problem z bazą danych podczas usuwania paragonu", Toast.LENGTH_LONG).show()
-                }
-                else -> { // Inne błędy (np. UNKNOWN)
-                    Toast.makeText(this@EditReceiptActivity, "Błąd: Wystąpił nieznany błąd podczas usuwania paragonu", Toast.LENGTH_LONG).show()
-                }
+                EditReceiptViewModel.EditResult.ERROR_NOT_FOUND -> "Błąd: Nie znaleziono paragonu do usunięcia."
+                EditReceiptViewModel.EditResult.ERROR_DATABASE -> "Błąd: Wystąpił problem z bazą danych podczas usuwania paragonu"
+                else -> "Błąd: Wystąpił nieznany błąd podczas usuwania paragonu"
+            }
+            // Wyświetl Toast tylko jeśli nie było sukcesu (bo aktywność się zamyka)
+            message?.let {
+                Toast.makeText(this@EditReceiptActivity, it, Toast.LENGTH_LONG).show()
             }
         }
     }
@@ -357,20 +343,20 @@ class EditReceiptActivity : AppCompatActivity() {
     private fun showDeleteClientDialog() {
         // Sprawdź, czy mamy zapisane ID klienta (powinno być ustawione w loadReceiptData)
         if (currentClientId == null) {
-            Toast.makeText(this, "Błąd: Nie można zidentyfikować klienta do usunięcia.", Toast.LENGTH_LONG).show()
+            Toast.makeText(this, R.string.error_cannot_identify_client, Toast.LENGTH_LONG).show()
             Log.e("EditReceiptActivity", "Próba usunięcia klienta, ale currentClientId jest null.")
             return // Zakończ, jeśli nie znamy ID klienta
         }
 
         // Pokaż dialog potwierdzenia
         AlertDialog.Builder(this)
-            .setTitle("Potwierdzenie usunięcia klienta")
-            .setMessage("Czy na pewno chcesz usunąć tego klienta?\n\nUWAGA: Usunięcie klienta spowoduje USUNIĘCIE WSZYSTKICH jego paragonów! Drogerie, które staną się puste, również zostaną usunięte.")
-            .setPositiveButton("Usuń Klienta") { _, _ ->
+            .setTitle(R.string.delete_client_confirmation_title)
+            .setMessage(R.string.delete_client_confirmation_message)
+            .setPositiveButton(R.string.delete) { _, _ -> // Użyto stringa "Usuń"
                 // Po kliknięciu "Usuń Klienta" wywołaj funkcję usuwającą klienta
                 deleteClient()
             }
-            .setNegativeButton("Anuluj", null) // Anuluj nic nie robi
+            .setNegativeButton(R.string.cancel, null) // Anuluj nic nie robi
             .setIcon(android.R.drawable.ic_dialog_alert) // Ikona ostrzeżenia
             .show() // Pokaż dialog
     }
@@ -393,9 +379,8 @@ class EditReceiptActivity : AppCompatActivity() {
             val result = editReceiptViewModel.deleteClient(clientStub)
 
             // Obsługa wyniku operacji usuwania klienta
-            when (result) {
+            val message: String? = when (result) {
                 EditReceiptViewModel.EditResult.SUCCESS -> {
-                    Toast.makeText(this@EditReceiptActivity, "Klient i jego paragony usunięte", Toast.LENGTH_SHORT).show()
                     // Anuluj korutynę obserwującą dane (loadDataJob), aby uniknąć prób
                     // dostępu do usuniętych danych po zamknięciu aktywności.
                     loadDataJob?.cancel()
@@ -405,16 +390,15 @@ class EditReceiptActivity : AppCompatActivity() {
                     startActivity(Intent(this@EditReceiptActivity, MainActivity::class.java).apply {
                         flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
                     })
+                    "Klient i jego paragony usunięte" // Zwróć null, bo aktywność jest zamykana
                 }
-                EditReceiptViewModel.EditResult.ERROR_NOT_FOUND -> {
-                    Toast.makeText(this@EditReceiptActivity, "Błąd: Nie znaleziono klienta do usunięcia.", Toast.LENGTH_LONG).show()
-                }
-                EditReceiptViewModel.EditResult.ERROR_DATABASE -> {
-                    Toast.makeText(this@EditReceiptActivity, "Błąd: Wystąpił problem z bazą danych podczas usuwania klienta", Toast.LENGTH_LONG).show()
-                }
-                else -> { // Inne błędy
-                    Toast.makeText(this@EditReceiptActivity, "Błąd: Wystąpił nieznany błąd podczas usuwania klienta", Toast.LENGTH_LONG).show()
-                }
+                EditReceiptViewModel.EditResult.ERROR_NOT_FOUND -> "Błąd: Nie znaleziono klienta do usunięcia."
+                EditReceiptViewModel.EditResult.ERROR_DATABASE -> "Błąd: Wystąpił problem z bazą danych podczas usuwania klienta"
+                else -> "Błąd: Wystąpił nieznany błąd podczas usuwania klienta"
+            }
+            // Wyświetl Toast tylko jeśli nie było sukcesu
+            message?.let {
+                Toast.makeText(this@EditReceiptActivity, it, Toast.LENGTH_LONG).show()
             }
         }
     }

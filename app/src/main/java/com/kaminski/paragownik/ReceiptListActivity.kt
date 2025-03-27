@@ -3,6 +3,7 @@ package com.kaminski.paragownik
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
+import android.widget.Toast // Dodano import dla Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -57,10 +58,9 @@ class ReceiptListActivity : AppCompatActivity(), ReceiptAdapter.OnEditButtonClic
         if (storeId == -1L) {
             // Jeśli ID jest nieprawidłowe, zaloguj błąd i ewentualnie zamknij aktywność lub pokaż komunikat
             Log.e("ReceiptListActivity", "Nieprawidłowe STORE_ID (-1) otrzymane w Intencie.")
-            // Można dodać Toast i finish()
-            // Toast.makeText(this, "Błąd: Nieprawidłowy identyfikator sklepu.", Toast.LENGTH_LONG).show()
-            // finish()
-            // return
+            Toast.makeText(this, R.string.error_invalid_store_id, Toast.LENGTH_LONG).show()
+            finish()
+            return
         }
 
         // Poinformuj ViewModel, dla którego sklepu ma załadować paragony
@@ -73,6 +73,7 @@ class ReceiptListActivity : AppCompatActivity(), ReceiptAdapter.OnEditButtonClic
                 // Zaktualizuj dane w adapterze
                 receiptAdapter.receiptList = it
                 // Powiadom adapter o zmianie danych
+                // TODO: Rozważyć użycie DiffUtil dla lepszej wydajności zamiast notifyDataSetChanged()
                 receiptAdapter.notifyDataSetChanged()
             }
         }
@@ -106,4 +107,3 @@ class ReceiptListActivity : AppCompatActivity(), ReceiptAdapter.OnEditButtonClic
         startActivity(intent)
     }
 }
-

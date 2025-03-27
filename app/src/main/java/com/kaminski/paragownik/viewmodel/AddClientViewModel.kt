@@ -1,11 +1,12 @@
 package com.kaminski.paragownik.viewmodel
 
+// import com.kaminski.paragownik.AddClientActivity // Nieużywany bezpośrednio, ale ReceiptData jest z niego
+// import kotlinx.coroutines.launch // Nieużywany
 import android.app.Application
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.viewModelScope // Import dla viewModelScope
-import androidx.room.withTransaction // Import do operacji transakcyjnych
-import com.kaminski.paragownik.AddClientActivity // Zaimportuj ReceiptData
+import androidx.room.withTransaction
+import com.kaminski.paragownik.AddClientActivity.ReceiptData
 import com.kaminski.paragownik.data.AppDatabase
 import com.kaminski.paragownik.data.Client
 import com.kaminski.paragownik.data.Receipt
@@ -13,16 +14,15 @@ import com.kaminski.paragownik.data.Store
 import com.kaminski.paragownik.data.daos.ClientDao
 import com.kaminski.paragownik.data.daos.ReceiptDao
 import com.kaminski.paragownik.data.daos.StoreDao
-import kotlinx.coroutines.Dispatchers // Import Dispatchers do określenia kontekstu korutyny
-import kotlinx.coroutines.launch // Import launch do uruchamiania korutyn
-import kotlinx.coroutines.withContext // Import withContext do zmiany kontekstu
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import java.text.ParseException
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
 /**
- * ViewModel dla [AddClientActivity].
+ * ViewModel dla AddClientActivity.
  * Odpowiada za logikę biznesową związaną z dodawaniem nowego klienta
  * wraz z jednym lub wieloma paragonami do bazy danych.
  * Wykorzystuje transakcje Room do zapewnienia atomowości operacji.
@@ -66,7 +66,7 @@ class AddClientViewModel(application: Application) : AndroidViewModel(applicatio
      * @param clientAppNumber Numer aplikacji klienta (może być null lub pusty).
      * @param amoditNumber Numer Amodit klienta (może być null lub pusty).
      * @param photoUri URI zdjęcia klienta (obecnie zawsze null, może być null lub pusty).
-     * @param receiptsData Lista obiektów [AddClientActivity.ReceiptData] zawierających dane paragonów do dodania.
+     * @param receiptsData Lista obiektów [ReceiptData] zawierających dane paragonów do dodania.
      * @param verificationDateString Data weryfikacji dla pierwszego paragonu (jako String, może być null lub pusta).
      * @return [AddResult] Enum wskazujący wynik operacji (sukces lub typ błędu).
      */
@@ -75,7 +75,7 @@ class AddClientViewModel(application: Application) : AndroidViewModel(applicatio
         clientAppNumber: String?,
         amoditNumber: String?,
         photoUri: String?,
-        receiptsData: List<AddClientActivity.ReceiptData>,
+        receiptsData: List<ReceiptData>,
         verificationDateString: String?
     ): AddResult = withContext(Dispatchers.IO) { // Wykonaj całą operację w tle (IO dispatcher)
         // Formatter daty ze ścisłym sprawdzaniem formatu (DD-MM-YYYY)
@@ -219,4 +219,3 @@ class AddClientViewModel(application: Application) : AndroidViewModel(applicatio
     private class DatabaseException(message: String) : Exception(message) // Ogólny błąd DB
 
 }
-

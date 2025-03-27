@@ -1,12 +1,12 @@
 package com.kaminski.paragownik
 
+// import android.view.View // Nieużywany
 import android.os.Bundle
 import android.text.Editable
 import android.text.InputType
 import android.text.TextWatcher
 import android.util.Log
 import android.view.LayoutInflater
-import android.view.View
 import android.widget.Button
 import android.widget.CheckBox
 import android.widget.EditText
@@ -21,7 +21,6 @@ import com.kaminski.paragownik.viewmodel.StoreViewModel
 import kotlinx.coroutines.launch
 import java.text.ParseException
 import java.text.SimpleDateFormat
-import java.util.ArrayList
 import java.util.Locale
 
 /**
@@ -231,7 +230,7 @@ class AddClientActivity : AppCompatActivity() {
         if (firstStoreNumber.isEmpty() || firstReceiptNumber.isEmpty() || firstReceiptDate.isEmpty()) {
             hasEmptyFields = true // Zaznacz, że znaleziono puste pole
         } else if (!isValidDate(firstReceiptDate)) { // Sprawdź format daty, jeśli pole nie jest puste
-            Toast.makeText(this, "Nieprawidłowy format daty pierwszego paragonu (DD-MM-YYYY)", Toast.LENGTH_LONG).show()
+            Toast.makeText(this, R.string.error_invalid_receipt_date_format, Toast.LENGTH_LONG).show()
             return // Zatrzymaj proces zapisu, jeśli data jest źle sformatowana
         } else {
             // Jeśli wszystko OK, dodaj dane pierwszego paragonu do listy
@@ -242,8 +241,15 @@ class AddClientActivity : AppCompatActivity() {
         if (!hasEmptyFields) { // Kontynuuj tylko, jeśli pierwszy paragon nie miał pustych pól
             // Iteruj przez listę referencji do pól dodatkowych paragonów (pomijając pierwszy)
             for (receiptFields in receiptFieldsList.drop(1)) {
-                // Pobierz dane z pól EditText (storeNumberEditText może być null, ale w pętli drop(1) nigdy nie będzie)
-                val storeNumber = receiptFields.storeNumberEditText?.text.toString().trim() ?: "" // Bezpieczne odpakowanie, choć nie powinno być null
+                // Pobierz dane z pól EditText
+                val storeNumberEditText = receiptFields.storeNumberEditText
+                // Sprawdzenie null dla bezpieczeństwa, chociaż w tej logice nie powinien być null
+                if (storeNumberEditText == null) {
+                    Log.e("AddClientActivity", "Błąd krytyczny: storeNumberEditText jest null w pętli dodatkowych paragonów!")
+                    Toast.makeText(this, "Wystąpił błąd wewnętrzny.", Toast.LENGTH_LONG).show()
+                    return // Przerwij zapis
+                }
+                val storeNumber = storeNumberEditText.text.toString().trim()
                 val receiptNumber = receiptFields.receiptNumberEditText.text.toString().trim()
                 val receiptDate = receiptFields.receiptDateEditText.text.toString().trim()
 
@@ -252,7 +258,7 @@ class AddClientActivity : AppCompatActivity() {
                     hasEmptyFields = true // Zaznacz, że znaleziono puste pole
                     break // Przerwij pętlę, nie ma sensu sprawdzać dalej
                 } else if (!isValidDate(receiptDate)) { // Sprawdź format daty
-                    Toast.makeText(this, "Nieprawidłowy format daty w dodatkowym paragonie (DD-MM-YYYY)", Toast.LENGTH_LONG).show()
+                    Toast.makeText(this, R.string.error_invalid_additional_receipt_date_format, Toast.LENGTH_LONG).show()
                     return // Zatrzymaj proces zapisu
                 } else {
                     // Jeśli wszystko OK, dodaj dane dodatkowego paragonu do listy
@@ -264,13 +270,13 @@ class AddClientActivity : AppCompatActivity() {
         // 4. Końcowa walidacja przed wysłaniem do ViewModelu
         if (hasEmptyFields) {
             // Jeśli którekolwiek z wymaganych pól paragonu było puste
-            Toast.makeText(this, "Wypełnij wszystkie wymagane pola paragonów (numer, data, sklep)", Toast.LENGTH_LONG).show()
+            Toast.makeText(this, R.string.error_fill_required_receipt_fields, Toast.LENGTH_LONG).show()
             return // Zakończ funkcję
         }
         if (receiptsToAdd.isEmpty()) {
             // Teoretycznie nieosiągalne przy obecnej logice (bo pierwszy paragon jest wymagany),
             // ale dodane dla pewności.
-            Toast.makeText(this, "Dodaj przynajmniej jeden paragon", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, R.string.error_add_at_least_one_receipt, Toast.LENGTH_SHORT).show()
             return
         }
 
@@ -323,27 +329,19 @@ class AddClientActivity : AppCompatActivity() {
      * @param result Wynik operacji typu [AddClientViewModel.AddResult].
      */
     private fun handleSaveResult(result: AddClientViewModel.AddResult) {
-        when (result) {
+        val message = when (result) {
             AddClientViewModel.AddResult.SUCCESS -> {
-                Toast.makeText(this@AddClientActivity, "Klient i paragony dodane pomyślnie", Toast.LENGTH_SHORT).show()
                 finish() // Zamknij aktywność po pomyślnym dodaniu
+                "Klient i paragony dodane pomyślnie" // Zwróć tekst do wyświetlenia
             }
-            AddClientViewModel.AddResult.ERROR_DATE_FORMAT -> {
-                Toast.makeText(this@AddClientActivity, "Błąd: Nieprawidłowy format daty (DD-MM-YYYY)", Toast.LENGTH_LONG).show()
-            }
-            AddClientViewModel.AddResult.ERROR_DUPLICATE_RECEIPT -> {
-                Toast.makeText(this@AddClientActivity, "Błąd: Paragon o podanym numerze, dacie i sklepie już istnieje", Toast.LENGTH_LONG).show()
-            }
-            AddClientViewModel.AddResult.ERROR_STORE_NUMBER_MISSING -> {
-                Toast.makeText(this@AddClientActivity, "Błąd: Brak numeru drogerii dla jednego z paragonów", Toast.LENGTH_LONG).show()
-            }
-            AddClientViewModel.AddResult.ERROR_DATABASE -> {
-                Toast.makeText(this@AddClientActivity, "Błąd: Wystąpił problem z bazą danych", Toast.LENGTH_LONG).show()
-            }
-            AddClientViewModel.AddResult.ERROR_UNKNOWN -> {
-                Toast.makeText(this@AddClientActivity, "Błąd: Wystąpił nieznany błąd", Toast.LENGTH_LONG).show()
-            }
+            AddClientViewModel.AddResult.ERROR_DATE_FORMAT -> "Błąd: Nieprawidłowy format daty (DD-MM-YYYY)"
+            AddClientViewModel.AddResult.ERROR_DUPLICATE_RECEIPT -> "Błąd: Paragon o podanym numerze, dacie i sklepie już istnieje"
+            AddClientViewModel.AddResult.ERROR_STORE_NUMBER_MISSING -> "Błąd: Brak numeru drogerii dla jednego z paragonów"
+            AddClientViewModel.AddResult.ERROR_DATABASE -> "Błąd: Wystąpił problem z bazą danych"
+            AddClientViewModel.AddResult.ERROR_UNKNOWN -> "Błąd: Wystąpił nieznany błąd"
         }
+        // Wyświetl odpowiedni komunikat
+        Toast.makeText(this@AddClientActivity, message, if (result == AddClientViewModel.AddResult.SUCCESS) Toast.LENGTH_SHORT else Toast.LENGTH_LONG).show()
     }
 
     /**

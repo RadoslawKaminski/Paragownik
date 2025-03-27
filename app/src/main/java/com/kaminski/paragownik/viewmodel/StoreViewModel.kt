@@ -3,18 +3,15 @@ package com.kaminski.paragownik.viewmodel
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
-import androidx.lifecycle.asLiveData // Import do konwersji Flow na LiveData
-import androidx.lifecycle.viewModelScope // Import dla viewModelScope
+import androidx.lifecycle.asLiveData
 import com.kaminski.paragownik.data.AppDatabase
-import com.kaminski.paragownik.data.Store // Import encji Store
+import com.kaminski.paragownik.data.Store
 import com.kaminski.paragownik.data.daos.StoreDao
-import kotlinx.coroutines.Dispatchers // Import Dispatchers
-import kotlinx.coroutines.launch // Import launch
 
 /**
- * ViewModel dla [MainActivity].
+ * ViewModel dla MainActivity.
  * Odpowiada za dostarczanie listy wszystkich sklepów oraz umożliwia
- * wstawianie nowych sklepów i pobieranie sklepu po ID.
+ * pobieranie sklepu po ID.
  */
 class StoreViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -33,17 +30,7 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
         allStores = storeDao.getAllStores().asLiveData() // TODO: Dodać sortowanie w DAO (Task II.8)
     }
 
-    /**
-     * Wstawia nowy sklep do bazy danych.
-     * Operacja wykonywana jest w tle za pomocą korutyny w `viewModelScope`.
-     * @param store Obiekt [Store] do wstawienia.
-     */
-    fun insertStore(store: Store) {
-        // Uruchom korutynę w zakresie ViewModelu na wątku IO
-        viewModelScope.launch(Dispatchers.IO) {
-            storeDao.insertStore(store) // Wywołaj metodę DAO
-        }
-    }
+    // Funkcja insertStore została usunięta jako nieużywana
 
     /**
      * Pobiera sklep na podstawie jego ID.
@@ -58,4 +45,3 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
         return storeDao.getStoreById(storeId)
     }
 }
-

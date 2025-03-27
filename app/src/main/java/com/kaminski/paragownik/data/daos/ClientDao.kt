@@ -7,6 +7,7 @@ import androidx.room.Update
 import androidx.room.Delete
 import com.kaminski.paragownik.data.Client // Import encji Client
 import kotlinx.coroutines.flow.Flow // Import Flow do obserwacji zmian
+// import com.kaminski.paragownik.data.Receipt // Nieużywany import
 
 /**
  * Data Access Object (DAO) dla operacji na encji [Client].
@@ -35,7 +36,7 @@ interface ClientDao {
     /**
      * Usuwa klienta z bazy danych.
      * Dopasowanie odbywa się na podstawie klucza głównego obiektu [client].
-     * UWAGA: Usunięcie klienta spowoduje kaskadowe usunięcie powiązanych paragonów (zdefiniowane w [Receipt]).
+     * UWAGA: Usunięcie klienta spowoduje kaskadowe usunięcie powiązanych paragonów (zdefiniowane w encji Receipt).
      * @param client Obiekt [Client] do usunięcia.
      */
     @Delete
@@ -58,8 +59,4 @@ interface ClientDao {
     @Query("SELECT * FROM clients WHERE id = :clientId")
     suspend fun getClientById(clientId: Long): Client?
 
-    // Można dodać inne metody, np. wyszukiwanie klientów po opisie, numerze aplikacji itp.
-    // @Query("SELECT * FROM clients WHERE description LIKE :query")
-    // suspend fun findClientsByDescription(query: String): List<Client>
 }
-

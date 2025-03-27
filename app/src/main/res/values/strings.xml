@@ -1,6 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
 <!-- Definicje ciągów tekstowych używanych w aplikacji. -->
 <resources>
     <!-- Nazwa aplikacji wyświetlana np. pod ikoną launchera. -->
     <string name="app_name">Paragownik</string>
-</resources>
 
+    <!-- Ogólne -->
+    <string name="save">Zapisz</string>
+    <string name="edit">Edytuj</string>
+    <string name="delete">Usuń</string>
+    <string name="cancel">Anuluj</string>
+    <string name="today">Dzisiaj</string>
+    <string name="optional_section">(opcjonalne)</string>
+    <string name="error_invalid_store_id">Błąd: Nieprawidłowy identyfikator sklepu.</string>
+    <string name="error_cannot_identify_client">Błąd: Nie można zidentyfikować klienta do usunięcia.</string>
+    <string name="error_cannot_get_receipt_data">Błąd: Nie można pobrać danych paragonu do usunięcia.</string>
+
+    <!-- MainActivity -->
+    <string name="cd_add_client_fab">Dodaj nowego klienta</string> <!-- cd = content description -->
+
+    <!-- ReceiptListActivity -->
+    <string name="cd_add_receipt_fab">Dodaj nowy paragon dla tego sklepu</string>
+
+    <!-- AddClientActivity -->
+    <string name="add_client_receipts_title">Dodaj paragony klienta</string>
+    <string name="store_number_hint">Drogeria</string>
+    <string name="receipt_number_hint">Numer paragonu</string>
+    <string name="receipt_date_hint">Data paragonu (DD-MM-YYYY)</string>
+    <string name="verification_section_title">Weryfikacja (opcjonalne):</string>
+    <string name="verification_date_hint">DD-MM-YYYY</string>
+    <string name="client_data_section_title">Dane klienta (opcjonalne):</string>
+    <string name="client_description_hint">Opis klienta</string>
+    <string name="client_app_number_hint">Numer aplikacji klienta</string>
+    <string name="amodit_number_hint">Numer Amodit</string>
+    <string name="add_another_store_receipt_button">Dodaj paragon kolejnej drogerii</string>
+    <string name="error_fill_required_receipt_fields">Wypełnij wszystkie wymagane pola paragonów (numer, data, sklep)</string>
+    <string name="error_add_at_least_one_receipt">Dodaj przynajmniej jeden paragon</string>
+    <string name="error_invalid_receipt_date_format">Nieprawidłowy format daty paragonu (DD-MM-YYYY)</string>
+    <string name="error_invalid_additional_receipt_date_format">Nieprawidłowy format daty w dodatkowym paragonie (DD-MM-YYYY)</string>
+    <string name="cd_remove_receipt_button">Usuń ten paragon</string>
+
+    <!-- EditReceiptActivity -->
+    <string name="edit_receipt_client_title">Edytuj Paragon i Klienta</string>
+    <string name="error_fill_required_edit_fields">Wypełnij numer sklepu, numer paragonu i datę paragonu.</string>
+    <string name="delete_receipt_confirmation_title">Potwierdzenie usunięcia</string>
+    <string name="delete_receipt_confirmation_message">Czy na pewno chcesz usunąć ten paragon?\n\n(Jeśli to ostatni paragon klienta lub drogerii, zostaną oni również usunięci).</string>
+    <string name="delete_client_confirmation_title">Potwierdzenie usunięcia klienta</string>
+    <string name="delete_client_confirmation_message">Czy na pewno chcesz usunąć tego klienta?\n\nUWAGA: Usunięcie klienta spowoduje USUNIĘCIE WSZYSTKICH jego paragonów! Drogerie, które staną się puste, również zostaną usunięte.</string>
+    <string name="delete_receipt_button_text">Usuń ten paragon</string>
+    <string name="delete_client_button_text">Usuń klienta i wszystkie paragony</string>
+    <string name="save_changes_button_text">Zapisz zmiany</string>
+
+    <!-- Receipt Item -->
+    <string name="verification_label">Weryfikacja:</string>
+    <string name="no_verification_date">Brak</string>
+    <string name="no_client_description">Brak opisu klienta</string>
+    <string name="client_app_number_label">Nr aplikacji: (opcjonalne)</string>
+    <string name="amodit_number_label">Amodit: (opcjonalne)</string>
+    <string name="cd_edit_receipt_icon">Edytuj paragon</string>
+
+</resources>

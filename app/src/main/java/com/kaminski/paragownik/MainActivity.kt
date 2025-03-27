@@ -7,7 +7,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.floatingactionbutton.FloatingActionButton
-import com.kaminski.paragownik.data.Store
+// import com.kaminski.paragownik.data.Store // Nieużywany bezpośrednio
 import com.kaminski.paragownik.viewmodel.StoreViewModel
 
 /**
@@ -51,25 +51,10 @@ class MainActivity : AppCompatActivity(), StoreAdapter.OnItemClickListener {
                 // Zaktualizuj dane w adapterze
                 storeAdapter.storeList = it
                 // Powiadom adapter, że dane się zmieniły, aby odświeżył widok
+                // TODO: Rozważyć użycie DiffUtil dla lepszej wydajności zamiast notifyDataSetChanged()
                 storeAdapter.notifyDataSetChanged()
             }
         }
-
-        // --- Sekcja do wstawiania przykładowych danych (obecnie nieaktywna) ---
-        // Ta obserwacja była prawdopodobnie używana do wstawienia danych, jeśli baza jest pusta.
-        // Można ją usunąć lub zmodyfikować, jeśli potrzebne jest wstawianie danych startowych.
-        /*
-        storeViewModel.allStores.observe(this) { stores ->
-            if (stores.isNullOrEmpty()) {
-                // insertSampleStores() // Wywołanie funkcji wstawiającej dane (obecnie zakomentowane)
-            }
-            // Ta część jest duplikatem poprzedniej obserwacji, można ją usunąć.
-            stores?.let {
-                storeAdapter.storeList = it
-                storeAdapter.notifyDataSetChanged()
-            }
-        }
-        */
 
         // Inicjalizacja FloatingActionButton
         fabAddClientMain = findViewById(R.id.fabAddClientMain)
@@ -83,13 +68,7 @@ class MainActivity : AppCompatActivity(), StoreAdapter.OnItemClickListener {
         }
     }
 
-    /**
-     * Funkcja do wstawiania przykładowych danych sklepów (obecnie nieużywana).
-     */
-    private fun insertSampleStores() {
-        // storeViewModel.insertStore(Store(storeNumber = "123"))
-        // storeViewModel.insertStore(Store(storeNumber = "456"))
-    }
+    // Funkcja insertSampleStores została usunięta jako nieużywana
 
     /**
      * Metoda wywoływana, gdy użytkownik kliknie element na liście sklepów.
@@ -105,4 +84,3 @@ class MainActivity : AppCompatActivity(), StoreAdapter.OnItemClickListener {
         startActivity(intent)
     }
 }
-

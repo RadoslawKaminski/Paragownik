@@ -12,7 +12,7 @@
         android:id="@+id/receiptRecyclerView"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:layout_marginTop="16dp" 
+        android:layout_marginTop="16dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -25,12 +25,12 @@
         android:id="@+id/fabAddClient"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_margin="16dp" 
-        android:clickable="true" 
-        android:focusable="true" 
-        app:layout_constraintBottom_toBottomOf="parent" 
-        app:layout_constraintEnd_toEndOf="parent" 
+        android:layout_margin="16dp"
+        android:clickable="true"
+        android:contentDescription="@string/cd_add_receipt_fab"
+        android:focusable="true"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
         app:srcCompat="@android:drawable/ic_input_add" /> <!-- Ikona plusa. -->
 
 </androidx.constraintlayout.widget.ConstraintLayout>
-

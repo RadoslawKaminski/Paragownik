@@ -3,15 +3,15 @@ package com.kaminski.paragownik.viewmodel
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData // Import MutableLiveData
-import androidx.lifecycle.switchMap // Import switchMap
-import androidx.lifecycle.asLiveData // Import asLiveData do konwersji Flow na LiveData
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.switchMap
+import androidx.lifecycle.asLiveData
 import com.kaminski.paragownik.data.AppDatabase
-import com.kaminski.paragownik.data.ReceiptWithClient // Import modelu relacyjnego
+import com.kaminski.paragownik.data.ReceiptWithClient
 import com.kaminski.paragownik.data.daos.ReceiptDao
 
 /**
- * ViewModel dla [ReceiptListActivity].
+ * ViewModel dla ReceiptListActivity.
  * Odpowiada za dostarczanie listy paragonów (wraz z danymi klientów)
  * dla określonego sklepu.
  */
@@ -40,6 +40,7 @@ class ReceiptViewModel(application: Application) : AndroidViewModel(application)
         // i konwertując go na LiveData za pomocą asLiveData().
         receiptDao.getReceiptsForStore(storeId).asLiveData()
     }
+
     /**
      * Ustawia ID sklepu, dla którego mają być załadowane paragony.
      * Zmiana wartości `currentStoreId` automatycznie wyzwoli aktualizację
@@ -53,13 +54,4 @@ class ReceiptViewModel(application: Application) : AndroidViewModel(application)
         currentStoreId.value = storeId
     }
 
-    // Funkcja do wstawiania paragonu (może być potrzebna później, obecnie nieużywana)
-    /*
-    fun insertReceipt(receipt: Receipt) {
-        viewModelScope.launch(Dispatchers.IO) {
-            receiptDao.insertReceipt(receipt)
-        }
-    }
-    */
 }
-
