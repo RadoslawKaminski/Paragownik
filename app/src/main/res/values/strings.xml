@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Definicje ciągów tekstowych używanych w aplikacji. -->
 <resources>
-    <!-- Nazwa aplikacji wyświetlana np. pod ikoną launchera. -->
+    <!-- Nazwa aplikacji -->
     <string name="app_name">Paragownik</string>
 
     <!-- Ogólne -->
@@ -11,9 +11,25 @@
     <string name="cancel">Anuluj</string>
     <string name="today">Dzisiaj</string>
     <string name="optional_section">(opcjonalne)</string>
+    <!-- Komunikaty o błędach ogólnych -->
     <string name="error_invalid_store_id">Błąd: Nieprawidłowy identyfikator sklepu.</string>
     <string name="error_cannot_identify_client">Błąd: Nie można zidentyfikować klienta do usunięcia.</string>
     <string name="error_cannot_get_receipt_data">Błąd: Nie można pobrać danych paragonu do usunięcia.</string>
+    <string name="error_invalid_receipt_id">Błąd: Nieprawidłowy identyfikator paragonu.</string>
+    <string name="error_receipt_not_found">Błąd: Paragon nie został znaleziony.</string>
+    <!-- Komunikaty o wynikach operacji -->
+    <string name="save_success_message">Zmiany zapisane pomyślnie</string>
+    <string name="delete_success_message">Element usunięty pomyślnie</string>
+    <string name="error_not_found">Błąd: Nie znaleziono elementu.</string>
+    <string name="error_invalid_date_format">Błąd: Nieprawidłowy format daty (DD-MM-YYYY).</string>
+    <string name="error_duplicate_receipt">Błąd: Paragon o podanym numerze, dacie i sklepie już istnieje.</string>
+    <string name="error_store_number_missing">Błąd: Numer drogerii nie może być pusty.</string>
+    <string name="error_database">Błąd: Wystąpił problem z bazą danych.</string>
+    <string name="error_unknown">Błąd: Wystąpił nieznany błąd.</string>
+    <string name="error_inserting_client">Błąd podczas wstawiania klienta do bazy.</string>
+    <string name="error_creating_store">Nie udało się utworzyć lub pobrać drogerii: %1$s</string>
+    <string name="error_creating_store_edit">Nie udało się utworzyć lub pobrać drogerii podczas edycji: %1$s</string>
+
 
     <!-- MainActivity -->
     <string name="cd_add_client_fab">Dodaj nowego klienta</string>
@@ -69,5 +85,6 @@
     <!-- Photo Handling -->
     <string name="cd_client_photo_placeholder">Miniatura zdjęcia klienta</string>
     <string name="cd_add_change_photo_button">Dodaj lub zmień zdjęcie klienta</string>
+    <string name="error_copying_image">Błąd podczas kopiowania zdjęcia.</string> <!-- Dodano -->
 
 </resources>
