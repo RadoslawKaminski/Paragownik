@@ -1,22 +1,24 @@
 package com.kaminski.paragownik
 
 import android.content.Intent
-import android.net.Uri // Potrzebne dla URI zdjęcia
+import android.net.Uri
 import android.os.Bundle
 import android.text.Editable
 import android.text.InputType
 import android.text.TextWatcher
 import android.util.Log
+import android.view.View // Potrzebny dla View.VISIBLE/GONE
 import android.widget.Button
 import android.widget.CheckBox
 import android.widget.EditText
-import android.widget.ImageButton // Potrzebne dla ImageButton
-import android.widget.ImageView // Potrzebne dla ImageView
+import android.widget.ImageButton
+import android.widget.ImageView
+import android.widget.LinearLayout // Potrzebny dla LinearLayout
 import android.widget.Toast
-import androidx.activity.result.contract.ActivityResultContracts // Potrzebne dla launchera
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.net.toUri // Do konwersji String/File na Uri
+import androidx.core.net.toUri
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import com.kaminski.paragownik.viewmodel.EditReceiptViewModel
@@ -26,18 +28,18 @@ import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import java.io.File // Potrzebne do operacji na plikach
-import java.io.FileOutputStream // Potrzebne do zapisu pliku
-import java.io.IOException // Potrzebne do obsługi błędów IO
+import java.io.File
+import java.io.FileOutputStream
+import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.Locale
-import java.util.UUID // Do generowania unikalnych nazw plików
+import java.util.UUID
 
 
 /**
- * Aktywność odpowiedzialna za edycję istniejącego paragonu oraz powiązanych danych klienta,
- * w tym zdjęcia klienta. Kopiuje wybrane zdjęcie do pamięci wewnętrznej.
- * Umożliwia również usunięcie pojedynczego paragonu lub całego klienta.
+ * Aktywność odpowiedzialna za przeglądanie i edycję istniejącego paragonu oraz danych klienta.
+ * Domyślnie uruchamia się w trybie widoku (pola zablokowane, puste ukryte).
+ * Przycisk "Edytuj" przełącza do trybu edycji.
  */
 class EditReceiptActivity : AppCompatActivity() {
 
@@ -50,11 +52,19 @@ class EditReceiptActivity : AppCompatActivity() {
     private lateinit var editClientDescriptionEditText: EditText
     private lateinit var editClientAppNumberEditText: EditText
     private lateinit var editAmoditNumberEditText: EditText
-    private lateinit var editClientPhotoImageView: ImageView // Widok miniatury zdjęcia
+    private lateinit var editClientPhotoImageView: ImageView // Miniatura zdjęcia
     private lateinit var editAddChangePhotoButton: ImageButton // Przycisk dodawania/zmiany zdjęcia
     private lateinit var saveReceiptButton: Button
     private lateinit var deleteReceiptButton: Button
     private lateinit var deleteClientButton: Button
+    private lateinit var editModeButton: Button // Przycisk "Edytuj"
+    private lateinit var largeClientPhotoImageView: ImageView // Duże zdjęcie
+    // Layouty do ukrywania/pokazywania
+    private lateinit var editVerificationSectionLayout: LinearLayout
+    private lateinit var editDescriptionLayout: LinearLayout
+    private lateinit var editAppNumberLayout: LinearLayout
+    private lateinit var editAmoditNumberLayout: LinearLayout
+    private lateinit var editPhotoSectionLayout: LinearLayout
 
     // --- ViewModel ---
     private lateinit var editReceiptViewModel: EditReceiptViewModel
@@ -63,24 +73,22 @@ class EditReceiptActivity : AppCompatActivity() {
     private var receiptId: Long = -1L
     private var currentClientId: Long? = null
     private var loadDataJob: Job? = null
-    // Przechowuje URI skopiowanego zdjęcia w pamięci wewnętrznej.
-    private var selectedPhotoUri: Uri? = null
+    private var selectedPhotoUri: Uri? = null // URI zdjęcia (trwałe)
+    private var isEditMode = false // Stan widoku/edycji
 
     // Launcher do wybierania zdjęcia z galerii
     private val pickImageLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
         uri?.let { sourceUri ->
             Log.d("EditReceiptActivity", "Otrzymano tymczasowe URI: $sourceUri")
-            // Skopiuj obraz i uzyskaj nowe, trwałe URI
             val destinationUri = copyImageToInternalStorage(sourceUri)
-
             destinationUri?.let { finalUri ->
-                // TODO: Opcjonalnie: Usuń stary plik zdjęcia, jeśli istniał (selectedPhotoUri przed zmianą)
-                // val oldUri = selectedPhotoUri
-                // if (oldUri != null && oldUri != finalUri) { deleteImageFile(oldUri) }
-
-                selectedPhotoUri = finalUri // Zapisz NOWE trwałe URI
-                editClientPhotoImageView.setImageURI(finalUri) // Wyświetl miniaturę
+                // TODO: Opcjonalnie: Usuń stary plik zdjęcia
+                selectedPhotoUri = finalUri
+                editClientPhotoImageView.setImageURI(finalUri) // Miniatura
+                largeClientPhotoImageView.setImageURI(finalUri) // Duże zdjęcie
                 Log.d("EditReceiptActivity", "Ustawiono nowe trwałe URI zdjęcia: $finalUri")
+                // Upewnij się, że sekcja zdjęcia jest widoczna po dodaniu (w trybie edycji)
+                updateUiMode(isEditMode)
             }
         } ?: run {
             Log.d("EditReceiptActivity", "Nie wybrano nowego zdjęcia.")
@@ -108,8 +116,10 @@ class EditReceiptActivity : AppCompatActivity() {
         setupDateEditText(editReceiptDateEditText)
         setupDateEditText(editVerificationDateEditText)
         setupVerificationDateCheckBox()
-        loadReceiptData()
+        loadReceiptData() // Ładowanie danych zainicjuje też updateUiMode
         setupButtonClickListeners()
+
+        updateUiMode(false) // Ustaw tryb widoku na starcie (przed załadowaniem danych)
     }
 
     /**
@@ -124,11 +134,19 @@ class EditReceiptActivity : AppCompatActivity() {
         editClientDescriptionEditText = findViewById(R.id.editClientDescriptionEditText)
         editClientAppNumberEditText = findViewById(R.id.editClientAppNumberEditText)
         editAmoditNumberEditText = findViewById(R.id.editAmoditNumberEditText)
-        editClientPhotoImageView = findViewById(R.id.editClientPhotoImageView) // Inicjalizacja ImageView
-        editAddChangePhotoButton = findViewById(R.id.editAddChangePhotoButton) // Inicjalizacja ImageButton
+        editClientPhotoImageView = findViewById(R.id.editClientPhotoImageView)
+        editAddChangePhotoButton = findViewById(R.id.editAddChangePhotoButton)
         saveReceiptButton = findViewById(R.id.saveReceiptButton)
         deleteReceiptButton = findViewById(R.id.deleteReceiptButton)
         deleteClientButton = findViewById(R.id.deleteClientButton)
+        editModeButton = findViewById(R.id.editModeButton) // Przycisk Edytuj
+        largeClientPhotoImageView = findViewById(R.id.largeClientPhotoImageView) // Duże ImageView
+        // Layouty do ukrywania
+        editVerificationSectionLayout = findViewById(R.id.editVerificationSectionLayout)
+        editDescriptionLayout = findViewById(R.id.editDescriptionLayout)
+        editAppNumberLayout = findViewById(R.id.editAppNumberLayout)
+        editAmoditNumberLayout = findViewById(R.id.editAmoditNumberLayout)
+        editPhotoSectionLayout = findViewById(R.id.editPhotoSectionLayout)
     }
 
     /**
@@ -145,17 +163,17 @@ class EditReceiptActivity : AppCompatActivity() {
         saveReceiptButton.setOnClickListener { saveChanges() }
         deleteReceiptButton.setOnClickListener { showDeleteReceiptDialog() }
         deleteClientButton.setOnClickListener { showDeleteClientDialog() }
+        editAddChangePhotoButton.setOnClickListener { pickImageLauncher.launch("image/*") }
 
-        // Listener dla kliknięcia przycisku dodawania/zmiany zdjęcia
-        editAddChangePhotoButton.setOnClickListener {
-            // Uruchom selektor obrazów
-            pickImageLauncher.launch("image/*")
+        // Listener dla przycisku "Edytuj"
+        editModeButton.setOnClickListener {
+            updateUiMode(true) // Włącz tryb edycji
         }
     }
 
     /**
      * Wczytuje dane paragonu, klienta i sklepu z ViewModelu i wypełnia formularz.
-     * Obsługuje również wczytywanie miniatury zdjęcia klienta z wewnętrznego magazynu.
+     * Aktualizuje UI do trybu widoku/edycji.
      */
     private fun loadReceiptData() {
         loadDataJob?.cancel()
@@ -182,11 +200,11 @@ class EditReceiptActivity : AppCompatActivity() {
                             editVerificationDateEditText.setText(formattedVerificationDate)
                             val todayDate = dateFormat.format(java.util.Calendar.getInstance().time)
                             editVerificationDateTodayCheckBox.isChecked = formattedVerificationDate == todayDate
-                            editVerificationDateEditText.isEnabled = !editVerificationDateTodayCheckBox.isChecked
+                            // Stan enabled zostanie ustawiony w updateUiMode
                         } ?: run {
                             editVerificationDateEditText.text.clear()
                             editVerificationDateTodayCheckBox.isChecked = false
-                            editVerificationDateEditText.isEnabled = true
+                            // Stan enabled zostanie ustawiony w updateUiMode
                         }
 
                         // Wypełnianie pól tekstowych klienta
@@ -194,37 +212,77 @@ class EditReceiptActivity : AppCompatActivity() {
                         editClientAppNumberEditText.setText(client.clientAppNumber ?: "")
                         editAmoditNumberEditText.setText(client.amoditNumber ?: "")
 
-                        // Logika ładowania zdjęcia klienta (teraz z trwałego URI)
+                        // Logika ładowania zdjęcia klienta (miniatura i duże)
                         if (!client.photoUri.isNullOrBlank()) {
                             try {
-                                // URI z bazy powinno teraz wskazywać na plik w pamięci wewnętrznej
                                 val photoUri = client.photoUri.toUri()
-                                selectedPhotoUri = photoUri // Zapisz URI jako aktualne
-                                editClientPhotoImageView.setImageURI(photoUri) // Ustaw obraz
+                                selectedPhotoUri = photoUri
+                                editClientPhotoImageView.setImageURI(photoUri) // Miniatura
+                                largeClientPhotoImageView.setImageURI(photoUri) // Duże zdjęcie
                                 Log.d("EditReceiptActivity", "Załadowano zdjęcie klienta z trwałego URI: $photoUri")
                             } catch (e: Exception) {
-                                // Błąd może wystąpić, jeśli plik został usunięty lub URI jest uszkodzone
                                 Log.e("EditReceiptActivity", "Błąd ładowania zdjęcia z URI: ${client.photoUri}", e)
                                 editClientPhotoImageView.setImageResource(R.drawable.ic_photo_placeholder)
+                                largeClientPhotoImageView.setImageResource(R.drawable.ic_photo_placeholder)
                                 selectedPhotoUri = null
                             }
                         } else {
-                            // Jeśli brak zdjęcia, ustaw placeholder
                             editClientPhotoImageView.setImageResource(R.drawable.ic_photo_placeholder)
+                            largeClientPhotoImageView.setImageResource(R.drawable.ic_photo_placeholder)
                             selectedPhotoUri = null
                             Log.d("EditReceiptActivity", "Klient nie ma zapisanego zdjęcia.")
                         }
+
+                        // Zaktualizuj widoczność pól na podstawie załadowanych danych i bieżącego trybu
+                        updateUiMode(isEditMode)
 
                     } else {
                         // Obsługa sytuacji, gdy dane nie zostały znalezione
                         if (isActive) {
                             Log.e("EditReceiptActivity", "Nie znaleziono danych dla receiptId: $receiptId")
-                            // Można rozważyć zamknięcie aktywności
+                            Toast.makeText(this@EditReceiptActivity, R.string.error_receipt_not_found, Toast.LENGTH_SHORT).show()
+                            finish()
                         }
                     }
                 }
         }
     }
+
+    /**
+     * Aktualizuje widoczność i stan edytowalności elementów UI.
+     */
+    private fun updateUiMode(isEditing: Boolean) {
+        isEditMode = isEditing
+
+        // Włącz/Wyłącz EditTexty
+        editReceiptStoreNumberEditText.isEnabled = isEditing
+        editReceiptNumberEditText.isEnabled = isEditing
+        editReceiptDateEditText.isEnabled = isEditing
+        editVerificationDateEditText.isEnabled = isEditing && !editVerificationDateTodayCheckBox.isChecked
+        editVerificationDateTodayCheckBox.isEnabled = isEditing
+        editClientDescriptionEditText.isEnabled = isEditing
+        editClientAppNumberEditText.isEnabled = isEditing
+        editAmoditNumberEditText.isEnabled = isEditing
+
+        // Pokaż/Ukryj przyciski akcji
+        saveReceiptButton.visibility = if (isEditing) View.VISIBLE else View.GONE
+        deleteReceiptButton.visibility = if (isEditing) View.VISIBLE else View.GONE
+        deleteClientButton.visibility = if (isEditing) View.VISIBLE else View.GONE
+        editAddChangePhotoButton.visibility = if (isEditing) View.VISIBLE else View.GONE
+        editModeButton.visibility = if (isEditing) View.GONE else View.VISIBLE
+
+        // Pokaż/Ukryj duży obrazek (tylko w trybie widoku, jeśli jest zdjęcie)
+        largeClientPhotoImageView.visibility = if (!isEditing && selectedPhotoUri != null) View.VISIBLE else View.GONE
+
+        // Pokaż/Ukryj opcjonalne sekcje
+        editVerificationSectionLayout.visibility = if (isEditing || !editVerificationDateEditText.text.isNullOrBlank()) View.VISIBLE else View.GONE
+        editDescriptionLayout.visibility = if (isEditing || !editClientDescriptionEditText.text.isNullOrBlank()) View.VISIBLE else View.GONE
+        editAppNumberLayout.visibility = if (isEditing || !editClientAppNumberEditText.text.isNullOrBlank()) View.VISIBLE else View.GONE
+        editAmoditNumberLayout.visibility = if (isEditing || !editAmoditNumberEditText.text.isNullOrBlank()) View.VISIBLE else View.GONE
+        // Sekcja zdjęcia (miniatura + przycisk) jest widoczna w edycji LUB jeśli jest zdjęcie w trybie widoku
+        editPhotoSectionLayout.visibility = if (isEditing || selectedPhotoUri != null) View.VISIBLE else View.GONE
+    }
+
 
     /**
      * Zbiera dane z formularza i zapisuje zmiany w ViewModelu.
@@ -253,7 +311,6 @@ class EditReceiptActivity : AppCompatActivity() {
                 clientDescription = clientDescription.takeIf { it.isNotEmpty() },
                 clientAppNumber = clientAppNumber.takeIf { it.isNotEmpty() },
                 amoditNumber = amoditNumber.takeIf { it.isNotEmpty() },
-                // Przekaż URI jako String (teraz to trwałe URI)
                 photoUri = selectedPhotoUri?.toString()
             )
             handleEditResult(result)
@@ -327,8 +384,6 @@ class EditReceiptActivity : AppCompatActivity() {
 
     /**
      * Obsługuje wynik operacji edycji/usuwania zwrócony przez ViewModel.
-     * @param result Wynik operacji.
-     * @param isDeleteOperation Flaga wskazująca, czy była to operacja usuwania.
      */
     private fun handleEditResult(result: EditReceiptViewModel.EditResult, isDeleteOperation: Boolean = false) {
         val messageResId = when (result) {
@@ -346,13 +401,16 @@ class EditReceiptActivity : AppCompatActivity() {
 
         if (result == EditReceiptViewModel.EditResult.SUCCESS) {
             if (isDeleteOperation) {
+                // Po udanym usunięciu wróć do MainActivity
                 loadDataJob?.cancel()
                 finishAffinity()
                 startActivity(Intent(this@EditReceiptActivity, MainActivity::class.java).apply {
                     flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
                 })
             } else {
-                finish()
+                // Po udanej EDYCJI, przełącz z powrotem do trybu widoku
+                updateUiMode(false)
+                // Nie zamykamy już aktywności po zapisie
             }
         }
     }
@@ -363,12 +421,13 @@ class EditReceiptActivity : AppCompatActivity() {
      */
     private fun setupVerificationDateCheckBox() {
         editVerificationDateTodayCheckBox.setOnCheckedChangeListener { _, isChecked ->
+            // Ten listener jest aktywny tylko w trybie edycji, bo checkbox jest wyłączony w trybie widoku
             if (isChecked) {
                 val currentDate = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault()).format(java.util.Calendar.getInstance().time)
                 editVerificationDateEditText.setText(currentDate)
-                editVerificationDateEditText.isEnabled = false
+                editVerificationDateEditText.isEnabled = false // Wyłącz pole daty, gdy "Dzisiaj" jest zaznaczone
             } else {
-                editVerificationDateEditText.isEnabled = true
+                editVerificationDateEditText.isEnabled = true // Włącz pole daty, gdy "Dzisiaj" jest odznaczone
             }
         }
     }
@@ -435,36 +494,24 @@ class EditReceiptActivity : AppCompatActivity() {
 
     /**
      * Kopiuje obraz z podanego źródłowego URI do wewnętrznego magazynu aplikacji.
-     * @param sourceUri URI obrazu źródłowego (np. z galerii).
-     * @return URI skopiowanego pliku w magazynie wewnętrznym lub null w przypadku błędu.
      */
     private fun copyImageToInternalStorage(sourceUri: Uri): Uri? {
         return try {
-            // Otwórz strumień wejściowy dla źródłowego URI
             val inputStream = contentResolver.openInputStream(sourceUri) ?: return null
-
-            // Utwórz katalog 'images' w wewnętrznym magazynie plików aplikacji, jeśli nie istnieje
             val imagesDir = File(filesDir, "images")
             if (!imagesDir.exists()) {
                 imagesDir.mkdirs()
             }
-
-            // Utwórz unikalną nazwę pliku dla kopii
             val uniqueFileName = "${UUID.randomUUID()}.jpg"
             val destinationFile = File(imagesDir, uniqueFileName)
-
-            // Otwórz strumień wyjściowy do pliku docelowego
             val outputStream = FileOutputStream(destinationFile)
 
-            // Skopiuj dane
             inputStream.use { input ->
                 outputStream.use { output ->
                     input.copyTo(output)
                 }
             }
-
             Log.d("EditReceiptActivity", "Skopiowano zdjęcie do: ${destinationFile.absolutePath}")
-            // Zwróć URI dla nowo utworzonego pliku
             destinationFile.toUri()
 
         } catch (e: IOException) {
@@ -472,33 +519,9 @@ class EditReceiptActivity : AppCompatActivity() {
             Toast.makeText(this, R.string.error_copying_image, Toast.LENGTH_SHORT).show()
             null
         } catch (e: SecurityException) {
-            // Ten błąd jest mniej prawdopodobny tutaj, ale obsłużmy go
             Log.e("EditReceiptActivity", "Brak uprawnień do odczytu URI źródłowego (SecurityException)", e)
             Toast.makeText(this, "Brak uprawnień do odczytu zdjęcia.", Toast.LENGTH_SHORT).show()
             null
         }
     }
-
-    // TODO: Opcjonalna funkcja do usuwania pliku zdjęcia, jeśli jest potrzebna
-    /*
-    private fun deleteImageFile(fileUri: Uri) {
-        try {
-            // Sprawdź, czy to URI pliku z naszego wewnętrznego magazynu
-            if (fileUri.scheme == "file" && fileUri.path?.startsWith(filesDir.absolutePath) == true) {
-                val fileToDelete = File(fileUri.path!!)
-                if (fileToDelete.exists()) {
-                    if (fileToDelete.delete()) {
-                        Log.d("EditReceiptActivity", "Usunięto stary plik zdjęcia: $fileUri")
-                    } else {
-                        Log.w("EditReceiptActivity", "Nie udało się usunąć starego pliku zdjęcia: $fileUri")
-                    }
-                }
-            } else {
-                Log.w("EditReceiptActivity", "Próba usunięcia pliku z nieobsługiwanego URI: $fileUri")
-            }
-        } catch (e: Exception) {
-            Log.e("EditReceiptActivity", "Błąd podczas usuwania pliku zdjęcia: $fileUri", e)
-        }
-    }
-    */
 }

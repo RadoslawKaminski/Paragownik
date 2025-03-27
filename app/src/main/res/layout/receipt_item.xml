@@ -6,31 +6,22 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginTop="16dp"
-    android:background="@color/main_color_dark"
+    android:background="@drawable/rounded_edittext_background"
+    android:clickable="true"
+    android:focusable="true"
+    android:foreground="?android:attr/selectableItemBackground"
     android:orientation="vertical"
     android:paddingStart="16dp"
     android:paddingTop="8dp"
     android:paddingEnd="16dp">
 
-    <!-- Kontener poziomy na miniaturę, treść (tekst) i ikonę edycji. -->
+    <!-- Kontener poziomy na treść (tekst) i miniaturę. -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:baselineAligned="false"
         android:gravity="center_vertical"
         android:orientation="horizontal">
-
-        <!-- Miniatura zdjęcia klienta -->
-        <ImageView
-            android:id="@+id/receiptItemClientPhotoImageView"
-            android:layout_width="60dp"
-            android:layout_height="60dp"
-            android:layout_marginEnd="12dp"
-            android:background="@drawable/rounded_edittext_background"
-            android:contentDescription="@string/cd_receipt_item_client_photo"
-            android:padding="3dp"
-            android:scaleType="centerCrop"
-            app:srcCompat="@drawable/ic_photo_placeholder" />
 
         <!-- Kontener pionowy na wszystkie informacje tekstowe. -->
         <LinearLayout
@@ -45,7 +36,6 @@
                 android:layout_height="wrap_content"
                 android:gravity="center_vertical"
                 android:orientation="horizontal">
-
                 <!-- Numer paragonu. -->
                 <TextView
                     android:id="@+id/receiptNumberTextView"
@@ -56,7 +46,6 @@
                     android:textSize="24sp"
                     android:textStyle="bold"
                     tools:text="1234" />
-
                 <!-- Separator. -->
                 <View
                     android:layout_width="1dp"
@@ -64,7 +53,6 @@
                     android:layout_marginStart="8dp"
                     android:layout_marginEnd="8dp"
                     android:background="@color/sub_white_text" />
-
                 <!-- Data paragonu. -->
                 <TextView
                     android:id="@+id/receiptDateTextView"
@@ -77,14 +65,16 @@
                     tools:text="01-01-2024" />
             </LinearLayout>
 
-            <!-- Data weryfikacji. -->
+            <!-- Data weryfikacji (layout do ukrywania). -->
             <LinearLayout
+                android:id="@+id/verificationDateLayout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
                 android:gravity="center_vertical"
-                android:orientation="horizontal">
-
+                android:orientation="horizontal"
+                android:visibility="gone"
+                tools:visibility="visible">
                 <!-- Etykieta "Weryfikacja:". -->
                 <TextView
                     android:layout_width="wrap_content"
@@ -92,7 +82,6 @@
                     android:paddingEnd="4dp"
                     android:text="@string/verification_label"
                     android:textSize="16sp" />
-
                 <!-- Wartość daty weryfikacji. -->
                 <TextView
                     android:id="@+id/verificationDateTextView"
@@ -138,29 +127,18 @@
 
         </LinearLayout> <!-- Koniec bloku z tekstem -->
 
-        <!-- Kontener na ikonę edycji. -->
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:gravity="center_vertical"
-            android:orientation="vertical"
-            android:paddingStart="8dp"
-            android:paddingEnd="8dp">
+        <!-- Miniatura zdjęcia klienta (przeniesiona na prawo). -->
+        <ImageView
+            android:id="@+id/receiptItemClientPhotoImageView"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:layout_marginStart="12dp"
+            android:background="@drawable/rounded_edittext_background"
+            android:contentDescription="@string/cd_receipt_item_client_photo"
+            android:padding="3dp"
+            android:scaleType="centerCrop"
+            app:srcCompat="@drawable/ic_photo_placeholder" />
 
-            <!-- Ikona edycji. -->
-            <ImageView
-                android:id="@+id/editReceiptButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:clickable="true"
-                android:contentDescription="@string/cd_edit_receipt_icon"
-                android:focusable="true"
-                android:minWidth="48dp"
-                android:minHeight="48dp"
-                android:padding="8dp"
-                android:src="@drawable/ic_edit_icon" />
-        </LinearLayout>
     </LinearLayout>
 
     <!-- Linia separatora na dole. -->

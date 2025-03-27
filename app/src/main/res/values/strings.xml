@@ -59,7 +59,8 @@
     <string name="cd_remove_receipt_button">Usuń ten paragon</string>
 
     <!-- EditReceiptActivity -->
-    <string name="edit_receipt_client_title">Edytuj Paragon i Klienta</string>
+    <string name="edit_receipt_client_title">Szczegóły Paragonu</string> <!-- Zmieniono -->
+    <string name="edit_button_text">Edytuj</string> <!-- Dodano -->
     <string name="error_fill_required_edit_fields">Wypełnij numer sklepu, numer paragonu i datę paragonu.</string>
     <string name="delete_receipt_confirmation_title">Potwierdzenie usunięcia</string>
     <string name="delete_receipt_confirmation_message">Czy na pewno chcesz usunąć ten paragon?\n\n(Jeśli to ostatni paragon klienta lub drogerii, zostaną oni również usunięci).</string>
@@ -86,7 +87,8 @@
     <string name="cd_client_photo_placeholder">Miniatura zdjęcia klienta</string>
     <string name="cd_add_change_photo_button">Dodaj lub zmień zdjęcie klienta</string>
     <string name="error_copying_image">Błąd podczas kopiowania zdjęcia.</string>
-    <string name="cd_receipt_item_client_photo">Miniatura zdjęcia klienta powiązanego z paragonem</string> <!-- Dodano -->
-    <string name="cd_client_item_client_photo">Miniatura zdjęcia klienta</string> <!-- Dodano -->
+    <string name="cd_receipt_item_client_photo">Miniatura zdjęcia klienta powiązanego z paragonem</string>
+    <string name="cd_client_item_client_photo">Miniatura zdjęcia klienta</string>
+    <string name="cd_client_large_photo">Zdjęcie klienta (duże)</string> <!-- Dodano -->
 
 </resources>
