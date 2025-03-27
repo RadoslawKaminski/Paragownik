@@ -129,7 +129,8 @@
             android:layout_height="match_parent"
             android:gravity="center_vertical"
             android:orientation="vertical"
-            android:paddingStart="8dp"> <!-- Dodany padding dla odstępu -->
+            android:paddingStart="8dp"
+            android:paddingEnd="8dp"> <!-- DODANO paddingEnd -->
 
             <!-- Ikona edycji (ImageView). -->
             <ImageView

@@ -1,5 +1,6 @@
 package com.kaminski.paragownik
 
+import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
@@ -35,6 +36,7 @@ class ReceiptListActivity : AppCompatActivity(), ReceiptAdapter.OnEditButtonClic
      * Inicjalizuje UI, ViewModel, pobiera ID sklepu z Intentu, ładuje dane
      * i ustawia listenery.
      */
+    @SuppressLint("NotifyDataSetChanged")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_receipt_list) // Ustawienie layoutu

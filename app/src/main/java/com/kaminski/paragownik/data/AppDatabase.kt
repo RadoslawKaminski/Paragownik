@@ -1,3 +1,5 @@
+@file:Suppress("KDocUnresolvedReference")
+
 package com.kaminski.paragownik.data
 
 import android.content.Context
