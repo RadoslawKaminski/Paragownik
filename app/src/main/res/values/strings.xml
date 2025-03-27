@@ -73,8 +73,8 @@
     <string name="label_client_app_number">Nr app:</string>
     <string name="label_amodit_number">Amodit:</string>
     <!-- Przyciski nawigacyjne w EditReceiptActivity -->
-    <string name="button_show_client_receipts">Pokaż wszystkie paragony klienta</string> <!-- Dodano -->
-    <string name="button_show_store_receipts">Pokaż wszystkie paragony drogerii</string> <!-- Dodano -->
+    <string name="button_show_client_receipts">Pokaż wszystkie paragony klienta</string>
+    <string name="button_show_store_receipts">Pokaż wszystkie paragony drogerii</string>
 
 
     <!-- Receipt Item -->
@@ -106,5 +106,13 @@
     <string name="error_invalid_client_id">Błąd: Nieprawidłowy identyfikator klienta.</string>
     <string name="error_client_not_found">Błąd: Nie znaleziono klienta.</string>
     <string name="cd_add_receipt_to_client_fab">Dodaj nowy paragon dla tego klienta</string>
+
+    <!-- AddReceiptToClientActivity -->
+    <string name="add_receipt_to_client_title">Dodaj Paragony dla Klienta</string> <!-- Dodano -->
+    <string name="add_receipt_button">Dodaj kolejny paragon</string> <!-- Dodano -->
+    <string name="save_receipts_button">Zapisz paragony</string> <!-- Dodano -->
+    <string name="hint_store_number_required">Drogeria *</string> <!-- Dodano -->
+    <string name="hint_receipt_number_required">Numer paragonu *</string> <!-- Dodano -->
+    <string name="hint_receipt_date_required">Data paragonu (DD-MM-YYYY) *</string> <!-- Dodano -->
 
 </resources>

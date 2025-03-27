@@ -1,0 +1,222 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Layout dodawania paragonów do istniejącego klienta -->
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/main_color_dark"
+    tools:context=".AddReceiptToClientActivity">
+
+    <!-- Tytuł ekranu -->
+    <TextView
+        android:id="@+id/addReceiptToClientTitleTextView"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="16dp"
+        android:gravity="center"
+        android:text="@string/add_receipt_to_client_title"
+        android:textSize="24sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <!-- Sekcja danych klienta (nieedytowalna) -->
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/addReceiptClientDetailsLayout"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:paddingBottom="8dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/addReceiptToClientTitleTextView">
+
+        <!-- Miniatura zdjęcia klienta -->
+        <ImageView
+            android:id="@+id/addReceiptClientPhotoImageView"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:background="@drawable/rounded_edittext_background"
+            android:contentDescription="@string/cd_client_item_client_photo"
+            android:padding="4dp"
+            android:scaleType="centerCrop"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:srcCompat="@drawable/ic_photo_placeholder" />
+
+        <!-- Opis klienta -->
+        <TextView
+            android:id="@+id/addReceiptClientDescriptionTextView"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:textColor="@color/white_text"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/addReceiptClientPhotoImageView"
+            app:layout_constraintTop_toTopOf="@+id/addReceiptClientPhotoImageView"
+            tools:text="Wysoki blondyn w czerwonej kurtce" />
+
+        <!-- Numer aplikacji klienta -->
+        <TextView
+            android:id="@+id/addReceiptClientAppNumberTextView"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:textColor="@color/sub_white_text"
+            android:textSize="14sp"
+            android:visibility="gone"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="@+id/addReceiptClientDescriptionTextView"
+            app:layout_constraintTop_toBottomOf="@+id/addReceiptClientDescriptionTextView"
+            tools:text="Nr app: 12345678901234"
+            tools:visibility="visible" />
+
+        <!-- Numer Amodit -->
+        <TextView
+            android:id="@+id/addReceiptClientAmoditNumberTextView"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:textColor="@color/sub_white_text"
+            android:textSize="14sp"
+            android:visibility="gone"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="@+id/addReceiptClientAppNumberTextView"
+            app:layout_constraintTop_toBottomOf="@+id/addReceiptClientAppNumberTextView"
+            tools:text="Amodit: 12345678"
+            tools:visibility="visible" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <!-- Separator -->
+    <View
+        android:id="@+id/addReceiptClientDetailsSeparator"
+        android:layout_width="0dp"
+        android:layout_height="1dp"
+        android:layout_marginStart="32dp"
+        android:layout_marginEnd="32dp"
+        android:background="@color/sub_white_text"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/addReceiptClientDetailsLayout" />
+
+    <!-- ScrollView dla pól paragonów -->
+    <ScrollView
+        android:id="@+id/addReceiptScrollView"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginTop="8dp"
+        app:layout_constraintBottom_toTopOf="@+id/saveNewReceiptsButton"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/addReceiptClientDetailsSeparator">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:paddingBottom="16dp">
+
+            <!-- Pierwszy zestaw pól paragonu -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:orientation="vertical">
+
+                <!-- Pola dla pierwszego paragonu: Numer drogerii i Numer paragonu w jednej linii. -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:baselineAligned="false"
+                    android:orientation="horizontal">
+                    <!-- Kontener dla numeru drogerii. -->
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="8dp"
+                        android:layout_weight="4"
+                        android:orientation="vertical">
+                        <EditText
+                            android:id="@+id/firstStoreNumberEditText"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:autofillHints="postalCode"
+                            android:hint="@string/hint_store_number_required"
+                            android:inputType="number"
+                            android:maxLength="4" />
+                    </LinearLayout>
+                    <!-- Kontener dla numeru paragonu. -->
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:layout_weight="5"
+                        android:orientation="vertical">
+                        <EditText
+                            android:id="@+id/firstReceiptNumberEditText"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:autofillHints="postalCode"
+                            android:hint="@string/hint_receipt_number_required"
+                            android:inputType="number"
+                            android:maxLength="4" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <!-- Pole edycji daty paragonu. -->
+                <EditText
+                    android:id="@+id/firstReceiptDateEditText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="20dp"
+                    android:autofillHints="date"
+                    android:hint="@string/hint_receipt_date_required"
+                    android:inputType="date" />
+            </LinearLayout>
+
+            <!-- Kontener na dynamicznie dodawane pola dodatkowych paragonów. -->
+            <LinearLayout
+                android:id="@+id/newReceiptsContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"/>
+
+            <!-- Przycisk dodawania kolejnego paragonu. -->
+            <Button
+                android:id="@+id/addAnotherReceiptButton"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="@string/add_receipt_button"
+                android:textColor="@color/scnd_color_bright"
+                app:strokeColor="@color/scnd_color_bright" />
+
+        </LinearLayout>
+    </ScrollView>
+
+    <!-- Przycisk zapisu (na dole ekranu). -->
+    <Button
+        android:id="@+id/saveNewReceiptsButton"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:backgroundTint="@color/green_save"
+        android:paddingVertical="16dp"
+        android:text="@string/save_receipts_button"
+        android:textColor="@color/white_text"
+        android:textSize="18sp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

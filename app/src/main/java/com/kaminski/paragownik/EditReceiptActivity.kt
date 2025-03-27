@@ -38,7 +38,7 @@ import java.util.UUID
 
 /**
  * Aktywność odpowiedzialna za przeglądanie i edycję istniejącego paragonu oraz danych klienta.
- * Zawiera kontekstowe przyciski nawigacyjne w trybie widoku.
+ * Zawiera ikonę edycji i kontekstowe przyciski nawigacyjne w trybie widoku.
  */
 class EditReceiptActivity : AppCompatActivity() {
 
@@ -56,7 +56,7 @@ class EditReceiptActivity : AppCompatActivity() {
     private lateinit var saveReceiptButton: Button
     private lateinit var deleteReceiptButton: Button
     private lateinit var deleteClientButton: Button
-    private lateinit var editModeButton: Button // Przycisk "Edytuj"
+    private lateinit var editModeImageButton: ImageButton // Ikona "Edytuj"
     private lateinit var largeClientPhotoImageView: ImageView // Duże zdjęcie (w trybie widoku)
     private lateinit var showClientReceiptsButton: Button // Przycisk nawigacji do paragonów klienta
     private lateinit var showStoreReceiptsButton: Button // Przycisk nawigacji do paragonów sklepu
@@ -144,10 +144,10 @@ class EditReceiptActivity : AppCompatActivity() {
         saveReceiptButton = findViewById(R.id.saveReceiptButton)
         deleteReceiptButton = findViewById(R.id.deleteReceiptButton)
         deleteClientButton = findViewById(R.id.deleteClientButton)
-        editModeButton = findViewById(R.id.editModeButton)
+        editModeImageButton = findViewById(R.id.editModeImageButton) // Ikona Edytuj
         largeClientPhotoImageView = findViewById(R.id.largeClientPhotoImageView)
-        showClientReceiptsButton = findViewById(R.id.showClientReceiptsButton) // Przycisk nawigacji
-        showStoreReceiptsButton = findViewById(R.id.showStoreReceiptsButton) // Przycisk nawigacji
+        showClientReceiptsButton = findViewById(R.id.showClientReceiptsButton)
+        showStoreReceiptsButton = findViewById(R.id.showStoreReceiptsButton)
         // Layouty do ukrywania
         editVerificationSectionLayout = findViewById(R.id.editVerificationSectionLayout)
         editDescriptionLayout = findViewById(R.id.editDescriptionLayout)
@@ -171,14 +171,16 @@ class EditReceiptActivity : AppCompatActivity() {
         deleteReceiptButton.setOnClickListener { showDeleteReceiptDialog() }
         deleteClientButton.setOnClickListener { showDeleteClientDialog() }
         editAddChangePhotoButton.setOnClickListener { pickImageLauncher.launch("image/*") }
-        editModeButton.setOnClickListener { updateUiMode(true) } // Przełącz do trybu edycji
+        // Listener dla ikony "Edytuj"
+        editModeImageButton.setOnClickListener {
+            updateUiMode(true) // Włącz tryb edycji
+        }
 
         // Listener dla przycisku "Pokaż paragony klienta"
         showClientReceiptsButton.setOnClickListener {
             currentClientId?.let { clientId ->
                 val intent = Intent(this, ClientReceiptsActivity::class.java)
                 intent.putExtra("CLIENT_ID", clientId)
-                // Flagi, aby uniknąć tworzenia wielu instancji tej samej aktywności na stosie
                 intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
                 startActivity(intent)
                 Log.d("EditReceiptActivity", "Nawigacja do ClientReceiptsActivity dla klienta ID: $clientId")
@@ -272,7 +274,7 @@ class EditReceiptActivity : AppCompatActivity() {
                         if (isActive) {
                             Log.e("EditReceiptActivity", "Nie znaleziono danych dla receiptId: $receiptId (prawdopodobnie usunięto)")
                             // Toast.makeText(this@EditReceiptActivity, R.string.error_receipt_not_found, Toast.LENGTH_SHORT).show()
-                            // finish() // Nie zamykamy, bo mogło być zainicjowane przez delete
+                            // finish()
                         }
                     }
                 }
@@ -295,12 +297,12 @@ class EditReceiptActivity : AppCompatActivity() {
         editClientAppNumberEditText.isEnabled = isEditing
         editAmoditNumberEditText.isEnabled = isEditing
 
-        // Pokaż/Ukryj przyciski akcji
+        // Pokaż/Ukryj przyciski akcji i ikonę edycji
         saveReceiptButton.visibility = if (isEditing) View.VISIBLE else View.GONE
         deleteReceiptButton.visibility = if (isEditing) View.VISIBLE else View.GONE
         deleteClientButton.visibility = if (isEditing) View.VISIBLE else View.GONE
         editAddChangePhotoButton.visibility = if (isEditing) View.VISIBLE else View.GONE
-        editModeButton.visibility = if (isEditing) View.GONE else View.VISIBLE
+        editModeImageButton.visibility = if (isEditing) View.GONE else View.VISIBLE // Ikona edycji
 
         // Pokaż/Ukryj duży obrazek (tylko w trybie widoku, jeśli jest zdjęcie)
         largeClientPhotoImageView.visibility = if (!isEditing && selectedPhotoUri != null) View.VISIBLE else View.GONE
@@ -370,7 +372,7 @@ class EditReceiptActivity : AppCompatActivity() {
      * Usuwa bieżący paragon, anulując najpierw obserwację danych.
      */
     private fun deleteReceipt() {
-        loadDataJob?.cancel() // Anuluj obserwację danych
+        loadDataJob?.cancel()
         Log.d("EditReceiptActivity", "Anulowano loadDataJob przed usunięciem paragonu.")
 
         lifecycleScope.launch {
@@ -381,7 +383,7 @@ class EditReceiptActivity : AppCompatActivity() {
             if (currentReceipt == null) {
                 Toast.makeText(this@EditReceiptActivity, R.string.error_cannot_get_receipt_data, Toast.LENGTH_LONG).show()
                 Log.e("EditReceiptActivity", "Nie udało się pobrać Receipt (id: $receiptId) do usunięcia.")
-                handleEditResult(EditReceiptViewModel.EditResult.ERROR_NOT_FOUND, true) // Traktuj jako błąd i nawiguj
+                handleEditResult(EditReceiptViewModel.EditResult.ERROR_NOT_FOUND, true)
                 return@launch
             }
 
@@ -413,7 +415,7 @@ class EditReceiptActivity : AppCompatActivity() {
      * Usuwa bieżącego klienta i jego paragony, anulując najpierw obserwację danych.
      */
     private fun deleteClient() {
-        loadDataJob?.cancel() // Anuluj obserwację danych
+        loadDataJob?.cancel()
         Log.d("EditReceiptActivity", "Anulowano loadDataJob przed usunięciem klienta.")
 
         val clientIdToDelete = currentClientId ?: return

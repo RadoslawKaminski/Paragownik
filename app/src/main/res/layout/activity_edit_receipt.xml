@@ -1,400 +1,398 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Layout dla aktywności przeglądania/edycji paragonu i klienta (EditReceiptActivity). -->
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/main_color_dark"
-    android:padding="16dp"
     tools:context=".EditReceiptActivity">
 
-    <!-- Główny kontener LinearLayout (pionowy) wewnątrz ScrollView. -->
-    <LinearLayout
-        android:layout_width="match_parent"
+    <!-- Tytuł ekranu. -->
+    <TextView
+        android:id="@+id/editTitleTextView"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:paddingBottom="16dp">
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="8dp"
+        android:gravity="center"
+        android:text="@string/edit_receipt_client_title"
+        android:textSize="24sp"
+        app:layout_constraintEnd_toStartOf="@+id/editModeImageButton"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
-        <!-- Tytuł ekranu. -->
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="24dp"
-            android:gravity="center"
-            android:text="@string/edit_receipt_client_title"
-            android:textSize="24sp" />
+    <!-- Ikona Edycji (zastępuje przycisk). -->
+    <ImageButton
+        android:id="@+id/editModeImageButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="8dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="@string/edit_button_text"
+        android:minWidth="48dp"
+        android:minHeight="48dp"
+        android:padding="8dp"
+        app:layout_constraintBottom_toBottomOf="@+id/editTitleTextView"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/editTitleTextView"
+        app:srcCompat="@drawable/ic_edit_icon"
+        app:tint="@color/scnd_color_bright" />
 
-        <!-- Sekcja danych paragonu. -->
+    <!-- ScrollView z zawartością formularza. -->
+    <ScrollView
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:padding="16dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/editTitleTextView">
+
+        <!-- Główny kontener LinearLayout (pionowy) wewnątrz ScrollView. -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical">
+            android:orientation="vertical"
+            android:paddingBottom="16dp">
 
-            <!-- Numer drogerii i paragonu w jednej linii. -->
+            <!-- Sekcja danych paragonu -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:baselineAligned="false"
-                android:orientation="horizontal">
-                <!-- Kontener dla numeru drogerii. -->
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginEnd="8dp"
-                    android:layout_weight="4"
-                    android:orientation="vertical">
-                    <!-- Pole numeru drogerii (domyślnie wyłączone). -->
-                    <EditText
-                        android:id="@+id/editReceiptStoreNumberEditText"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:enabled="false"
-                        android:autofillHints="postalCode"
-                        android:hint="@string/store_number_hint"
-                        android:inputType="number"
-                        android:maxLength="4" />
-                </LinearLayout>
-                <!-- Kontener dla numeru paragonu. -->
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="8dp"
-                    android:layout_weight="5"
-                    android:orientation="vertical">
-                    <!-- Pole numeru paragonu (domyślnie wyłączone). -->
-                    <EditText
-                        android:id="@+id/editReceiptNumberEditText"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:enabled="false"
-                        android:autofillHints="postalCode"
-                        android:hint="@string/receipt_number_hint"
-                        android:inputType="number"
-                        android:maxLength="4" />
-                </LinearLayout>
-            </LinearLayout>
+                android:orientation="vertical">
 
-            <!-- Pole daty paragonu (domyślnie wyłączone). -->
-            <EditText
-                android:id="@+id/editReceiptDateEditText"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="20dp"
-                android:enabled="false"
-                android:autofillHints="date"
-                android:hint="@string/receipt_date_hint"
-                android:inputType="date" />
-
-            <!-- Sekcja daty weryfikacji (opakowana dla widoczności). -->
-            <LinearLayout
-                android:id="@+id/editVerificationSectionLayout"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:orientation="vertical"
-                android:visibility="gone"
-                tools:visibility="visible">
-
-                <!-- Etykieta sekcji. -->
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="8dp"
-                    android:text="@string/verification_section_title"
-                    android:textSize="18sp" />
-
-                <!-- Pole daty weryfikacji i checkbox "Dzisiaj". -->
+                <!-- Numer drogerii i paragonu -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:baselineAligned="false"
                     android:orientation="horizontal">
-                    <!-- Kontener dla pola daty weryfikacji. -->
+                    <!-- Numer drogerii -->
                     <LinearLayout
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_weight="5"
+                        android:layout_marginEnd="8dp"
+                        android:layout_weight="4"
                         android:orientation="vertical">
-                        <!-- Pole daty weryfikacji (domyślnie wyłączone). -->
                         <EditText
-                            android:id="@+id/editVerificationDateEditText"
+                            android:id="@+id/editReceiptStoreNumberEditText"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:enabled="false"
-                            android:autofillHints="date"
-                            android:hint="@string/verification_date_hint"
-                            android:inputType="date" />
+                            android:autofillHints="postalCode"
+                            android:hint="@string/store_number_hint"
+                            android:inputType="number"
+                            android:maxLength="4" />
                     </LinearLayout>
-                    <!-- Kontener dla checkboxa "Dzisiaj". -->
+                    <!-- Numer paragonu -->
                     <LinearLayout
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="8dp"
-                        android:layout_weight="3"
-                        android:gravity="center_vertical"
+                        android:layout_weight="5"
                         android:orientation="vertical">
-                        <!-- Checkbox "Dzisiaj" (domyślnie wyłączony). -->
-                        <CheckBox
-                            android:id="@+id/editVerificationDateTodayCheckBox"
-                            android:layout_width="wrap_content"
+                        <EditText
+                            android:id="@+id/editReceiptNumberEditText"
+                            android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:enabled="false"
-                            android:text="@string/today"
-                            android:textColor="@color/white_text" />
+                            android:autofillHints="postalCode"
+                            android:hint="@string/receipt_number_hint"
+                            android:inputType="number"
+                            android:maxLength="4" />
                     </LinearLayout>
                 </LinearLayout>
-            </LinearLayout> <!-- Koniec sekcji daty weryfikacji -->
 
-        </LinearLayout> <!-- Koniec sekcji danych paragonu -->
+                <!-- Data paragonu -->
+                <EditText
+                    android:id="@+id/editReceiptDateEditText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="20dp"
+                    android:enabled="false"
+                    android:autofillHints="date"
+                    android:hint="@string/receipt_date_hint"
+                    android:inputType="date" />
 
-        <!-- Sekcja danych klienta. -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="24dp"
-            android:orientation="vertical">
+                <!-- Sekcja daty weryfikacji -->
+                <LinearLayout
+                    android:id="@+id/editVerificationSectionLayout"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:orientation="vertical"
+                    android:visibility="gone"
+                    tools:visibility="visible">
+                    <!-- Etykieta -->
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="8dp"
+                        android:text="@string/verification_section_title"
+                        android:textSize="18sp" />
+                    <!-- Data i Checkbox -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:baselineAligned="false"
+                        android:orientation="horizontal">
+                        <!-- Data -->
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="5"
+                            android:orientation="vertical">
+                            <EditText
+                                android:id="@+id/editVerificationDateEditText"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:enabled="false"
+                                android:autofillHints="date"
+                                android:hint="@string/verification_date_hint"
+                                android:inputType="date" />
+                        </LinearLayout>
+                        <!-- Checkbox -->
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="8dp"
+                            android:layout_weight="3"
+                            android:gravity="center_vertical"
+                            android:orientation="vertical">
+                            <CheckBox
+                                android:id="@+id/editVerificationDateTodayCheckBox"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:enabled="false"
+                                android:text="@string/today"
+                                android:textColor="@color/white_text" />
+                        </LinearLayout>
+                    </LinearLayout>
+                </LinearLayout> <!-- Koniec sekcji daty weryfikacji -->
 
-            <!-- Etykieta sekcji. -->
-            <TextView
+            </LinearLayout> <!-- Koniec sekcji danych paragonu -->
+
+            <!-- Sekcja danych klienta -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:orientation="vertical">
+                <!-- Etykieta -->
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="8dp"
+                    android:text="@string/client_data_section_title"
+                    android:textSize="18sp" />
+
+                <!-- Opis klienta -->
+                <LinearLayout
+                    android:id="@+id/editDescriptionLayout"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:visibility="gone"
+                    tools:visibility="visible">
+                    <EditText
+                        android:id="@+id/editClientDescriptionEditText"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:enabled="false"
+                        android:autofillHints="text"
+                        android:gravity="top"
+                        android:hint="@string/client_description_hint"
+                        android:inputType="textMultiLine"
+                        android:lines="2" />
+                </LinearLayout>
+
+                <!-- Numer aplikacji -->
+                 <LinearLayout
+                    android:id="@+id/editAppNumberLayout"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_marginTop="8dp"
+                    android:visibility="gone"
+                    tools:visibility="visible">
+                     <LinearLayout
+                         android:layout_width="match_parent"
+                         android:layout_height="wrap_content"
+                         android:orientation="horizontal"
+                         android:gravity="center_vertical">
+                         <TextView
+                             android:layout_width="wrap_content"
+                             android:layout_height="wrap_content"
+                             android:text="@string/label_client_app_number"
+                             android:paddingEnd="8dp"
+                             android:textSize="16sp"/>
+                         <EditText
+                             android:id="@+id/editClientAppNumberEditText"
+                             android:layout_width="0dp"
+                             android:layout_height="wrap_content"
+                             android:layout_weight="1"
+                             android:enabled="false"
+                             android:autofillHints="number"
+                             android:hint="@string/client_app_number_hint"
+                             android:inputType="number"
+                             android:maxLength="14"
+                             android:layout_marginBottom="0dp"/>
+                     </LinearLayout>
+                 </LinearLayout>
+
+                <!-- Numer Amodit -->
+                 <LinearLayout
+                    android:id="@+id/editAmoditNumberLayout"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_marginTop="8dp"
+                    android:visibility="gone"
+                    tools:visibility="visible">
+                     <LinearLayout
+                         android:layout_width="match_parent"
+                         android:layout_height="wrap_content"
+                         android:orientation="horizontal"
+                         android:gravity="center_vertical">
+                         <TextView
+                             android:layout_width="wrap_content"
+                             android:layout_height="wrap_content"
+                             android:text="@string/label_amodit_number"
+                             android:paddingEnd="8dp"
+                             android:textSize="16sp"/>
+                         <EditText
+                             android:id="@+id/editAmoditNumberEditText"
+                             android:layout_width="0dp"
+                             android:layout_height="wrap_content"
+                             android:layout_weight="1"
+                             android:enabled="false"
+                             android:autofillHints="number"
+                             android:hint="@string/amodit_number_hint"
+                             android:inputType="number"
+                             android:maxLength="8"
+                             android:layout_marginBottom="0dp"/>
+                     </LinearLayout>
+                 </LinearLayout>
+
+                <!-- Sekcja zdjęcia (miniatura + przycisk) -->
+                <LinearLayout
+                    android:id="@+id/editPhotoSectionLayout"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:visibility="gone"
+                    tools:visibility="visible">
+                    <!-- Miniatura -->
+                    <ImageView
+                        android:id="@+id/editClientPhotoImageView"
+                        android:layout_width="80dp"
+                        android:layout_height="80dp"
+                        android:layout_marginEnd="16dp"
+                        android:background="@drawable/rounded_edittext_background"
+                        android:contentDescription="@string/cd_client_photo_placeholder"
+                        android:padding="4dp"
+                        android:scaleType="centerCrop"
+                        app:srcCompat="@drawable/ic_photo_placeholder" />
+                    <!-- Przycisk dodaj/zmień -->
+                    <ImageButton
+                        android:id="@+id/editAddChangePhotoButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:contentDescription="@string/cd_add_change_photo_button"
+                        android:minWidth="48dp"
+                        android:minHeight="48dp"
+                        android:padding="8dp"
+                        android:visibility="gone"
+                        tools:visibility="visible"
+                        app:srcCompat="@drawable/ic_add_a_photo"
+                        app:tint="@color/scnd_color_bright" />
+                </LinearLayout>
+
+            </LinearLayout> <!-- Koniec sekcji danych klienta -->
+
+            <!-- Przyciski akcji (Zapisz, Usuń) -->
+            <Button
+                android:id="@+id/saveReceiptButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:layout_marginBottom="16dp"
+                android:backgroundTint="@color/green_save"
+                android:paddingVertical="16dp"
+                android:text="@string/save_changes_button_text"
+                android:textColor="@color/white_text"
+                android:textSize="18sp"
+                android:visibility="gone"
+                tools:visibility="visible"/>
+            <Button
+                android:id="@+id/deleteReceiptButton"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="8dp"
-                android:text="@string/client_data_section_title"
-                android:textSize="18sp" />
-
-            <!-- Pole opisu klienta (opakowane dla widoczności). -->
-            <LinearLayout
-                android:id="@+id/editDescriptionLayout"
+                android:text="@string/delete_receipt_button_text"
+                android:textColor="@android:color/holo_red_dark"
+                android:visibility="gone"
+                tools:visibility="visible"
+                app:strokeColor="@android:color/holo_red_dark" />
+            <Button
+                android:id="@+id/deleteClientButton"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
+                android:text="@string/delete_client_button_text"
+                android:textColor="@android:color/holo_red_dark"
                 android:visibility="gone"
-                tools:visibility="visible">
-                <EditText
-                    android:id="@+id/editClientDescriptionEditText"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:enabled="false"
-                    android:autofillHints="text"
-                    android:gravity="top"
-                    android:hint="@string/client_description_hint"
-                    android:inputType="textMultiLine"
-                    android:lines="2" />
-            </LinearLayout>
+                tools:visibility="visible"
+                app:strokeColor="@android:color/holo_red_dark" />
 
-            <!-- Pole numeru aplikacji klienta (opakowane dla widoczności). -->
-             <LinearLayout
-                android:id="@+id/editAppNumberLayout"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:layout_marginTop="8dp"
-                android:visibility="gone"
-                tools:visibility="visible">
-
-                 <!-- Etykieta i pole edycji w jednej linii -->
-                 <LinearLayout
-                     android:layout_width="match_parent"
-                     android:layout_height="wrap_content"
-                     android:orientation="horizontal"
-                     android:gravity="center_vertical">
-
-                     <!-- Etykieta dla numeru aplikacji -->
-                     <TextView
-                         android:layout_width="wrap_content"
-                         android:layout_height="wrap_content"
-                         android:text="@string/label_client_app_number"
-                         android:paddingEnd="8dp"
-                         android:textSize="16sp"/>
-
-                     <!-- Pole edycji numeru aplikacji -->
-                     <EditText
-                         android:id="@+id/editClientAppNumberEditText"
-                         android:layout_width="0dp"
-                         android:layout_height="wrap_content"
-                         android:layout_weight="1"
-                         android:enabled="false"
-                         android:autofillHints="number"
-                         android:hint="@string/client_app_number_hint"
-                         android:inputType="number"
-                         android:maxLength="14"
-                         android:layout_marginBottom="0dp"/>
-                 </LinearLayout>
-             </LinearLayout>
-
-            <!-- Pole numeru Amodit (opakowane dla widoczności). -->
-             <LinearLayout
-                android:id="@+id/editAmoditNumberLayout"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:layout_marginTop="8dp"
-                android:visibility="gone"
-                tools:visibility="visible">
-
-                 <!-- Etykieta i pole edycji w jednej linii -->
-                 <LinearLayout
-                     android:layout_width="match_parent"
-                     android:layout_height="wrap_content"
-                     android:orientation="horizontal"
-                     android:gravity="center_vertical">
-
-                     <!-- Etykieta dla numeru Amodit -->
-                     <TextView
-                         android:layout_width="wrap_content"
-                         android:layout_height="wrap_content"
-                         android:text="@string/label_amodit_number"
-                         android:paddingEnd="8dp"
-                         android:textSize="16sp"/>
-
-                     <!-- Pole edycji numeru Amodit -->
-                     <EditText
-                         android:id="@+id/editAmoditNumberEditText"
-                         android:layout_width="0dp"
-                         android:layout_height="wrap_content"
-                         android:layout_weight="1"
-                         android:enabled="false"
-                         android:autofillHints="number"
-                         android:hint="@string/amodit_number_hint"
-                         android:inputType="number"
-                         android:maxLength="8"
-                         android:layout_marginBottom="0dp"/>
-                 </LinearLayout>
-             </LinearLayout>
-
-            <!-- Kontener na miniaturę zdjęcia i przycisk dodawania (widoczny tylko w edycji). -->
-            <LinearLayout
-                android:id="@+id/editPhotoSectionLayout"
+            <!-- Duży widok zdjęcia (tryb widoku) -->
+            <ImageView
+                android:id="@+id/largeClientPhotoImageView"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
-                android:gravity="center_vertical"
-                android:orientation="horizontal"
+                android:adjustViewBounds="true"
+                android:contentDescription="@string/cd_client_large_photo"
+                android:scaleType="fitCenter"
                 android:visibility="gone"
-                tools:visibility="visible">
+                tools:srcCompat="@drawable/ic_photo_placeholder"
+                tools:visibility="visible"
+                tools:layout_height="200dp"/>
 
-                <!-- Miniatura zdjęcia klienta -->
-                <ImageView
-                    android:id="@+id/editClientPhotoImageView"
-                    android:layout_width="80dp"
-                    android:layout_height="80dp"
-                    android:layout_marginEnd="16dp"
-                    android:background="@drawable/rounded_edittext_background"
-                    android:contentDescription="@string/cd_client_photo_placeholder"
-                    android:padding="4dp"
-                    android:scaleType="centerCrop"
-                    app:srcCompat="@drawable/ic_photo_placeholder" />
+            <!-- Przyciski nawigacyjne (tryb widoku) -->
+            <Button
+                android:id="@+id/showClientReceiptsButton"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="@string/button_show_client_receipts"
+                android:textColor="@color/scnd_color_bright"
+                android:visibility="gone"
+                app:strokeColor="@color/scnd_color_bright"
+                tools:visibility="visible"/>
+            <Button
+                android:id="@+id/showStoreReceiptsButton"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="@string/button_show_store_receipts"
+                android:textColor="@color/scnd_color_bright"
+                android:visibility="gone"
+                app:strokeColor="@color/scnd_color_bright"
+                tools:visibility="visible"/>
 
-                <!-- Przycisk dodawania/zmiany zdjęcia (widoczny tylko w edycji). -->
-                <ImageButton
-                    android:id="@+id/editAddChangePhotoButton"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:background="?attr/selectableItemBackgroundBorderless"
-                    android:contentDescription="@string/cd_add_change_photo_button"
-                    android:minWidth="48dp"
-                    android:minHeight="48dp"
-                    android:padding="8dp"
-                    android:visibility="gone"
-                    tools:visibility="visible"
-                    app:srcCompat="@drawable/ic_add_a_photo"
-                    app:tint="@color/scnd_color_bright" />
+            <!-- Przycisk Edytuj został zastąpiony ikoną w ConstraintLayout -->
 
-            </LinearLayout>
+        </LinearLayout>
+    </ScrollView>
 
-        </LinearLayout> <!-- Koniec sekcji danych klienta -->
-
-
-        <!-- Przyciski akcji -->
-        <!-- Przycisk zapisu zmian (domyślnie ukryty). -->
-        <Button
-            android:id="@+id/saveReceiptButton"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="24dp"
-            android:layout_marginBottom="16dp"
-            android:backgroundTint="@color/green_save"
-            android:paddingVertical="16dp"
-            android:text="@string/save_changes_button_text"
-            android:textColor="@color/white_text"
-            android:textSize="18sp"
-            android:visibility="gone"
-            tools:visibility="visible"/>
-
-        <!-- Przycisk usuwania paragonu (domyślnie ukryty). -->
-        <Button
-            android:id="@+id/deleteReceiptButton"
-            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="8dp"
-            android:text="@string/delete_receipt_button_text"
-            android:textColor="@android:color/holo_red_dark"
-            android:visibility="gone"
-            tools:visibility="visible"
-            app:strokeColor="@android:color/holo_red_dark" />
-
-        <!-- Przycisk usuwania klienta (domyślnie ukryty). -->
-        <Button
-            android:id="@+id/deleteClientButton"
-            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/delete_client_button_text"
-            android:textColor="@android:color/holo_red_dark"
-            android:visibility="gone"
-            tools:visibility="visible"
-            app:strokeColor="@android:color/holo_red_dark" />
-
-        <!-- Duży widok zdjęcia klienta (domyślnie ukryty, widoczny w trybie widoku). -->
-        <ImageView
-            android:id="@+id/largeClientPhotoImageView"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:adjustViewBounds="true"
-            android:contentDescription="@string/cd_client_large_photo"
-            android:scaleType="fitCenter"
-            android:visibility="gone"
-            tools:srcCompat="@drawable/ic_photo_placeholder"
-            tools:visibility="visible"
-            tools:layout_height="200dp"/>
-
-        <!-- Przycisk nawigacji: Pokaż paragony klienta (widoczny w trybie widoku z kontekstu sklepu) -->
-        <Button
-            android:id="@+id/showClientReceiptsButton"
-            style="@style/Widget.MaterialComponents.Button.TextButton"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:text="@string/button_show_client_receipts"
-            android:textColor="@color/scnd_color_bright"
-            android:visibility="gone"
-            tools:visibility="visible"/>
-
-        <!-- Przycisk nawigacji: Pokaż paragony drogerii (widoczny w trybie widoku z kontekstu klienta) -->
-        <Button
-            android:id="@+id/showStoreReceiptsButton"
-            style="@style/Widget.MaterialComponents.Button.TextButton"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:text="@string/button_show_store_receipts"
-            android:textColor="@color/scnd_color_bright"
-            android:visibility="gone"
-            tools:visibility="visible"/>
-
-        <!-- Przycisk Edytuj (domyślnie widoczny). -->
-        <Button
-            android:id="@+id/editModeButton"
-            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:text="@string/edit_button_text"
-            android:textColor="@color/scnd_color_bright"
-            app:strokeColor="@color/scnd_color_bright" />
-
-    </LinearLayout>
-</ScrollView>
+</androidx.constraintlayout.widget.ConstraintLayout>

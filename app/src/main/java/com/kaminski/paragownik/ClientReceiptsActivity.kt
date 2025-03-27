@@ -104,18 +104,16 @@ class ClientReceiptsActivity : AppCompatActivity(), ReceiptAdapter.OnReceiptClic
     }
 
     /**
-     * Ustawia listener dla FloatingActionButton.
+     * Ustawia listener dla FloatingActionButton, uruchamiając AddReceiptToClientActivity.
      */
     private fun setupFabListener() {
         fabAddReceiptToClient.setOnClickListener {
-            // TODO: Zaimplementować nawigację do AddClientActivity w trybie dodawania paragonu
-            Log.d("ClientReceiptsActivity", "Kliknięto FAB - docelowo uruchomi AddClientActivity dla klienta ID: $clientId")
-            Toast.makeText(this, "TODO: Dodaj paragon dla klienta $clientId", Toast.LENGTH_SHORT).show()
-
-            // Przykład przyszłej nawigacji:
-            // val intent = Intent(this, AddClientActivity::class.java)
-            // intent.putExtra("EXISTING_CLIENT_ID", clientId)
-            // startActivity(intent)
+            Log.d("ClientReceiptsActivity", "Kliknięto FAB - uruchamianie AddReceiptToClientActivity dla klienta ID: $clientId")
+            // Utwórz Intent do uruchomienia AddReceiptToClientActivity
+            val intent = Intent(this, AddReceiptToClientActivity::class.java)
+            // Przekaż ID istniejącego klienta
+            intent.putExtra("CLIENT_ID", clientId)
+            startActivity(intent)
         }
     }
 

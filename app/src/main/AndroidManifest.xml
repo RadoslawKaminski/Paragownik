@@ -21,6 +21,11 @@
             android:name=".AddClientActivity"
             android:exported="false" />
 
+        <!-- Deklaracja aktywności AddReceiptToClientActivity. -->
+        <activity
+            android:name=".AddReceiptToClientActivity"
+            android:exported="false" />
+
         <!-- Deklaracja aktywności ClientListActivity. -->
         <activity
             android:name=".ClientListActivity"
