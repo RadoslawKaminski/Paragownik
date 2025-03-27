@@ -17,6 +17,7 @@
 
     <!-- MainActivity -->
     <string name="cd_add_client_fab">Dodaj nowego klienta</string> <!-- cd = content description -->
+    <string name="view_clients_button">Pokaż Klientów</string> <!-- Dodano -->
 
     <!-- ReceiptListActivity -->
     <string name="cd_add_receipt_fab">Dodaj nowy paragon dla tego sklepu</string>
@@ -57,5 +58,13 @@
     <string name="client_app_number_label">Nr aplikacji: (opcjonalne)</string>
     <string name="amodit_number_label">Amodit: (opcjonalne)</string>
     <string name="cd_edit_receipt_icon">Edytuj paragon</string>
+
+    <!-- ClientListActivity --> <!-- Dodano -->
+    <string name="client_list_title">Lista Klientów</string>
+    <string name="client_item_id_prefix">ID: </string>
+    <string name="client_item_no_description">Brak opisu</string>
+    <string name="client_item_app_number_prefix">Nr app: </string>
+    <string name="client_item_amodit_number_prefix">Amodit: </string>
+    <string name="cd_client_list_item">Element listy klientów</string>
 
 </resources>

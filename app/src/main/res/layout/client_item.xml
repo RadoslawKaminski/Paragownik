@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Layout pojedynczego elementu listy klientów w ClientListActivity. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:layout_marginBottom="8dp"
+    android:background="@drawable/rounded_edittext_background"
+    android:contentDescription="@string/cd_client_list_item"> <!-- Opis zawartości dla dostępności -->
+
+    <!-- Główny opis klienta lub jego ID -->
+    <TextView
+        android:id="@+id/clientDescriptionTextView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:textColor="@color/white_text"
+        tools:text="Wysoki blondyn w czerwonej kurtce"/>
+
+    <!-- Numer aplikacji klienta (jeśli istnieje) -->
+    <TextView
+        android:id="@+id/clientAppNumberTextView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:textSize="14sp"
+        android:textColor="@color/sub_white_text"
+        android:visibility="gone"
+        tools:text="Nr app: 12345678901234"
+        tools:visibility="visible"/>
+
+    <!-- Numer Amodit (jeśli istnieje) -->
+    <TextView
+        android:id="@+id/amoditNumberTextView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="2dp"
+        android:textSize="14sp"
+        android:textColor="@color/sub_white_text"
+        android:visibility="gone"
+        tools:text="Amodit: 12345678"
+        tools:visibility="visible"/>
+
+    <!-- TODO: W przyszłości dodać ImageView na miniaturę zdjęcia -->
+
+</LinearLayout>

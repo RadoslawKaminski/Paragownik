@@ -20,13 +20,28 @@
         app:layout_constraintTop_toTopOf="parent"
         tools:listitem="@layout/store_item" /> <!-- Wskazuje przykładowy layout elementu listy dla podglądu w edytorze. -->
 
+    <!-- Przycisk do przejścia do listy klientów --> <!-- Dodano -->
+    <Button
+        android:id="@+id/viewClientsButton"
+        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginBottom="16dp"
+        android:text="@string/view_clients_button"
+        android:textColor="@color/scnd_color_bright"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:strokeColor="@color/scnd_color_bright" />
+
     <!-- FloatingActionButton (FAB) do inicjowania dodawania nowego klienta. -->
-    <!-- Umieszczony w prawym dolnym rogu. -->
+    <!-- Umieszczony w prawym dolnym rogu. --> <!-- Zmieniono constrainty -->
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fabAddClientMain"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_margin="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="16dp"
         android:clickable="true"
         android:contentDescription="@string/cd_add_client_fab"
         android:focusable="true"

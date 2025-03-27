@@ -3,6 +3,7 @@ package com.kaminski.paragownik
 import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.Bundle
+import android.widget.Button // Dodano import dla Button
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -13,8 +14,9 @@ import com.kaminski.paragownik.viewmodel.StoreViewModel
 
 /**
  * Główna aktywność aplikacji. Wyświetla listę dostępnych drogerii (sklepów).
- * Umożliwia przejście do listy paragonów dla wybranej drogerii
- * oraz przejście do dodawania nowego klienta (bez kontekstu sklepu).
+ * Umożliwia przejście do listy paragonów dla wybranej drogerii,
+ * przejście do dodawania nowego klienta (bez kontekstu sklepu)
+ * oraz przejście do listy wszystkich klientów.
  */
 class MainActivity : AppCompatActivity(), StoreAdapter.OnItemClickListener {
 
@@ -24,11 +26,13 @@ class MainActivity : AppCompatActivity(), StoreAdapter.OnItemClickListener {
     private lateinit var storeAdapter: StoreAdapter
     // Przycisk FAB do dodawania nowego klienta
     private lateinit var fabAddClientMain: FloatingActionButton
+    // Przycisk do przejścia do listy klientów
+    private lateinit var viewClientsButton: Button // Dodano
 
     /**
      * Metoda wywoływana przy tworzeniu Aktywności.
      * Inicjalizuje RecyclerView, Adapter, ViewModel, obserwuje dane sklepów
-     * i ustawia listener dla FAB.
+     * i ustawia listenery dla FAB i przycisku listy klientów.
      */
     @SuppressLint("NotifyDataSetChanged")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -68,6 +72,18 @@ class MainActivity : AppCompatActivity(), StoreAdapter.OnItemClickListener {
             // (użytkownik będzie musiał wpisać numer sklepu dla pierwszego paragonu)
             startActivity(intent)
         }
+
+        // --- DODANY KOD ---
+        // Inicjalizacja przycisku "Pokaż Klientów"
+        viewClientsButton = findViewById(R.id.viewClientsButton)
+        // Ustawienie listenera kliknięcia dla przycisku
+        viewClientsButton.setOnClickListener {
+            // Utwórz Intent do uruchomienia ClientListActivity
+            val intent = Intent(this, ClientListActivity::class.java)
+            // Uruchom ClientListActivity
+            startActivity(intent)
+        }
+        // --- KONIEC DODANEGO KODU ---
     }
 
     // Funkcja insertSampleStores została usunięta jako nieużywana
