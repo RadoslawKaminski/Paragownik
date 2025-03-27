@@ -390,95 +390,83 @@ class AddClientActivity : AppCompatActivity() {
     }
 
     /**
-     * Konfiguruje [EditText] do automatycznego formatowania wpisywanej daty
-     * do formatu DD-MM-YYYY oraz podstawowej walidacji podczas wpisywania.
-     * Używa [TextWatcher] do monitorowania zmian w tekście.
-     * @param editText Pole EditText, które ma być skonfigurowane.
+     * Konfiguruje [EditText] do automatycznego formatowania daty w formacie DD-MM-YYYY
+     * podczas wpisywania i edycji, z poprawioną obsługą kursora.
+     * Używa [TextWatcher].
+     * @param editText Pole EditText do skonfigurowania.
      */
     private fun setupDateEditText(editText: EditText) {
-        // Ustawienie typu wejściowego - pozwala na cyfry, ale TextWatcher zajmie się resztą
-        // Użycie TYPE_CLASS_NUMBER sugeruje użytkownikowi klawiaturę numeryczną.
+        // Ustawienie typu wejściowego na numeryczny
         editText.inputType = InputType.TYPE_CLASS_NUMBER
 
         editText.addTextChangedListener(object : TextWatcher {
-            // Zmienne pomocnicze TextWatchera
-            private var current = "" // Przechowuje aktualny sformatowany tekst
-            // private val ddmmyyyy = "DDMMYYYY" // Nieużywane, można usunąć
-            // private val cal = java.util.Calendar.getInstance() // Nieużywane, można usunąć
-            private var isFormatting: Boolean = false // Flaga zapobiegająca nieskończonej pętli formatowania
+            private var current = "" // Aktualny sformatowany tekst
+            private var isFormatting: Boolean = false // Flaga zapobiegająca rekurencji
+            private var cursorPosBefore: Int = 0 // Pozycja kursora PRZED zmianą
+            private var textLengthBefore: Int = 0 // Długość tekstu PRZED zmianą
 
-            // Metody TextWatchera - beforeTextChanged i onTextChanged nie są potrzebne w tym przypadku
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
+                if (isFormatting) return // Ignoruj zmiany wywołane przez setText
+                // Zapamiętaj pozycję kursora i długość tekstu PRZED modyfikacją
+                cursorPosBefore = editText.selectionStart
+                textLengthBefore = s?.length ?: 0
+            }
 
-            /**
-             * Wywoływane po zmianie tekstu w EditText.
-             * Odpowiada za formatowanie wprowadzonego tekstu.
-             */
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                // Ta metoda jest mniej przydatna przy tej strategii kursora
+            }
+
             override fun afterTextChanged(s: Editable?) {
-                // Jeśli flaga isFormatting jest ustawiona (czyli jesteśmy w trakcie formatowania), wyjdź, aby uniknąć pętli.
-                if (isFormatting) return
-                // Ustaw flagę, że rozpoczynamy formatowanie
+                if (isFormatting || s == null) return
                 isFormatting = true
 
-                // Pobierz aktualny tekst wprowadzony przez użytkownika
                 val userInput = s.toString()
-                // Jeśli tekst się nie zmienił od ostatniego formatowania, wyjdź.
                 if (userInput == current) {
-                    isFormatting = false // Zresetuj flagę
+                    isFormatting = false
                     return
                 }
 
-                // Usuń wszystkie znaki, które nie są cyframi
+                // --- Logika formatowania (bez zmian) ---
                 val digitsOnly = userInput.replace("[^\\d]".toRegex(), "")
-                val len = digitsOnly.length // Długość ciągu samych cyfr
-
-                // Budowanie sformatowanego ciągu DD-MM-YYYY
-                val sb = StringBuilder()
-                val cursorPos = editText.selectionStart // Zapamiętaj pozycję kursora przed formatowaniem
-
-                // Dodaj cyfry dnia (DD)
+                val len = digitsOnly.length
+                val formatted = StringBuilder()
                 if (len >= 1) {
-                    sb.append(digitsOnly.substring(0, minOf(len, 2))) // Weź maksymalnie 2 pierwsze cyfry
-                    // Jeśli wpisano 2 cyfry dnia LUB użytkownik wpisał myślnik po dniu
-                    if (len > 2 || (userInput.length > sb.length && userInput[sb.length] == '-')) {
-                        if (sb.length == 2) sb.append('-') // Dodaj myślnik po DD
-                        // Dodaj cyfry miesiąca (MM)
-                        if (len >= 3) {
-                            sb.append(digitsOnly.substring(2, minOf(len, 4))) // Weź cyfry od 3 do 4 (max 2)
-                            // Jeśli wpisano 2 cyfry miesiąca LUB użytkownik wpisał myślnik po miesiącu
-                            if (len > 4 || (userInput.length > sb.length && userInput[sb.length] == '-')) {
-                                if (sb.length == 5) sb.append('-') // Dodaj myślnik po MM
-                                // Dodaj cyfry roku (YYYY)
-                                if (len >= 5) {
-                                    sb.append(digitsOnly.substring(4, minOf(len, 8))) // Weź cyfry od 5 do 8 (max 4)
-                                }
-                            }
-                        }
-                    }
+                    formatted.append(digitsOnly.substring(0, minOf(len, 2))) // DD
                 }
+                if (len >= 3) {
+                    formatted.append("-").append(digitsOnly.substring(2, minOf(len, 4))) // MM
+                }
+                if (len >= 5) {
+                    formatted.append("-").append(digitsOnly.substring(4, minOf(len, 8))) // YYYY
+                }
+                current = formatted.toString()
+                // --- Koniec logiki formatowania ---
 
-                // Zaktualizuj sformatowany tekst
-                current = sb.toString()
-                // Ustaw sformatowany tekst w EditText (to wywoła ponownie afterTextChanged, dlatego flaga isFormatting jest ważna)
+                // Ustaw sformatowany tekst
                 editText.setText(current)
 
-                // Przywróć pozycję kursora.
-                // Proste ustawienie na końcu jest często wystarczające przy dodawaniu znaków.
-                // Przy usuwaniu może być mniej idealne, ale jest kompromisem dla prostoty.
+                // --- Nowa Logika Ustawiania Kursora ---
                 try {
-                    // Spróbuj ustawić kursor mniej więcej tam, gdzie był, lub na końcu, jeśli pozycja jest nieprawidłowa.
-                    // minOf zapobiega wyjściu poza zakres. +1 próbuje przesunąć kursor za dodany myślnik.
-                    editText.setSelection(minOf(cursorPos + 1 , current.length))
-                } catch (e: Exception) {
-                    // W razie problemów (np. IndexOutOfBoundsException), ustaw kursor na końcu tekstu.
-                    editText.setSelection(current.length)
-                }
+                    // Oblicz różnicę w długości tekstu spowodowaną formatowaniem
+                    val lengthDiff = current.length - textLengthBefore
+                    // Oblicz nową pozycję kursora: pozycja przed zmianą + różnica w długości
+                    var newCursorPos = cursorPosBefore + lengthDiff
 
-                // Zakończ formatowanie, resetując flagę
+                    // Upewnij się, że nowa pozycja jest w granicach [0, current.length]
+                    newCursorPos = maxOf(0, minOf(newCursorPos, current.length))
+
+                    // Ustaw obliczoną pozycję kursora
+                    editText.setSelection(newCursorPos)
+
+                } catch (e: Exception) {
+                    // W razie błędu, ustaw kursor bezpiecznie na końcu
+                    try { editText.setSelection(current.length) } catch (e2: Exception) { /* Ignoruj błąd fallbacku */ }
+                    Log.e("DateTextWatcher", "Błąd podczas ustawiania pozycji kursora", e)
+                }
+                // --- Koniec Nowej Logiki Ustawiania Kursora ---
+
                 isFormatting = false
             }
         })
     }
 }
-
