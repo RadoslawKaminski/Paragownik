@@ -72,7 +72,7 @@ interface ReceiptDao {
      */
     @Transaction
     @Query("SELECT * FROM receipts WHERE id = :receiptId")
-    fun getReceiptWithClientFlow(receiptId: Long): Flow<ReceiptWithClient?> // Zmieniono na nullable, bo getReceiptWithClientAndStoreNumber tego oczekuje
+    fun getReceiptWithClientFlow(receiptId: Long): Flow<ReceiptWithClient?>
 
     /**
      * Zlicza liczbę paragonów przypisanych do danego klienta.
@@ -103,8 +103,6 @@ interface ReceiptDao {
     @Query("SELECT * FROM receipts WHERE id = :receiptId")
     suspend fun getReceiptWithClient(receiptId: Long): ReceiptWithClient?
 
-    // --- NOWE ZAPYTANIA (dodane wcześniej) ---
-
     /**
      * Znajduje paragon na podstawie unikalnej kombinacji numeru, daty i ID sklepu.
      * Używane do sprawdzania duplikatów przed wstawieniem lub aktualizacją paragonu.
@@ -125,6 +123,14 @@ interface ReceiptDao {
      */
     @Query("SELECT DISTINCT storeId FROM receipts WHERE clientId = :clientId")
     suspend fun getStoreIdsForClient(clientId: Long): List<Long>
-    // --- KONIEC NOWYCH ZAPYTAŃ ---
-}
 
+    /**
+     * Pobiera listę paragonów (wraz z danymi klienta) dla określonego klienta jako [Flow].
+     * Używa relacji [ReceiptWithClient].
+     * @param clientId ID klienta, dla którego pobierane są paragony.
+     * @return [Flow] emitujący listę obiektów [ReceiptWithClient].
+     */
+    @Transaction // Ważne przy pobieraniu relacji
+    @Query("SELECT * FROM receipts WHERE clientId = :clientId")
+    fun getReceiptsWithClientForClient(clientId: Long): Flow<List<ReceiptWithClient>> // Dodano
+}

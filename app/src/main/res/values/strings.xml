@@ -70,14 +70,17 @@
     <string name="delete_client_button_text">Usuń klienta i wszystkie paragony</string>
     <string name="save_changes_button_text">Zapisz zmiany</string>
     <!-- Etykiety dla trybu widoku w EditReceiptActivity -->
-    <string name="label_client_app_number">Nr app:</string> <!-- Dodano -->
-    <string name="label_amodit_number">Amodit:</string> <!-- Dodano -->
+    <string name="label_client_app_number">Nr app:</string>
+    <string name="label_amodit_number">Amodit:</string>
 
     <!-- Receipt Item -->
     <string name="verification_label">Weryfikacja:</string>
     <string name="no_verification_date">Brak</string>
     <string name="no_client_description">Brak opisu klienta</string>
     <string name="cd_edit_receipt_icon">Edytuj paragon</string>
+    <string name="store_number_prefix">Drogeria: </string> <!-- Dodano -->
+    <string name="cd_receipt_item_store_number">Numer drogerii dla paragonu</string> <!-- Dodano -->
+
 
     <!-- ClientListActivity & Adapters -->
     <string name="client_list_title">Lista Klientów</string>
@@ -93,5 +96,11 @@
     <string name="cd_receipt_item_client_photo">Miniatura zdjęcia klienta powiązanego z paragonem</string>
     <string name="cd_client_item_client_photo">Miniatura zdjęcia klienta</string>
     <string name="cd_client_large_photo">Zdjęcie klienta (duże)</string>
+
+    <!-- ClientReceiptsActivity -->
+    <string name="client_receipts_title">Dane Klienta i Paragony</string>
+    <string name="error_invalid_client_id">Błąd: Nieprawidłowy identyfikator klienta.</string>
+    <string name="error_client_not_found">Błąd: Nie znaleziono klienta.</string>
+    <string name="cd_add_receipt_to_client_fab">Dodaj nowy paragon dla tego klienta</string>
 
 </resources>

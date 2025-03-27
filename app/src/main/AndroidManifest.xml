@@ -17,14 +17,18 @@
         tools:targetApi="31">
 
         <!-- Deklaracja aktywności AddClientActivity. -->
-        <!-- exported="false" oznacza, że nie może być uruchamiana przez inne aplikacje. -->
         <activity
             android:name=".AddClientActivity"
             android:exported="false" />
 
-        <!-- Deklaracja aktywności ClientListActivity. --> <!-- Dodano -->
+        <!-- Deklaracja aktywności ClientListActivity. -->
         <activity
             android:name=".ClientListActivity"
+            android:exported="false" />
+
+        <!-- Deklaracja aktywności ClientReceiptsActivity. -->
+        <activity
+            android:name=".ClientReceiptsActivity"
             android:exported="false" />
 
         <!-- Deklaracja aktywności ReceiptListActivity. -->
@@ -33,15 +37,12 @@
             android:exported="false" />
 
         <!-- Deklaracja głównej aktywności MainActivity. -->
-        <!-- exported="true" oznacza, że może być uruchamiana przez system (np. z launchera). -->
         <activity
             android:name=".MainActivity"
             android:exported="true">
             <!-- Filtr intencji określający, że jest to główny punkt wejścia aplikacji. -->
             <intent-filter>
-                <!-- Akcja: Główny punkt wejścia. -->
                 <action android:name="android.intent.action.MAIN" />
-                <!-- Kategoria: Pojawia się w launcherze aplikacji. -->
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>

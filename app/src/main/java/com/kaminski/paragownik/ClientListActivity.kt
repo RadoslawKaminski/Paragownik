@@ -1,7 +1,7 @@
 package com.kaminski.paragownik
 
 import android.annotation.SuppressLint
-import android.content.Intent // Import potrzebny dla przyszłej nawigacji
+import android.content.Intent // Import potrzebny dla nawigacji
 import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
@@ -13,7 +13,7 @@ import com.kaminski.paragownik.viewmodel.ClientListViewModel
 
 /**
  * Aktywność wyświetlająca listę wszystkich klientów zarejestrowanych w aplikacji.
- * Umożliwia nawigację do szczegółów klienta (w przyszłości).
+ * Umożliwia nawigację do szczegółów klienta (ClientReceiptsActivity).
  */
 class ClientListActivity : AppCompatActivity(), ClientAdapter.OnClientClickListener {
 
@@ -26,7 +26,6 @@ class ClientListActivity : AppCompatActivity(), ClientAdapter.OnClientClickListe
 
     /**
      * Metoda wywoływana przy tworzeniu Aktywności.
-     * Inicjalizuje UI, ViewModel, RecyclerView, Adapter i obserwuje zmiany na liście klientów.
      */
     @SuppressLint("NotifyDataSetChanged") // Używane dla uproszczenia, rozważ DiffUtil w przyszłości
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -51,8 +50,7 @@ class ClientListActivity : AppCompatActivity(), ClientAdapter.OnClientClickListe
                 // Zaktualizuj dane w adapterze
                 clientAdapter.clientList = it
                 // Powiadom adapter o zmianie danych
-                // TODO: Rozważyć użycie DiffUtil dla lepszej wydajności zamiast notifyDataSetChanged()
-                clientAdapter.notifyDataSetChanged()
+                clientAdapter.notifyDataSetChanged() // TODO: Rozważyć DiffUtil
                 Log.d("ClientListActivity", "Zaktualizowano listę klientów, liczba: ${it.size}")
             }
         }
@@ -60,18 +58,16 @@ class ClientListActivity : AppCompatActivity(), ClientAdapter.OnClientClickListe
 
     /**
      * Metoda wywoływana, gdy użytkownik kliknie element na liście klientów.
-     * Implementacja interfejsu [ClientAdapter.OnClientClickListener].
+     * Uruchamia ClientReceiptsActivity dla wybranego klienta.
      * @param clientId ID klikniętego klienta.
      */
     override fun onClientClick(clientId: Long) {
-        // TODO: Zaimplementować nawigację do ClientReceiptsActivity (Ekran Paragonów Klienta)
-        // Na razie tylko wyświetlamy Toast z ID klienta.
-        Toast.makeText(this, "Kliknięto klienta o ID: $clientId", Toast.LENGTH_SHORT).show()
-        Log.d("ClientListActivity", "Kliknięto klienta o ID: $clientId")
-
-        // Przykład przyszłej nawigacji:
-        // val intent = Intent(this, ClientReceiptsActivity::class.java)
-        // intent.putExtra("CLIENT_ID", clientId)
-        // startActivity(intent)
+        Log.d("ClientListActivity", "Kliknięto klienta o ID: $clientId - uruchamianie ClientReceiptsActivity")
+        // Utwórz Intent do uruchomienia ClientReceiptsActivity
+        val intent = Intent(this, ClientReceiptsActivity::class.java)
+        // Dodaj ID klikniętego klienta jako dodatkową informację
+        intent.putExtra("CLIENT_ID", clientId)
+        // Uruchom ClientReceiptsActivity
+        startActivity(intent)
     }
 }

@@ -4,44 +4,42 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.asLiveData
+import androidx.lifecycle.map // Importuj map dla LiveData
 import com.kaminski.paragownik.data.AppDatabase
 import com.kaminski.paragownik.data.Store
 import com.kaminski.paragownik.data.daos.StoreDao
 
 /**
- * ViewModel dla MainActivity.
- * Odpowiada za dostarczanie listy wszystkich sklepów oraz umożliwia
- * pobieranie sklepu po ID.
+ * ViewModel dla MainActivity i innych miejsc potrzebujących danych o sklepach.
+ * Dostarcza listę wszystkich sklepów oraz mapę ID->Numer.
  */
 class StoreViewModel(application: Application) : AndroidViewModel(application) {
 
-    // Referencja do DAO sklepów
     private val storeDao: StoreDao
-    // LiveData przechowująca listę wszystkich sklepów.
-    // Jest automatycznie aktualizowana dzięki konwersji Flow z DAO na LiveData.
+    // LiveData z listą wszystkich sklepów.
     val allStores: LiveData<List<Store>>
+    // LiveData z mapą [Store.id] -> [Store.storeNumber].
+    val allStoresMap: LiveData<Map<Long, String>>
 
     init {
-        // Inicjalizacja bazy danych i DAO
         val database = AppDatabase.getDatabase(application)
         storeDao = database.storeDao()
-        // Pobierz Flow wszystkich sklepów z DAO i przekonwertuj go na LiveData.
-        // asLiveData() automatycznie zarządza subskrypcją Flow w oparciu o cykl życia obserwatora.
-        allStores = storeDao.getAllStores().asLiveData() // TODO: Dodać sortowanie w DAO (Task II.8)
+        // Pobierz Flow i przekonwertuj na LiveData
+        allStores = storeDao.getAllStores().asLiveData() // TODO: Dodać sortowanie w DAO
+
+        // Utwórz mapę z listy sklepów za pomocą transformacji LiveData.map
+        allStoresMap = allStores.map { storeList ->
+            // Konwertuje listę sklepów na mapę, gdzie kluczem jest ID, a wartością numer sklepu.
+            storeList.associateBy({ it.id }, { it.storeNumber })
+        }
     }
 
-    // Funkcja insertStore została usunięta jako nieużywana
-
     /**
-     * Pobiera sklep na podstawie jego ID.
-     * Jest to operacja jednorazowa (suspend), przeznaczona do wywoływania z korutyny.
+     * Pobiera sklep na podstawie jego ID (operacja jednorazowa).
      * @param storeId ID sklepu do pobrania.
-     * @return Obiekt [Store] lub `null`, jeśli nie znaleziono.
+     * @return Obiekt [Store] lub `null`.
      */
     suspend fun getStoreById(storeId: Long): Store? {
-        // Bezpośrednie wywołanie metody suspend z DAO.
-        // Należy pamiętać, aby wywoływać tę funkcję z odpowiedniego kontekstu (np. Dispatchers.IO).
-        // W AddClientActivity jest wywoływana w lifecycleScope.launch, co jest poprawne.
         return storeDao.getStoreById(storeId)
     }
 }

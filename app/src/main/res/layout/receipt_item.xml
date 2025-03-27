@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Layout pojedynczego elementu listy paragonów w ReceiptListActivity. -->
+<!-- Layout pojedynczego elementu listy paragonów. -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -65,6 +65,21 @@
                     tools:text="01-01-2024" />
             </LinearLayout>
 
+            <!-- Numer sklepu (widoczny tylko w ClientReceiptsActivity) -->
+            <TextView
+                android:id="@+id/storeNumberTextView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:layout_marginStart="8dp"
+                android:layout_marginEnd="8dp"
+                android:textColor="@color/sub_white_text"
+                android:textSize="16sp"
+                android:visibility="gone"
+                android:contentDescription="@string/cd_receipt_item_store_number"
+                tools:text="Drogeria: 9999"
+                tools:visibility="visible"/>
+
             <!-- Data weryfikacji (layout do ukrywania). -->
             <LinearLayout
                 android:id="@+id/verificationDateLayout"
@@ -92,16 +107,18 @@
                     tools:text="02-01-2024" />
             </LinearLayout>
 
-            <!-- Opis klienta. -->
+            <!-- Opis klienta (layout do ukrywania). -->
             <TextView
                 android:id="@+id/clientDescriptionTextView"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
                 android:textSize="18sp"
-                tools:text="Opis klienta lorem ipsum dolor sit amet siala lala lalala lalala" />
+                android:visibility="gone"
+                tools:text="Opis klienta lorem ipsum dolor sit amet"
+                tools:visibility="visible"/>
 
-            <!-- Numer aplikacji klienta. -->
+            <!-- Numer aplikacji klienta (layout do ukrywania). -->
             <TextView
                 android:id="@+id/clientAppNumberTextView"
                 android:layout_width="match_parent"
@@ -113,7 +130,7 @@
                 tools:text="Nr app: 12345678901234"
                 tools:visibility="visible" />
 
-            <!-- Numer Amodit. -->
+            <!-- Numer Amodit (layout do ukrywania). -->
             <TextView
                 android:id="@+id/amoditNumberTextView"
                 android:layout_width="match_parent"
@@ -127,7 +144,7 @@
 
         </LinearLayout> <!-- Koniec bloku z tekstem -->
 
-        <!-- Miniatura zdjęcia klienta (przeniesiona na prawo). -->
+        <!-- Miniatura zdjęcia klienta (layout do ukrywania) -->
         <ImageView
             android:id="@+id/receiptItemClientPhotoImageView"
             android:layout_width="60dp"
@@ -137,7 +154,9 @@
             android:contentDescription="@string/cd_receipt_item_client_photo"
             android:padding="3dp"
             android:scaleType="centerCrop"
-            app:srcCompat="@drawable/ic_photo_placeholder" />
+            android:visibility="gone"
+            app:srcCompat="@drawable/ic_photo_placeholder"
+            tools:visibility="visible"/>
 
     </LinearLayout>
 

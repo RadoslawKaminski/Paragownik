@@ -16,25 +16,33 @@ import java.text.SimpleDateFormat
 import java.util.Locale
 
 /**
- * Adapter dla RecyclerView wyświetlającego listę paragonów w [ReceiptListActivity].
- * Kliknięcie elementu uruchamia widok szczegółów paragonu.
+ * Tryby wyświetlania dla adaptera paragonów, określające, które informacje pokazać.
+ */
+enum class DisplayMode {
+    STORE_LIST, // Pokazuje dane klienta (opis, numery, zdjęcie)
+    CLIENT_LIST // Pokazuje numer sklepu zamiast danych klienta
+}
+
+/**
+ * Adapter dla RecyclerView wyświetlającego listę paragonów.
+ * Może działać w dwóch trybach: pokazywania danych klienta lub numeru sklepu.
  */
 class ReceiptAdapter(
     var receiptList: List<ReceiptWithClient>,
-    private val itemClickListener: OnReceiptClickListener // Zmieniono nazwę listenera
+    private val itemClickListener: OnReceiptClickListener,
+    private val displayMode: DisplayMode // Tryb wyświetlania decyduje o zawartości
 ) : RecyclerView.Adapter<ReceiptAdapter.ReceiptViewHolder>() {
 
     private lateinit var context: Context
+    // Mapa przechowująca ID sklepu -> Numer sklepu (używana w trybie CLIENT_LIST)
+    var storeMap: Map<Long, String> = emptyMap()
+        private set // Ustawiana tylko przez metodę updateStoreMap
 
     /**
      * Interfejs dla obsługi kliknięcia elementu listy paragonów.
      */
-    interface OnReceiptClickListener { // Zmieniono nazwę interfejsu
-        /**
-         * Wywoływane, gdy użytkownik kliknie element reprezentujący paragon.
-         * @param receiptId ID klikniętego paragonu.
-         */
-        fun onReceiptClick(receiptId: Long) // Zmieniono nazwę metody
+    interface OnReceiptClickListener {
+        fun onReceiptClick(receiptId: Long)
     }
 
     /**
@@ -43,7 +51,8 @@ class ReceiptAdapter(
     class ReceiptViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val receiptNumberTextView: TextView = itemView.findViewById(R.id.receiptNumberTextView)
         val receiptDateTextView: TextView = itemView.findViewById(R.id.receiptDateTextView)
-        val verificationDateLayout: LinearLayout = itemView.findViewById(R.id.verificationDateLayout) // Layout do ukrywania
+        val storeNumberTextView: TextView = itemView.findViewById(R.id.storeNumberTextView) // TextView dla numeru sklepu
+        val verificationDateLayout: LinearLayout = itemView.findViewById(R.id.verificationDateLayout)
         val verificationDateTextView: TextView = itemView.findViewById(R.id.verificationDateTextView)
         val clientDescriptionTextView: TextView = itemView.findViewById(R.id.clientDescriptionTextView)
         val clientAppNumberTextView: TextView = itemView.findViewById(R.id.clientAppNumberTextView)
@@ -62,8 +71,16 @@ class ReceiptAdapter(
     }
 
     /**
-     * Łączy dane z widokami w ViewHolderze, w tym ładuje miniaturę zdjęcia
-     * i ustawia listener kliknięcia na cały element.
+     * Aktualizuje mapę numerów sklepów używaną w trybie CLIENT_LIST.
+     * @param newMap Nowa mapa [ID sklepu -> Numer sklepu].
+     */
+    fun updateStoreMap(newMap: Map<Long, String>) {
+        storeMap = newMap
+        // Nie odświeżamy tutaj adaptera, aktywność zrobi to po aktualizacji obu list
+    }
+
+    /**
+     * Łączy dane z widokami w ViewHolderze w zależności od trybu wyświetlania.
      */
     override fun onBindViewHolder(holder: ReceiptViewHolder, position: Int) {
         val currentReceiptWithClient = receiptList[position]
@@ -72,51 +89,70 @@ class ReceiptAdapter(
 
         val dateFormat = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault())
 
-        // Ustawienie danych paragonu
+        // --- Dane wspólne dla obu trybów ---
         holder.receiptNumberTextView.text = currentReceipt.receiptNumber
         holder.receiptDateTextView.text = dateFormat.format(currentReceipt.receiptDate)
-
-        // Ustawienie daty weryfikacji i widoczności layoutu
         val verificationDateText = currentReceipt.verificationDate?.let { dateFormat.format(it) }
         holder.verificationDateTextView.text = verificationDateText ?: context.getString(R.string.no_verification_date)
-        holder.verificationDateLayout.isVisible = verificationDateText != null // Pokaż tylko jeśli data istnieje
+        holder.verificationDateLayout.isVisible = verificationDateText != null
 
-        // Ustawienie danych klienta
-        holder.clientDescriptionTextView.text = client?.description?.takeIf { it.isNotBlank() }
-            ?: context.getString(R.string.no_client_description)
-        holder.clientDescriptionTextView.isVisible = !holder.clientDescriptionTextView.text.isNullOrBlank() // Pokaż tylko jeśli opis istnieje
+        // --- Logika zależna od trybu wyświetlania ---
+        when (displayMode) {
+            DisplayMode.STORE_LIST -> {
+                // Tryb listy paragonów sklepu: pokaż dane klienta, ukryj numer sklepu
+                holder.storeNumberTextView.visibility = View.GONE
 
-        val appNumberText = client?.clientAppNumber?.takeIf { it.isNotBlank() }?.let {
-            context.getString(R.string.client_item_app_number_prefix) + " " + it
-        }
-        holder.clientAppNumberTextView.text = appNumberText
-        holder.clientAppNumberTextView.isVisible = appNumberText != null // Pokaż tylko jeśli numer istnieje
+                // Pokaż opis klienta (lub "Brak opisu")
+                holder.clientDescriptionTextView.text = client?.description?.takeIf { it.isNotBlank() }
+                    ?: context.getString(R.string.no_client_description)
+                holder.clientDescriptionTextView.isVisible = !holder.clientDescriptionTextView.text.isNullOrBlank()
 
-        val amoditNumberText = client?.amoditNumber?.takeIf { it.isNotBlank() }?.let {
-            context.getString(R.string.client_item_amodit_number_prefix) + " " + it
-        }
-        holder.amoditNumberTextView.text = amoditNumberText
-        holder.amoditNumberTextView.isVisible = amoditNumberText != null // Pokaż tylko jeśli numer istnieje
+                // Pokaż numer aplikacji klienta, jeśli istnieje
+                val appNumberText = client?.clientAppNumber?.takeIf { it.isNotBlank() }?.let {
+                    context.getString(R.string.client_item_app_number_prefix) + " " + it
+                }
+                holder.clientAppNumberTextView.text = appNumberText
+                holder.clientAppNumberTextView.isVisible = appNumberText != null
 
-        // Ładowanie miniatury zdjęcia klienta
-        if (!client?.photoUri.isNullOrBlank()) {
-            try {
-                val photoUri = client!!.photoUri!!.toUri()
-                holder.clientPhotoImageView.setImageURI(photoUri)
-                holder.clientPhotoImageView.visibility = View.VISIBLE // Pokaż ImageView
-            } catch (e: Exception) {
-                Log.w("ReceiptAdapter", "Błąd ładowania zdjęcia dla klienta ${client?.id}, URI: ${client?.photoUri}", e)
-                holder.clientPhotoImageView.setImageResource(R.drawable.ic_photo_placeholder)
-                holder.clientPhotoImageView.visibility = View.VISIBLE // Pokaż placeholder w razie błędu
+                // Pokaż numer Amodit, jeśli istnieje
+                val amoditNumberText = client?.amoditNumber?.takeIf { it.isNotBlank() }?.let {
+                    context.getString(R.string.client_item_amodit_number_prefix) + " " + it
+                }
+                holder.amoditNumberTextView.text = amoditNumberText
+                holder.amoditNumberTextView.isVisible = amoditNumberText != null
+
+                // Pokaż miniaturę zdjęcia klienta, jeśli istnieje
+                if (!client?.photoUri.isNullOrBlank()) {
+                    try {
+                        val photoUri = client!!.photoUri!!.toUri()
+                        holder.clientPhotoImageView.setImageURI(photoUri)
+                        holder.clientPhotoImageView.visibility = View.VISIBLE
+                    } catch (e: Exception) {
+                        Log.w("ReceiptAdapter", "Błąd ładowania zdjęcia klienta ${client?.id}, URI: ${client?.photoUri}", e)
+                        holder.clientPhotoImageView.setImageResource(R.drawable.ic_photo_placeholder)
+                        holder.clientPhotoImageView.visibility = View.VISIBLE
+                    }
+                } else {
+                    holder.clientPhotoImageView.visibility = View.GONE
+                }
             }
-        } else {
-            // Jeśli brak URI, ukryj ImageView
-            holder.clientPhotoImageView.visibility = View.GONE
+            DisplayMode.CLIENT_LIST -> {
+                // Tryb listy paragonów klienta: pokaż numer sklepu, ukryj dane klienta
+                holder.clientDescriptionTextView.visibility = View.GONE
+                holder.clientAppNumberTextView.visibility = View.GONE
+                holder.amoditNumberTextView.visibility = View.GONE
+                holder.clientPhotoImageView.visibility = View.GONE
+
+                // Pobierz i ustaw numer sklepu z mapy
+                val storeNumber = storeMap[currentReceipt.storeId] ?: "?" // Użyj "?" jeśli ID nie ma w mapie
+                holder.storeNumberTextView.text = context.getString(R.string.store_number_prefix) + storeNumber
+                holder.storeNumberTextView.visibility = View.VISIBLE
+            }
         }
 
         // Ustawienie listenera kliknięcia na cały element
         holder.itemView.setOnClickListener {
-            itemClickListener.onReceiptClick(currentReceipt.id) // Wywołanie nowej metody interfejsu
+            itemClickListener.onReceiptClick(currentReceipt.id)
         }
     }
 

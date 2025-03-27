@@ -19,8 +19,8 @@ import kotlinx.coroutines.launch
 /**
  * Aktywność wyświetlająca listę paragonów dla konkretnej drogerii.
  * Kliknięcie paragonu przenosi do widoku szczegółów/edycji.
+ * Używa ReceiptAdapter w trybie STORE_LIST.
  */
-// Zmieniono implementowany interfejs
 class ReceiptListActivity : AppCompatActivity(), ReceiptAdapter.OnReceiptClickListener {
 
     // Widoki UI
@@ -39,7 +39,7 @@ class ReceiptListActivity : AppCompatActivity(), ReceiptAdapter.OnReceiptClickLi
     /**
      * Metoda onCreate.
      */
-    @SuppressLint("NotifyDataSetChanged")
+    @SuppressLint("NotifyDataSetChanged") // TODO: Rozważyć DiffUtil
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_receipt_list)
@@ -50,8 +50,8 @@ class ReceiptListActivity : AppCompatActivity(), ReceiptAdapter.OnReceiptClickLi
         titleTextView = findViewById(R.id.receiptListTitleTextView)
         fabAddClient = findViewById(R.id.fabAddClient)
 
-        // Inicjalizacja Adaptera (przekazujemy 'this' jako OnReceiptClickListener)
-        receiptAdapter = ReceiptAdapter(emptyList(), this)
+        // Inicjalizacja Adaptera (przekazujemy 'this' jako listener i tryb STORE_LIST)
+        receiptAdapter = ReceiptAdapter(emptyList(), this, DisplayMode.STORE_LIST) // Ustawiono tryb
         receiptRecyclerView.adapter = receiptAdapter
 
         // Inicjalizacja ViewModeli
@@ -86,7 +86,7 @@ class ReceiptListActivity : AppCompatActivity(), ReceiptAdapter.OnReceiptClickLi
         receiptViewModel.receiptsForStore.observe(this) { receiptsWithClients ->
             receiptsWithClients?.let {
                 receiptAdapter.receiptList = it
-                receiptAdapter.notifyDataSetChanged() // TODO: Rozważyć DiffUtil
+                receiptAdapter.notifyDataSetChanged()
             }
         }
 
@@ -101,12 +101,10 @@ class ReceiptListActivity : AppCompatActivity(), ReceiptAdapter.OnReceiptClickLi
 
     /**
      * Metoda wywoływana po kliknięciu elementu na liście paragonów.
-     * Implementacja interfejsu [ReceiptAdapter.OnReceiptClickListener].
+     * Uruchamia EditReceiptActivity dla wybranego paragonu.
      * @param receiptId ID klikniętego paragonu.
      */
-    // Zmieniono nazwę metody
     override fun onReceiptClick(receiptId: Long) {
-        // Uruchom EditReceiptActivity (teraz jako widok/edycja)
         val intent = Intent(this, EditReceiptActivity::class.java)
         intent.putExtra("RECEIPT_ID", receiptId)
         startActivity(intent)

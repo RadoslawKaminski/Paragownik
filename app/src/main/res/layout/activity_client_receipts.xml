@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Layout dla aktywności wyświetlającej dane klienta i jego paragony. -->
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/main_color_dark"
+    tools:context=".ClientReceiptsActivity">
+
+    <!-- Tytuł ekranu -->
+    <TextView
+        android:id="@+id/clientReceiptsTitleTextView"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="16dp"
+        android:gravity="center"
+        android:text="@string/client_receipts_title"
+        android:textSize="24sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <!-- Sekcja danych klienta -->
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/clientDetailsLayout"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:paddingBottom="8dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/clientReceiptsTitleTextView">
+
+        <!-- Miniatura zdjęcia klienta -->
+        <ImageView
+            android:id="@+id/clientDetailsPhotoImageView"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:background="@drawable/rounded_edittext_background"
+            android:contentDescription="@string/cd_client_item_client_photo"
+            android:padding="4dp"
+            android:scaleType="centerCrop"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:srcCompat="@drawable/ic_photo_placeholder" />
+
+        <!-- Opis klienta -->
+        <TextView
+            android:id="@+id/clientDetailsDescriptionTextView"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:textColor="@color/white_text"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/clientDetailsPhotoImageView"
+            app:layout_constraintTop_toTopOf="@+id/clientDetailsPhotoImageView"
+            tools:text="Wysoki blondyn w czerwonej kurtce" />
+
+        <!-- Numer aplikacji klienta -->
+        <TextView
+            android:id="@+id/clientDetailsAppNumberTextView"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:textColor="@color/sub_white_text"
+            android:textSize="14sp"
+            android:visibility="gone"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="@+id/clientDetailsDescriptionTextView"
+            app:layout_constraintTop_toBottomOf="@+id/clientDetailsDescriptionTextView"
+            tools:text="Nr app: 12345678901234"
+            tools:visibility="visible" />
+
+        <!-- Numer Amodit -->
+        <TextView
+            android:id="@+id/clientDetailsAmoditNumberTextView"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:textColor="@color/sub_white_text"
+            android:textSize="14sp"
+            android:visibility="gone"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="@+id/clientDetailsAppNumberTextView"
+            app:layout_constraintTop_toBottomOf="@+id/clientDetailsAppNumberTextView"
+            tools:text="Amodit: 12345678"
+            tools:visibility="visible" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <!-- Separator -->
+    <View
+        android:id="@+id/clientDetailsSeparator"
+        android:layout_width="0dp"
+        android:layout_height="1dp"
+        android:layout_marginStart="32dp"
+        android:layout_marginEnd="32dp"
+        android:background="@color/sub_white_text"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/clientDetailsLayout" />
+
+
+    <!-- RecyclerView do wyświetlania listy paragonów klienta. -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/clientReceiptsRecyclerView"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginTop="8dp"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:paddingBottom="16dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/clientDetailsSeparator"
+        tools:listitem="@layout/receipt_item" />
+
+    <!-- FAB do dodawania nowego paragonu dla tego klienta -->
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fabAddReceiptToClient"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        android:clickable="true"
+        android:contentDescription="@string/cd_add_receipt_to_client_fab"
+        android:focusable="true"
+        app:backgroundTint="@color/scnd_color_bright"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:srcCompat="@android:drawable/ic_input_add" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

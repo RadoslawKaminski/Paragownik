@@ -7,7 +7,6 @@ import androidx.room.Update
 import androidx.room.Delete
 import com.kaminski.paragownik.data.Client // Import encji Client
 import kotlinx.coroutines.flow.Flow // Import Flow do obserwacji zmian
-// import com.kaminski.paragownik.data.Receipt // Nieużywany import
 
 /**
  * Data Access Object (DAO) dla operacji na encji [Client].
@@ -58,5 +57,14 @@ interface ClientDao {
      */
     @Query("SELECT * FROM clients WHERE id = :clientId")
     suspend fun getClientById(clientId: Long): Client?
+
+    /**
+     * Pobiera pojedynczego klienta na podstawie jego ID jako [Flow].
+     * Emituje nową wartość, gdy dane klienta się zmienią.
+     * @param clientId ID klienta do obserwacji.
+     * @return [Flow] emitujący obiekt [Client] lub `null`, jeśli nie znaleziono.
+     */
+    @Query("SELECT * FROM clients WHERE id = :clientId")
+    fun getClientByIdFlow(clientId: Long): Flow<Client?> // Dodano Flow
 
 }
