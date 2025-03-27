@@ -2,7 +2,7 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Podstawowy motyw aplikacji, dziedziczący z MaterialComponents (DayNight - dostosowuje się do trybu ciemnego/jasnego, NoActionBar - bez domyślnego paska akcji). -->
     <style name="Base.Theme.Paragownik" parent="Theme.MaterialComponents.DayNight.NoActionBar">
-        <!-- Podstawowe kolory marki (mogą być nadpisane przez kolory niestandardowe). -->
+        <!-- Podstawowe kolory marki (mogą być nieużywane). -->
         <item name="colorPrimary">@color/purple_500</item>
         <item name="colorPrimaryVariant">@color/purple_700</item>
         <item name="colorOnPrimary">@color/white</item>
@@ -11,7 +11,7 @@
         <item name="colorSecondaryVariant">@color/teal_700</item>
         <item name="colorOnSecondary">@color/black</item>
         <!-- Kolor paska statusu (na górze ekranu). -->
-        <item name="android:statusBarColor">?attr/colorPrimaryVariant</item>
+        <item name="android:statusBarColor">@color/scnd_color_bright</item>
 
         <!-- Dostosowania motywu. -->
         <!-- Kolor tła dla całego okna aplikacji. -->
@@ -46,4 +46,3 @@
         <item name="android:textColor">@color/edittext_disabled_text_color</item>
     </style>
 </resources>
-

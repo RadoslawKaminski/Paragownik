@@ -1,5 +1,6 @@
 package com.kaminski.paragownik
 
+import android.content.Context // Potrzebne do pobierania stringów z zasobów
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -17,11 +18,13 @@ import java.util.Locale
  */
 class ReceiptAdapter(
     // Lista danych (paragony z klientami), którą adapter będzie wyświetlał.
-    // `var` pozwala na aktualizację listy z zewnątrz.
     var receiptList: List<ReceiptWithClient>,
     // Listener (zazwyczaj Aktywność), który będzie powiadamiany o kliknięciu przycisku edycji.
     private val editButtonClickListener: OnEditButtonClickListener
 ) : RecyclerView.Adapter<ReceiptAdapter.ReceiptViewHolder>() {
+
+    // Przechowuje kontekst, potrzebny do dostępu do zasobów (np. stringów)
+    private lateinit var context: Context
 
     /**
      * Interfejs definiujący metodę zwrotną (callback) wywoływaną po kliknięciu
@@ -38,7 +41,6 @@ class ReceiptAdapter(
     /**
      * ViewHolder przechowuje referencje do widoków (TextView, ImageView)
      * w pojedynczym elemencie listy (layout `receipt_item.xml`).
-     * Dzięki temu unikamy wielokrotnego wywoływania `findViewById` podczas przewijania.
      */
     class ReceiptViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         // Referencje do widoków w layoucie receipt_item.xml
@@ -46,75 +48,67 @@ class ReceiptAdapter(
         val receiptDateTextView: TextView = itemView.findViewById(R.id.receiptDateTextView)
         val verificationDateTextView: TextView = itemView.findViewById(R.id.verificationDateTextView)
         val clientDescriptionTextView: TextView = itemView.findViewById(R.id.clientDescriptionTextView)
-        val editReceiptButton: ImageView = itemView.findViewById(R.id.editReceiptButton) // Ikona edycji
-        // Referencje do nowych TextView dla danych klienta
+        val editReceiptButton: ImageView = itemView.findViewById(R.id.editReceiptButton)
         val clientAppNumberTextView: TextView = itemView.findViewById(R.id.clientAppNumberTextView)
         val amoditNumberTextView: TextView = itemView.findViewById(R.id.amoditNumberTextView)
     }
 
     /**
      * Tworzy nowy obiekt ViewHolder, gdy RecyclerView potrzebuje nowego elementu do wyświetlenia.
-     * Influje (tworzy) widok z pliku XML `receipt_item.xml`.
+     * Influje widok z pliku XML `receipt_item.xml` i pobiera kontekst.
      */
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ReceiptViewHolder {
-        // Utwórz widok pojedynczego elementu listy na podstawie layoutu XML
-        val itemView = LayoutInflater.from(parent.context)
+        context = parent.context // Pobranie kontekstu
+        val itemView = LayoutInflater.from(context)
             .inflate(R.layout.receipt_item, parent, false)
-        // Zwróć nowo utworzony ViewHolder, przekazując mu utworzony widok
         return ReceiptViewHolder(itemView)
     }
 
     /**
      * Łączy dane z określonej pozycji listy (`position`) z widokami wewnątrz ViewHoldera (`holder`).
-     * Wywoływane przez RecyclerView, gdy element ma zostać wyświetlony lub zaktualizowany.
      */
     override fun onBindViewHolder(holder: ReceiptViewHolder, position: Int) {
-        // Pobranie obiektu danych (paragon z klientem) dla bieżącej pozycji
         val currentReceiptWithClient = receiptList[position]
-        val currentReceipt = currentReceiptWithClient.receipt // Obiekt paragonu
-        val client = currentReceiptWithClient.client       // Obiekt klienta (może być null w teorii, choć FK powinien zapobiegać)
+        val currentReceipt = currentReceiptWithClient.receipt
+        val client = currentReceiptWithClient.client
 
-        // Formatter do wyświetlania daty w formacie DD-MM-YYYY
         val dateFormat = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault())
 
-        // --- Ustawienie danych paragonu w widokach ---
+        // Ustawienie danych paragonu
         holder.receiptNumberTextView.text = currentReceipt.receiptNumber
         holder.receiptDateTextView.text = dateFormat.format(currentReceipt.receiptDate)
 
-        // Ustawienie daty weryfikacji. Jeśli jest null, wyświetl "Brak".
+        // Ustawienie daty weryfikacji (z obsługą null)
         holder.verificationDateTextView.text = currentReceipt.verificationDate?.let { date ->
-            dateFormat.format(date) // Sformatuj datę, jeśli nie jest null
-        } ?: "Brak" // Wyświetl "Brak", jeśli data jest null
+            dateFormat.format(date)
+        } ?: context.getString(R.string.no_verification_date)
 
-        // --- Ustawienie danych klienta w widokach ---
-        // Używamy `takeIf { it.isNotBlank() }` aby traktować puste stringi jakby były null (nie wyświetlamy "Opis: ").
-        // Jeśli opis jest null lub pusty, wyświetl "Brak opisu klienta".
-        holder.clientDescriptionTextView.text = client?.description?.takeIf { it.isNotBlank() } ?: "Brak opisu klienta"
+        // Ustawienie danych klienta
+        holder.clientDescriptionTextView.text = client?.description?.takeIf { it.isNotBlank() }
+            ?: context.getString(R.string.no_client_description)
 
-        // Ustaw numer aplikacji klienta, jeśli istnieje i nie jest pusty.
-        val appNumberText = client?.clientAppNumber?.takeIf { it.isNotBlank() }?.let { "Nr aplikacji: $it" }
+        // Ustawienie numeru aplikacji klienta z jawnym dodaniem spacji
+        val appNumberText = client?.clientAppNumber?.takeIf { it.isNotBlank() }?.let {
+            context.getString(R.string.client_item_app_number_prefix) + " " + it // Dodano spację
+        }
         holder.clientAppNumberTextView.text = appNumberText
-        // Pokaż TextView tylko jeśli `appNumberText` nie jest null (czyli numer istnieje i nie jest pusty).
         holder.clientAppNumberTextView.isVisible = appNumberText != null
 
-        // Ustaw numer Amodit, jeśli istnieje i nie jest pusty.
-        val amoditNumberText = client?.amoditNumber?.takeIf { it.isNotBlank() }?.let { "Amodit: $it" }
+        // Ustawienie numeru Amodit z jawnym dodaniem spacji
+        val amoditNumberText = client?.amoditNumber?.takeIf { it.isNotBlank() }?.let {
+            context.getString(R.string.client_item_amodit_number_prefix) + " " + it // Dodano spację
+        }
         holder.amoditNumberTextView.text = amoditNumberText
-        // Pokaż TextView tylko jeśli `amoditNumberText` nie jest null.
         holder.amoditNumberTextView.isVisible = amoditNumberText != null
 
-        // --- Ustawienie listenera dla przycisku (ikony) edycji ---
+        // Ustawienie listenera dla przycisku edycji
         holder.editReceiptButton.setOnClickListener {
-            // Wywołaj metodę interfejsu `onEditButtonClick` przekazując ID klikniętego paragonu.
-            // Listener (Aktywność) obsłuży to zdarzenie, np. uruchamiając EditReceiptActivity.
             editButtonClickListener.onEditButtonClick(currentReceipt.id)
         }
     }
 
     /**
      * Zwraca całkowitą liczbę elementów na liście danych.
-     * RecyclerView używa tej informacji do określenia, ile elementów ma wyświetlić.
      */
     override fun getItemCount() = receiptList.size
 }
-

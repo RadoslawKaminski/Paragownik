@@ -5,22 +5,39 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/main_color_dark"
     tools:context=".MainActivity">
 
+    <!-- Tytuł ekranu MainActivity -->
+    <TextView
+        android:id="@+id/mainActivityTitleTextView"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="16dp"
+        android:gravity="center"
+        android:text="@string/main_activity_title"
+        android:textSize="24sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
     <!-- RecyclerView do wyświetlania listy sklepów. -->
-    <!-- Zajmuje całą dostępną przestrzeń. -->
+    <!-- Zajmuje przestrzeń między tytułem a dołem. -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/storeRecyclerView"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:paddingVertical="16dp"
+        android:paddingTop="16dp"
+        android:paddingBottom="16dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        tools:listitem="@layout/store_item" /> <!-- Wskazuje przykładowy layout elementu listy dla podglądu w edytorze. -->
+        app:layout_constraintTop_toBottomOf="@+id/mainActivityTitleTextView"
+        tools:listitem="@layout/store_item" />
 
-    <!-- Przycisk do przejścia do listy klientów --> <!-- Dodano -->
+    <!-- Przycisk do przejścia do listy klientów -->
     <Button
         android:id="@+id/viewClientsButton"
         style="@style/Widget.MaterialComponents.Button.OutlinedButton"
@@ -35,7 +52,7 @@
         app:strokeColor="@color/scnd_color_bright" />
 
     <!-- FloatingActionButton (FAB) do inicjowania dodawania nowego klienta. -->
-    <!-- Umieszczony w prawym dolnym rogu. --> <!-- Zmieniono constrainty -->
+    <!-- Umieszczony w prawym dolnym rogu. -->
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fabAddClientMain"
         android:layout_width="wrap_content"
@@ -45,8 +62,9 @@
         android:clickable="true"
         android:contentDescription="@string/cd_add_client_fab"
         android:focusable="true"
+        app:backgroundTint="@color/scnd_color_bright"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:srcCompat="@android:drawable/ic_input_add" /> <!-- Standardowa ikona plusa. -->
+        app:srcCompat="@android:drawable/ic_input_add" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

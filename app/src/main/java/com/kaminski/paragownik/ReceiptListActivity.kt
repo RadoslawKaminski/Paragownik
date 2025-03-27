@@ -4,13 +4,17 @@ import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
-import android.widget.Toast // Dodano import dla Toast
+import android.widget.TextView // Potrzebne dla referencji do TextView tytułu
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope // Potrzebne dla korutyn cyklu życia
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.kaminski.paragownik.viewmodel.ReceiptViewModel
+import com.kaminski.paragownik.viewmodel.StoreViewModel // Potrzebne do pobrania numeru sklepu
+import kotlinx.coroutines.launch // Potrzebne dla launch
 
 /**
  * Aktywność wyświetlająca listę paragonów dla konkretnej, wybranej drogerii.
@@ -22,35 +26,39 @@ class ReceiptListActivity : AppCompatActivity(), ReceiptAdapter.OnEditButtonClic
 
     // Widoki UI
     private lateinit var receiptRecyclerView: RecyclerView
-    private lateinit var fabAddClient: FloatingActionButton // Przycisk do dodawania
+    private lateinit var fabAddClient: FloatingActionButton
+    private lateinit var titleTextView: TextView // Referencja do TextView tytułu
 
-    // Adapter i ViewModel
+    // Adapter i ViewModels
     private lateinit var receiptAdapter: ReceiptAdapter
     private lateinit var receiptViewModel: ReceiptViewModel
+    private lateinit var storeViewModel: StoreViewModel // ViewModel do pobrania danych sklepu
 
     // ID sklepu, dla którego wyświetlamy paragony
     private var storeId: Long = -1L
 
     /**
      * Metoda wywoływana przy tworzeniu Aktywności.
-     * Inicjalizuje UI, ViewModel, pobiera ID sklepu z Intentu, ładuje dane
-     * i ustawia listenery.
+     * Inicjalizuje UI, ViewModel, pobiera ID sklepu z Intentu, ustawia dynamiczny tytuł,
+     * ładuje dane paragonów i ustawia listenery.
      */
-    @SuppressLint("NotifyDataSetChanged")
+    @SuppressLint("NotifyDataSetChanged") // Używane dla uproszczenia, rozważ DiffUtil w przyszłości
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_receipt_list) // Ustawienie layoutu
 
-        // Inicjalizacja RecyclerView
+        // Inicjalizacja RecyclerView i TextView tytułu
         receiptRecyclerView = findViewById(R.id.receiptRecyclerView)
         receiptRecyclerView.layoutManager = LinearLayoutManager(this)
+        titleTextView = findViewById(R.id.receiptListTitleTextView) // Inicjalizacja TextView tytułu
 
         // Inicjalizacja Adaptera z pustą listą i listenerem kliknięć edycji (this)
         receiptAdapter = ReceiptAdapter(emptyList(), this)
         receiptRecyclerView.adapter = receiptAdapter
 
-        // Inicjalizacja ViewModelu
+        // Inicjalizacja ViewModeli
         receiptViewModel = ViewModelProvider(this).get(ReceiptViewModel::class.java)
+        storeViewModel = ViewModelProvider(this).get(StoreViewModel::class.java) // Inicjalizacja StoreViewModel
 
         // Pobierz ID sklepu przekazane z MainActivity
         storeId = intent.getLongExtra("STORE_ID", -1L)
@@ -58,11 +66,26 @@ class ReceiptListActivity : AppCompatActivity(), ReceiptAdapter.OnEditButtonClic
 
         // Sprawdź, czy ID sklepu jest poprawne
         if (storeId == -1L) {
-            // Jeśli ID jest nieprawidłowe, zaloguj błąd i ewentualnie zamknij aktywność lub pokaż komunikat
+            // Jeśli ID jest nieprawidłowe, zaloguj błąd, pokaż komunikat i zakończ aktywność
             Log.e("ReceiptListActivity", "Nieprawidłowe STORE_ID (-1) otrzymane w Intencie.")
             Toast.makeText(this, R.string.error_invalid_store_id, Toast.LENGTH_LONG).show()
-            finish()
-            return
+            // Ustaw domyślny tytuł w razie błędu
+            titleTextView.text = getString(R.string.receipt_list_activity_title_prefix) + " ?" // Dodano spację
+            finish() // Zamknij aktywność
+            return   // Zakończ wykonywanie onCreate
+        }
+
+        // Ustawienie dynamicznego tytułu ekranu
+        lifecycleScope.launch { // Uruchomienie korutyny w cyklu życia aktywności
+            val store = storeViewModel.getStoreById(storeId) // Pobranie danych sklepu z ViewModelu
+            val titlePrefix = getString(R.string.receipt_list_activity_title_prefix) // Pobranie prefiksu tytułu ("Paragony Drogerii")
+            // Ustawienie tekstu tytułu - prefiks + spacja + numer sklepu lub "?"
+            titleTextView.text = if (store != null) {
+                titlePrefix + " " + store.storeNumber // Dodano spację jawnie
+            } else {
+                Log.w("ReceiptListActivity", "Nie znaleziono sklepu o ID $storeId do ustawienia tytułu.")
+                titlePrefix + " ?" // Dodano spację jawnie
+            }
         }
 
         // Poinformuj ViewModel, dla którego sklepu ma załadować paragony
@@ -75,8 +98,7 @@ class ReceiptListActivity : AppCompatActivity(), ReceiptAdapter.OnEditButtonClic
                 // Zaktualizuj dane w adapterze
                 receiptAdapter.receiptList = it
                 // Powiadom adapter o zmianie danych
-                // TODO: Rozważyć użycie DiffUtil dla lepszej wydajności zamiast notifyDataSetChanged()
-                receiptAdapter.notifyDataSetChanged()
+                receiptAdapter.notifyDataSetChanged() // TODO: Rozważyć DiffUtil
             }
         }
 
@@ -87,7 +109,6 @@ class ReceiptListActivity : AppCompatActivity(), ReceiptAdapter.OnEditButtonClic
             // Utwórz Intent do uruchomienia AddClientActivity
             val intent = Intent(this, AddClientActivity::class.java)
             // Przekaż ID bieżącego sklepu do AddClientActivity.
-            // Dzięki temu pole numeru sklepu dla pierwszego paragonu będzie wypełnione i zablokowane.
             intent.putExtra("STORE_ID", storeId)
             Log.d("ReceiptListActivity", "Uruchamiam AddClientActivity z STORE_ID: $storeId")
             // Uruchom AddClientActivity

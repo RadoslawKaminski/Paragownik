@@ -13,7 +13,7 @@ import com.kaminski.paragownik.data.Client // Import modelu danych Client
  * Adapter dla RecyclerView wyświetlającego listę klientów w [ClientListActivity].
  */
 class ClientAdapter(
-    // Lista obiektów Client do wyświetlenia. `var` pozwala na aktualizację z zewnątrz.
+    // Lista obiektów Client do wyświetlenia.
     var clientList: List<Client>,
     // Listener (np. Aktywność), który będzie powiadamiany o kliknięciu elementu listy.
     private val itemClickListener: OnClientClickListener
@@ -48,57 +48,45 @@ class ClientAdapter(
 
     /**
      * Tworzy nowy obiekt ViewHolder, gdy RecyclerView potrzebuje nowego elementu do wyświetlenia.
-     * Influje (tworzy) widok z pliku XML `client_item.xml`.
-     * Pobiera również kontekst z widoku nadrzędnego.
+     * Influje widok z pliku XML `client_item.xml` i pobiera kontekst.
      */
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ClientViewHolder {
-        // Pobierz kontekst z widoku nadrzędnego (parent)
-        context = parent.context
-        // Utwórz widok pojedynczego elementu listy na podstawie layoutu XML
+        context = parent.context // Pobranie kontekstu
         val itemView = LayoutInflater.from(context)
             .inflate(R.layout.client_item, parent, false)
-        // Zwróć nowo utworzony ViewHolder, przekazując mu utworzony widok
         return ClientViewHolder(itemView)
     }
 
     /**
      * Łączy dane klienta z określonej pozycji listy (`position`) z widokami wewnątrz ViewHoldera (`holder`).
-     * Wywoływane przez RecyclerView, gdy element ma zostać wyświetlony lub zaktualizowany.
      */
     override fun onBindViewHolder(holder: ClientViewHolder, position: Int) {
-        // Pobranie obiektu danych (Client) dla bieżącej pozycji
         val currentClient = clientList[position]
 
-        // --- Ustawienie danych klienta w widokach ---
-
-        // Ustaw opis klienta. Jeśli jest pusty lub null, wyświetl "ID: [id_klienta]".
+        // Ustawienie opisu klienta lub ID, jeśli opis jest pusty
         holder.descriptionTextView.text =
             if (currentClient.description.isNullOrBlank()) {
-                context.getString(R.string.client_item_id_prefix) + currentClient.id.toString() // "ID: 123"
+                context.getString(R.string.client_item_id_prefix) + currentClient.id.toString()
             } else {
-                currentClient.description // Wyświetl opis
+                currentClient.description
             }
 
-        // Ustaw numer aplikacji klienta, jeśli istnieje i nie jest pusty.
+        // Ustawienie numeru aplikacji klienta z jawnym dodaniem spacji
         val appNumberText = currentClient.clientAppNumber?.takeIf { it.isNotBlank() }?.let {
-            context.getString(R.string.client_item_app_number_prefix) + it // "Nr app: 123..."
+            context.getString(R.string.client_item_app_number_prefix) + " " + it // Dodano spację
         }
         holder.appNumberTextView.text = appNumberText
-        // Pokaż TextView tylko jeśli `appNumberText` nie jest null.
         holder.appNumberTextView.isVisible = appNumberText != null
 
-        // Ustaw numer Amodit, jeśli istnieje i nie jest pusty.
+        // Ustawienie numeru Amodit z jawnym dodaniem spacji
         val amoditNumberText = currentClient.amoditNumber?.takeIf { it.isNotBlank() }?.let {
-            context.getString(R.string.client_item_amodit_number_prefix) + it // "Amodit: 456..."
+            context.getString(R.string.client_item_amodit_number_prefix) + " " + it // Dodano spację
         }
         holder.amoditNumberTextView.text = amoditNumberText
-        // Pokaż TextView tylko jeśli `amoditNumberText` nie jest null.
         holder.amoditNumberTextView.isVisible = amoditNumberText != null
 
-        // --- Ustawienie listenera dla kliknięcia całego elementu listy ---
+        // Ustawienie listenera dla kliknięcia całego elementu listy
         holder.itemView.setOnClickListener {
-            // Wywołaj metodę interfejsu `onClientClick` przekazując ID klikniętego klienta.
-            // Listener (Aktywność) obsłuży to zdarzenie, np. uruchamiając ClientReceiptsActivity.
             itemClickListener.onClientClick(currentClient.id)
         }
     }

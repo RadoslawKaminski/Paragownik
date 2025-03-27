@@ -9,7 +9,7 @@
     android:orientation="vertical"
     android:paddingStart="16dp"
     android:paddingTop="8dp"
-    android:paddingEnd="16dp"> <!-- Dodano paddingEnd dla symetrii -->
+    android:paddingEnd="16dp">
 
     <!-- Kontener poziomy na główną treść (tekst) i ikonę edycji. -->
     <LinearLayout
@@ -71,11 +71,12 @@
                 android:gravity="center_vertical"
                 android:orientation="horizontal">
 
-                <!-- Etykieta "Weryfikacja: ". -->
+                <!-- Etykieta "Weryfikacja:". Padding dodany dla odstępu. -->
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/verification_label"
+                    android:paddingEnd="4dp"
                     android:textSize="16sp" />
 
                 <!-- Wartość daty weryfikacji (lub "Brak"). -->
@@ -106,7 +107,7 @@
                 android:textColor="@color/sub_white_text"
                 android:textSize="14sp"
                 android:visibility="gone"
-                tools:text="Nr aplikacji: 98765"
+                tools:text="Nr app: 12345678901234"
                 tools:visibility="visible" />
 
             <!-- Numer Amodit (domyślnie ukryty). -->
@@ -118,7 +119,7 @@
                 android:textColor="@color/sub_white_text"
                 android:textSize="14sp"
                 android:visibility="gone"
-                tools:text="Amodit: 12345"
+                tools:text="Amodit: 12345678"
                 tools:visibility="visible" />
 
         </LinearLayout> <!-- Koniec bloku z tekstem -->
@@ -130,7 +131,7 @@
             android:gravity="center_vertical"
             android:orientation="vertical"
             android:paddingStart="8dp"
-            android:paddingEnd="8dp"> <!-- DODANO paddingEnd -->
+            android:paddingEnd="8dp">
 
             <!-- Ikona edycji (ImageView). -->
             <ImageView
