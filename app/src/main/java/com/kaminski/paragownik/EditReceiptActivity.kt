@@ -38,8 +38,7 @@ import java.util.UUID
 
 /**
  * Aktywność odpowiedzialna za przeglądanie i edycję istniejącego paragonu oraz danych klienta.
- * Domyślnie uruchamia się w trybie widoku (pola zablokowane, puste ukryte).
- * Przycisk "Edytuj" przełącza do trybu edycji.
+ * Domyślnie uruchamia się w trybie widoku. Przycisk "Edytuj" przełącza do trybu edycji.
  */
 class EditReceiptActivity : AppCompatActivity() {
 
@@ -52,19 +51,19 @@ class EditReceiptActivity : AppCompatActivity() {
     private lateinit var editClientDescriptionEditText: EditText
     private lateinit var editClientAppNumberEditText: EditText
     private lateinit var editAmoditNumberEditText: EditText
-    private lateinit var editClientPhotoImageView: ImageView // Miniatura zdjęcia
+    private lateinit var editClientPhotoImageView: ImageView // Miniatura zdjęcia (w sekcji edycji)
     private lateinit var editAddChangePhotoButton: ImageButton // Przycisk dodawania/zmiany zdjęcia
     private lateinit var saveReceiptButton: Button
     private lateinit var deleteReceiptButton: Button
     private lateinit var deleteClientButton: Button
     private lateinit var editModeButton: Button // Przycisk "Edytuj"
-    private lateinit var largeClientPhotoImageView: ImageView // Duże zdjęcie
+    private lateinit var largeClientPhotoImageView: ImageView // Duże zdjęcie (w trybie widoku)
     // Layouty do ukrywania/pokazywania
     private lateinit var editVerificationSectionLayout: LinearLayout
     private lateinit var editDescriptionLayout: LinearLayout
     private lateinit var editAppNumberLayout: LinearLayout
     private lateinit var editAmoditNumberLayout: LinearLayout
-    private lateinit var editPhotoSectionLayout: LinearLayout
+    private lateinit var editPhotoSectionLayout: LinearLayout // Sekcja z miniaturą i przyciskiem dodaj
 
     // --- ViewModel ---
     private lateinit var editReceiptViewModel: EditReceiptViewModel
@@ -73,7 +72,7 @@ class EditReceiptActivity : AppCompatActivity() {
     private var receiptId: Long = -1L
     private var currentClientId: Long? = null
     private var loadDataJob: Job? = null
-    private var selectedPhotoUri: Uri? = null // URI zdjęcia (trwałe)
+    private var selectedPhotoUri: Uri? = null
     private var isEditMode = false // Stan widoku/edycji
 
     // Launcher do wybierania zdjęcia z galerii
@@ -82,13 +81,11 @@ class EditReceiptActivity : AppCompatActivity() {
             Log.d("EditReceiptActivity", "Otrzymano tymczasowe URI: $sourceUri")
             val destinationUri = copyImageToInternalStorage(sourceUri)
             destinationUri?.let { finalUri ->
-                // TODO: Opcjonalnie: Usuń stary plik zdjęcia
                 selectedPhotoUri = finalUri
                 editClientPhotoImageView.setImageURI(finalUri) // Miniatura
                 largeClientPhotoImageView.setImageURI(finalUri) // Duże zdjęcie
                 Log.d("EditReceiptActivity", "Ustawiono nowe trwałe URI zdjęcia: $finalUri")
-                // Upewnij się, że sekcja zdjęcia jest widoczna po dodaniu (w trybie edycji)
-                updateUiMode(isEditMode)
+                updateUiMode(isEditMode) // Zaktualizuj UI (np. pokaż sekcję zdjęcia jeśli była ukryta)
             }
         } ?: run {
             Log.d("EditReceiptActivity", "Nie wybrano nowego zdjęcia.")
@@ -116,10 +113,10 @@ class EditReceiptActivity : AppCompatActivity() {
         setupDateEditText(editReceiptDateEditText)
         setupDateEditText(editVerificationDateEditText)
         setupVerificationDateCheckBox()
-        loadReceiptData() // Ładowanie danych zainicjuje też updateUiMode
+        loadReceiptData()
         setupButtonClickListeners()
 
-        updateUiMode(false) // Ustaw tryb widoku na starcie (przed załadowaniem danych)
+        updateUiMode(false) // Ustaw tryb widoku na starcie
     }
 
     /**
@@ -139,8 +136,8 @@ class EditReceiptActivity : AppCompatActivity() {
         saveReceiptButton = findViewById(R.id.saveReceiptButton)
         deleteReceiptButton = findViewById(R.id.deleteReceiptButton)
         deleteClientButton = findViewById(R.id.deleteClientButton)
-        editModeButton = findViewById(R.id.editModeButton) // Przycisk Edytuj
-        largeClientPhotoImageView = findViewById(R.id.largeClientPhotoImageView) // Duże ImageView
+        editModeButton = findViewById(R.id.editModeButton)
+        largeClientPhotoImageView = findViewById(R.id.largeClientPhotoImageView)
         // Layouty do ukrywania
         editVerificationSectionLayout = findViewById(R.id.editVerificationSectionLayout)
         editDescriptionLayout = findViewById(R.id.editDescriptionLayout)
@@ -164,11 +161,7 @@ class EditReceiptActivity : AppCompatActivity() {
         deleteReceiptButton.setOnClickListener { showDeleteReceiptDialog() }
         deleteClientButton.setOnClickListener { showDeleteClientDialog() }
         editAddChangePhotoButton.setOnClickListener { pickImageLauncher.launch("image/*") }
-
-        // Listener dla przycisku "Edytuj"
-        editModeButton.setOnClickListener {
-            updateUiMode(true) // Włącz tryb edycji
-        }
+        editModeButton.setOnClickListener { updateUiMode(true) } // Przełącz do trybu edycji
     }
 
     /**
@@ -200,11 +193,9 @@ class EditReceiptActivity : AppCompatActivity() {
                             editVerificationDateEditText.setText(formattedVerificationDate)
                             val todayDate = dateFormat.format(java.util.Calendar.getInstance().time)
                             editVerificationDateTodayCheckBox.isChecked = formattedVerificationDate == todayDate
-                            // Stan enabled zostanie ustawiony w updateUiMode
                         } ?: run {
                             editVerificationDateEditText.text.clear()
                             editVerificationDateTodayCheckBox.isChecked = false
-                            // Stan enabled zostanie ustawiony w updateUiMode
                         }
 
                         // Wypełnianie pól tekstowych klienta
@@ -249,7 +240,7 @@ class EditReceiptActivity : AppCompatActivity() {
     }
 
     /**
-     * Aktualizuje widoczność i stan edytowalności elementów UI.
+     * Aktualizuje widoczność i stan edytowalności elementów UI w zależności od trybu.
      */
     private fun updateUiMode(isEditing: Boolean) {
         isEditMode = isEditing
@@ -279,8 +270,9 @@ class EditReceiptActivity : AppCompatActivity() {
         editDescriptionLayout.visibility = if (isEditing || !editClientDescriptionEditText.text.isNullOrBlank()) View.VISIBLE else View.GONE
         editAppNumberLayout.visibility = if (isEditing || !editClientAppNumberEditText.text.isNullOrBlank()) View.VISIBLE else View.GONE
         editAmoditNumberLayout.visibility = if (isEditing || !editAmoditNumberEditText.text.isNullOrBlank()) View.VISIBLE else View.GONE
-        // Sekcja zdjęcia (miniatura + przycisk) jest widoczna w edycji LUB jeśli jest zdjęcie w trybie widoku
-        editPhotoSectionLayout.visibility = if (isEditing || selectedPhotoUri != null) View.VISIBLE else View.GONE
+
+        // Sekcja zdjęcia (miniatura + przycisk) jest widoczna TYLKO w trybie edycji
+        editPhotoSectionLayout.visibility = if (isEditing) View.VISIBLE else View.GONE
     }
 
 
@@ -410,7 +402,6 @@ class EditReceiptActivity : AppCompatActivity() {
             } else {
                 // Po udanej EDYCJI, przełącz z powrotem do trybu widoku
                 updateUiMode(false)
-                // Nie zamykamy już aktywności po zapisie
             }
         }
     }
@@ -421,13 +412,14 @@ class EditReceiptActivity : AppCompatActivity() {
      */
     private fun setupVerificationDateCheckBox() {
         editVerificationDateTodayCheckBox.setOnCheckedChangeListener { _, isChecked ->
-            // Ten listener jest aktywny tylko w trybie edycji, bo checkbox jest wyłączony w trybie widoku
-            if (isChecked) {
-                val currentDate = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault()).format(java.util.Calendar.getInstance().time)
-                editVerificationDateEditText.setText(currentDate)
-                editVerificationDateEditText.isEnabled = false // Wyłącz pole daty, gdy "Dzisiaj" jest zaznaczone
-            } else {
-                editVerificationDateEditText.isEnabled = true // Włącz pole daty, gdy "Dzisiaj" jest odznaczone
+            if (isEditMode) { // Reaguj tylko w trybie edycji
+                if (isChecked) {
+                    val currentDate = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault()).format(java.util.Calendar.getInstance().time)
+                    editVerificationDateEditText.setText(currentDate)
+                    editVerificationDateEditText.isEnabled = false
+                } else {
+                    editVerificationDateEditText.isEnabled = true
+                }
             }
         }
     }
@@ -464,15 +456,9 @@ class EditReceiptActivity : AppCompatActivity() {
                 val digitsOnly = userInput.replace("[^\\d]".toRegex(), "")
                 val len = digitsOnly.length
                 val formatted = StringBuilder()
-                if (len >= 1) {
-                    formatted.append(digitsOnly.substring(0, minOf(len, 2))) // DD
-                }
-                if (len >= 3) {
-                    formatted.append("-").append(digitsOnly.substring(2, minOf(len, 4))) // MM
-                }
-                if (len >= 5) {
-                    formatted.append("-").append(digitsOnly.substring(4, minOf(len, 8))) // YYYY
-                }
+                if (len >= 1) formatted.append(digitsOnly.substring(0, minOf(len, 2)))
+                if (len >= 3) formatted.append("-").append(digitsOnly.substring(2, minOf(len, 4)))
+                if (len >= 5) formatted.append("-").append(digitsOnly.substring(4, minOf(len, 8)))
                 current = formatted.toString()
 
                 editText.setText(current)
@@ -499,18 +485,12 @@ class EditReceiptActivity : AppCompatActivity() {
         return try {
             val inputStream = contentResolver.openInputStream(sourceUri) ?: return null
             val imagesDir = File(filesDir, "images")
-            if (!imagesDir.exists()) {
-                imagesDir.mkdirs()
-            }
+            if (!imagesDir.exists()) imagesDir.mkdirs()
             val uniqueFileName = "${UUID.randomUUID()}.jpg"
             val destinationFile = File(imagesDir, uniqueFileName)
             val outputStream = FileOutputStream(destinationFile)
 
-            inputStream.use { input ->
-                outputStream.use { output ->
-                    input.copyTo(output)
-                }
-            }
+            inputStream.use { input -> outputStream.use { output -> input.copyTo(output) } }
             Log.d("EditReceiptActivity", "Skopiowano zdjęcie do: ${destinationFile.absolutePath}")
             destinationFile.toUri()
 

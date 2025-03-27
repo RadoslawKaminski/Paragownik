@@ -189,18 +189,38 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
+                android:layout_marginTop="8dp"
                 android:visibility="gone"
                 tools:visibility="visible">
-                <EditText
-                    android:id="@+id/editClientAppNumberEditText"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:enabled="false"
-                    android:autofillHints="number"
-                    android:hint="@string/client_app_number_hint"
-                    android:inputType="number"
-                    android:maxLength="14" />
+
+                 <!-- Etykieta i pole edycji w jednej linii -->
+                 <LinearLayout
+                     android:layout_width="match_parent"
+                     android:layout_height="wrap_content"
+                     android:orientation="horizontal"
+                     android:gravity="center_vertical">
+
+                     <!-- Etykieta dla numeru aplikacji -->
+                     <TextView
+                         android:layout_width="wrap_content"
+                         android:layout_height="wrap_content"
+                         android:text="@string/label_client_app_number"
+                         android:paddingEnd="8dp"
+                         android:textSize="16sp"/>
+
+                     <!-- Pole edycji numeru aplikacji -->
+                     <EditText
+                         android:id="@+id/editClientAppNumberEditText"
+                         android:layout_width="0dp"
+                         android:layout_height="wrap_content"
+                         android:layout_weight="1"
+                         android:enabled="false"
+                         android:autofillHints="number"
+                         android:hint="@string/client_app_number_hint"
+                         android:inputType="number"
+                         android:maxLength="14"
+                         android:layout_marginBottom="0dp"/>
+                 </LinearLayout>
              </LinearLayout>
 
             <!-- Pole numeru Amodit (opakowane dla widoczności). -->
@@ -209,21 +229,41 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
+                android:layout_marginTop="8dp"
                 android:visibility="gone"
                 tools:visibility="visible">
-                <EditText
-                    android:id="@+id/editAmoditNumberEditText"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:enabled="false"
-                    android:autofillHints="number"
-                    android:hint="@string/amodit_number_hint"
-                    android:inputType="number"
-                    android:maxLength="8" />
+
+                 <!-- Etykieta i pole edycji w jednej linii -->
+                 <LinearLayout
+                     android:layout_width="match_parent"
+                     android:layout_height="wrap_content"
+                     android:orientation="horizontal"
+                     android:gravity="center_vertical">
+
+                     <!-- Etykieta dla numeru Amodit -->
+                     <TextView
+                         android:layout_width="wrap_content"
+                         android:layout_height="wrap_content"
+                         android:text="@string/label_amodit_number"
+                         android:paddingEnd="8dp"
+                         android:textSize="16sp"/>
+
+                     <!-- Pole edycji numeru Amodit -->
+                     <EditText
+                         android:id="@+id/editAmoditNumberEditText"
+                         android:layout_width="0dp"
+                         android:layout_height="wrap_content"
+                         android:layout_weight="1"
+                         android:enabled="false"
+                         android:autofillHints="number"
+                         android:hint="@string/amodit_number_hint"
+                         android:inputType="number"
+                         android:maxLength="8"
+                         android:layout_marginBottom="0dp"/>
+                 </LinearLayout>
              </LinearLayout>
 
-            <!-- Kontener na miniaturę zdjęcia i przycisk dodawania (opakowany dla widoczności). -->
+            <!-- Kontener na miniaturę zdjęcia i przycisk dodawania (widoczny tylko w edycji). -->
             <LinearLayout
                 android:id="@+id/editPhotoSectionLayout"
                 android:layout_width="match_parent"
@@ -246,7 +286,7 @@
                     android:scaleType="centerCrop"
                     app:srcCompat="@drawable/ic_photo_placeholder" />
 
-                <!-- Przycisk dodawania/zmiany zdjęcia (domyślnie ukryty). -->
+                <!-- Przycisk dodawania/zmiany zdjęcia (widoczny tylko w edycji). -->
                 <ImageButton
                     android:id="@+id/editAddChangePhotoButton"
                     android:layout_width="wrap_content"
