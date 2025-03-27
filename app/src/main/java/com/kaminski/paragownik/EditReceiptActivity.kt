@@ -7,13 +7,13 @@ import android.text.Editable
 import android.text.InputType
 import android.text.TextWatcher
 import android.util.Log
-import android.view.View // Potrzebny dla View.VISIBLE/GONE
+import android.view.View
 import android.widget.Button
 import android.widget.CheckBox
 import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.ImageView
-import android.widget.LinearLayout // Potrzebny dla LinearLayout
+import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
@@ -71,7 +71,7 @@ class EditReceiptActivity : AppCompatActivity() {
     // --- Dane pomocnicze ---
     private var receiptId: Long = -1L
     private var currentClientId: Long? = null
-    private var loadDataJob: Job? = null
+    private var loadDataJob: Job? = null // Referencja do korutyny ładującej dane
     private var selectedPhotoUri: Uri? = null
     private var isEditMode = false // Stan widoku/edycji
 
@@ -85,7 +85,7 @@ class EditReceiptActivity : AppCompatActivity() {
                 editClientPhotoImageView.setImageURI(finalUri) // Miniatura
                 largeClientPhotoImageView.setImageURI(finalUri) // Duże zdjęcie
                 Log.d("EditReceiptActivity", "Ustawiono nowe trwałe URI zdjęcia: $finalUri")
-                updateUiMode(isEditMode) // Zaktualizuj UI (np. pokaż sekcję zdjęcia jeśli była ukryta)
+                updateUiMode(isEditMode)
             }
         } ?: run {
             Log.d("EditReceiptActivity", "Nie wybrano nowego zdjęcia.")
@@ -169,10 +169,15 @@ class EditReceiptActivity : AppCompatActivity() {
      * Aktualizuje UI do trybu widoku/edycji.
      */
     private fun loadReceiptData() {
+        // Anuluj poprzednie zadanie ładowania, jeśli istnieje
         loadDataJob?.cancel()
+        // Uruchom nową korutynę i zapisz referencję do Joba
         loadDataJob = lifecycleScope.launch {
             editReceiptViewModel.getReceiptWithClientAndStoreNumber(receiptId)
                 .collectLatest { pair ->
+                    // Sprawdź, czy korutyna jest nadal aktywna (nie została anulowana np. przez delete)
+                    if (!isActive) return@collectLatest
+
                     val receiptWithClient = pair.first
                     val storeNumber = pair.second
 
@@ -203,7 +208,7 @@ class EditReceiptActivity : AppCompatActivity() {
                         editClientAppNumberEditText.setText(client.clientAppNumber ?: "")
                         editAmoditNumberEditText.setText(client.amoditNumber ?: "")
 
-                        // Logika ładowania zdjęcia klienta (miniatura i duże)
+                        // Logika ładowania zdjęcia klienta
                         if (!client.photoUri.isNullOrBlank()) {
                             try {
                                 val photoUri = client.photoUri.toUri()
@@ -228,11 +233,11 @@ class EditReceiptActivity : AppCompatActivity() {
                         updateUiMode(isEditMode)
 
                     } else {
-                        // Obsługa sytuacji, gdy dane nie zostały znalezione
+                        // Obsługa sytuacji, gdy dane nie zostały znalezione (np. paragon usunięty)
+                        // Logujemy błąd tylko jeśli korutyna jest nadal aktywna
                         if (isActive) {
-                            Log.e("EditReceiptActivity", "Nie znaleziono danych dla receiptId: $receiptId")
-                            Toast.makeText(this@EditReceiptActivity, R.string.error_receipt_not_found, Toast.LENGTH_SHORT).show()
-                            finish()
+                            Log.e("EditReceiptActivity", "Nie znaleziono danych dla receiptId: $receiptId (prawdopodobnie usunięto)")
+                            // Nie pokazujemy Toast ani nie zamykamy, bo to może być normalna reakcja na usunięcie
                         }
                     }
                 }
@@ -323,21 +328,31 @@ class EditReceiptActivity : AppCompatActivity() {
     }
 
     /**
-     * Usuwa bieżący paragon.
+     * Usuwa bieżący paragon, anulując najpierw obserwację danych.
      */
     private fun deleteReceipt() {
+        // Anuluj obserwację danych, aby uniknąć logowania błędu "nie znaleziono"
+        loadDataJob?.cancel()
+        Log.d("EditReceiptActivity", "Anulowano loadDataJob przed usunięciem paragonu.")
+
         lifecycleScope.launch {
+            // Pobierz paragon (potrzebny do przekazania do ViewModelu)
             val currentReceipt = editReceiptViewModel.getReceiptWithClientAndStoreNumber(receiptId)
                 .map { it.first?.receipt }
                 .firstOrNull()
 
             if (currentReceipt == null) {
+                // Ten Toast może się pojawić, jeśli coś pójdzie bardzo źle, ale nie powinien z powodu anulowania joba
                 Toast.makeText(this@EditReceiptActivity, R.string.error_cannot_get_receipt_data, Toast.LENGTH_LONG).show()
-                Log.e("EditReceiptActivity", "Nie udało się pobrać Receipt (id: $receiptId) do usunięcia.")
+                Log.e("EditReceiptActivity", "Nie udało się pobrać Receipt (id: $receiptId) do usunięcia, mimo anulowania joba.")
+                // Można spróbować wrócić do MainActivity nawet w tym przypadku
+                handleEditResult(EditReceiptViewModel.EditResult.ERROR_NOT_FOUND, true)
                 return@launch
             }
 
+            // Wywołaj usunięcie w ViewModelu
             val result = editReceiptViewModel.deleteReceipt(currentReceipt)
+            // Obsłuż wynik (wyświetli Toast i nawiguje)
             handleEditResult(result, true)
         }
     }
@@ -362,14 +377,20 @@ class EditReceiptActivity : AppCompatActivity() {
     }
 
     /**
-     * Usuwa bieżącego klienta i jego paragony.
+     * Usuwa bieżącego klienta i jego paragony, anulując najpierw obserwację danych.
      */
     private fun deleteClient() {
-        val clientIdToDelete = currentClientId ?: return
+        // Anuluj obserwację danych, aby uniknąć logowania błędu "nie znaleziono"
+        loadDataJob?.cancel()
+        Log.d("EditReceiptActivity", "Anulowano loadDataJob przed usunięciem klienta.")
+
+        val clientIdToDelete = currentClientId ?: return // Ponowne sprawdzenie dla bezpieczeństwa
 
         lifecycleScope.launch {
             val clientStub = com.kaminski.paragownik.data.Client(id = clientIdToDelete, description = null)
+            // Wywołaj usunięcie w ViewModelu
             val result = editReceiptViewModel.deleteClient(clientStub)
+            // Obsłuż wynik (wyświetli Toast i nawiguje)
             handleEditResult(result, true)
         }
     }
@@ -394,7 +415,7 @@ class EditReceiptActivity : AppCompatActivity() {
         if (result == EditReceiptViewModel.EditResult.SUCCESS) {
             if (isDeleteOperation) {
                 // Po udanym usunięciu wróć do MainActivity
-                loadDataJob?.cancel()
+                // loadDataJob już został anulowany w metodach deleteReceipt/deleteClient
                 finishAffinity()
                 startActivity(Intent(this@EditReceiptActivity, MainActivity::class.java).apply {
                     flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
