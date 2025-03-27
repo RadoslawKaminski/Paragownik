@@ -101,12 +101,14 @@ class ReceiptListActivity : AppCompatActivity(), ReceiptAdapter.OnReceiptClickLi
 
     /**
      * Metoda wywoływana po kliknięciu elementu na liście paragonów.
-     * Uruchamia EditReceiptActivity dla wybranego paragonu.
+     * Uruchamia EditReceiptActivity dla wybranego paragonu, przekazując kontekst.
      * @param receiptId ID klikniętego paragonu.
      */
     override fun onReceiptClick(receiptId: Long) {
         val intent = Intent(this, EditReceiptActivity::class.java)
         intent.putExtra("RECEIPT_ID", receiptId)
+        // Dodaj informację o kontekście
+        intent.putExtra("CONTEXT", "STORE_LIST") // Kontekst: lista sklepu
         startActivity(intent)
     }
 }

@@ -38,7 +38,7 @@ import java.util.UUID
 
 /**
  * Aktywność odpowiedzialna za przeglądanie i edycję istniejącego paragonu oraz danych klienta.
- * Domyślnie uruchamia się w trybie widoku. Przycisk "Edytuj" przełącza do trybu edycji.
+ * Zawiera kontekstowe przyciski nawigacyjne w trybie widoku.
  */
 class EditReceiptActivity : AppCompatActivity() {
 
@@ -58,6 +58,8 @@ class EditReceiptActivity : AppCompatActivity() {
     private lateinit var deleteClientButton: Button
     private lateinit var editModeButton: Button // Przycisk "Edytuj"
     private lateinit var largeClientPhotoImageView: ImageView // Duże zdjęcie (w trybie widoku)
+    private lateinit var showClientReceiptsButton: Button // Przycisk nawigacji do paragonów klienta
+    private lateinit var showStoreReceiptsButton: Button // Przycisk nawigacji do paragonów sklepu
     // Layouty do ukrywania/pokazywania
     private lateinit var editVerificationSectionLayout: LinearLayout
     private lateinit var editDescriptionLayout: LinearLayout
@@ -71,9 +73,11 @@ class EditReceiptActivity : AppCompatActivity() {
     // --- Dane pomocnicze ---
     private var receiptId: Long = -1L
     private var currentClientId: Long? = null
-    private var loadDataJob: Job? = null // Referencja do korutyny ładującej dane
+    private var currentStoreId: Long = -1L // ID sklepu dla nawigacji wstecznej
+    private var loadDataJob: Job? = null
     private var selectedPhotoUri: Uri? = null
-    private var isEditMode = false // Stan widoku/edycji
+    private var isEditMode = false
+    private var navigationContext: String? = null // Skąd przyszliśmy? "STORE_LIST" lub "CLIENT_LIST"
 
     // Launcher do wybierania zdjęcia z galerii
     private val pickImageLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
@@ -102,7 +106,11 @@ class EditReceiptActivity : AppCompatActivity() {
         initializeViews()
         initializeViewModel()
 
+        // Odczytaj ID paragonu i kontekst nawigacji z Intentu
         receiptId = intent.getLongExtra("RECEIPT_ID", -1L)
+        navigationContext = intent.getStringExtra("CONTEXT")
+        Log.d("EditReceiptActivity", "Otrzymano receiptId: $receiptId, kontekst: $navigationContext")
+
         if (receiptId == -1L) {
             Toast.makeText(this, R.string.error_invalid_receipt_id, Toast.LENGTH_LONG).show()
             Log.e("EditReceiptActivity", "Nieprawidłowe RECEIPT_ID przekazane w Intencie.")
@@ -138,6 +146,8 @@ class EditReceiptActivity : AppCompatActivity() {
         deleteClientButton = findViewById(R.id.deleteClientButton)
         editModeButton = findViewById(R.id.editModeButton)
         largeClientPhotoImageView = findViewById(R.id.largeClientPhotoImageView)
+        showClientReceiptsButton = findViewById(R.id.showClientReceiptsButton) // Przycisk nawigacji
+        showStoreReceiptsButton = findViewById(R.id.showStoreReceiptsButton) // Przycisk nawigacji
         // Layouty do ukrywania
         editVerificationSectionLayout = findViewById(R.id.editVerificationSectionLayout)
         editDescriptionLayout = findViewById(R.id.editDescriptionLayout)
@@ -162,6 +172,33 @@ class EditReceiptActivity : AppCompatActivity() {
         deleteClientButton.setOnClickListener { showDeleteClientDialog() }
         editAddChangePhotoButton.setOnClickListener { pickImageLauncher.launch("image/*") }
         editModeButton.setOnClickListener { updateUiMode(true) } // Przełącz do trybu edycji
+
+        // Listener dla przycisku "Pokaż paragony klienta"
+        showClientReceiptsButton.setOnClickListener {
+            currentClientId?.let { clientId ->
+                val intent = Intent(this, ClientReceiptsActivity::class.java)
+                intent.putExtra("CLIENT_ID", clientId)
+                // Flagi, aby uniknąć tworzenia wielu instancji tej samej aktywności na stosie
+                intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
+                startActivity(intent)
+                Log.d("EditReceiptActivity", "Nawigacja do ClientReceiptsActivity dla klienta ID: $clientId")
+            } ?: run {
+                Toast.makeText(this, R.string.error_cannot_identify_client, Toast.LENGTH_SHORT).show()
+            }
+        }
+
+        // Listener dla przycisku "Pokaż paragony drogerii"
+        showStoreReceiptsButton.setOnClickListener {
+            if (currentStoreId != -1L) {
+                val intent = Intent(this, ReceiptListActivity::class.java)
+                intent.putExtra("STORE_ID", currentStoreId)
+                intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
+                startActivity(intent)
+                Log.d("EditReceiptActivity", "Nawigacja do ReceiptListActivity dla sklepu ID: $currentStoreId")
+            } else {
+                Toast.makeText(this, R.string.error_invalid_store_id, Toast.LENGTH_SHORT).show()
+            }
+        }
     }
 
     /**
@@ -169,13 +206,10 @@ class EditReceiptActivity : AppCompatActivity() {
      * Aktualizuje UI do trybu widoku/edycji.
      */
     private fun loadReceiptData() {
-        // Anuluj poprzednie zadanie ładowania, jeśli istnieje
         loadDataJob?.cancel()
-        // Uruchom nową korutynę i zapisz referencję do Joba
         loadDataJob = lifecycleScope.launch {
             editReceiptViewModel.getReceiptWithClientAndStoreNumber(receiptId)
                 .collectLatest { pair ->
-                    // Sprawdź, czy korutyna jest nadal aktywna (nie została anulowana np. przez delete)
                     if (!isActive) return@collectLatest
 
                     val receiptWithClient = pair.first
@@ -185,6 +219,7 @@ class EditReceiptActivity : AppCompatActivity() {
                         val receipt = receiptWithClient.receipt
                         val client = receiptWithClient.client
                         currentClientId = client.id
+                        currentStoreId = receipt.storeId // Zapisz ID sklepu
 
                         // Wypełnianie pól tekstowych paragonu
                         editReceiptStoreNumberEditText.setText(storeNumber ?: "")
@@ -213,8 +248,8 @@ class EditReceiptActivity : AppCompatActivity() {
                             try {
                                 val photoUri = client.photoUri.toUri()
                                 selectedPhotoUri = photoUri
-                                editClientPhotoImageView.setImageURI(photoUri) // Miniatura
-                                largeClientPhotoImageView.setImageURI(photoUri) // Duże zdjęcie
+                                editClientPhotoImageView.setImageURI(photoUri)
+                                largeClientPhotoImageView.setImageURI(photoUri)
                                 Log.d("EditReceiptActivity", "Załadowano zdjęcie klienta z trwałego URI: $photoUri")
                             } catch (e: Exception) {
                                 Log.e("EditReceiptActivity", "Błąd ładowania zdjęcia z URI: ${client.photoUri}", e)
@@ -233,11 +268,11 @@ class EditReceiptActivity : AppCompatActivity() {
                         updateUiMode(isEditMode)
 
                     } else {
-                        // Obsługa sytuacji, gdy dane nie zostały znalezione (np. paragon usunięty)
-                        // Logujemy błąd tylko jeśli korutyna jest nadal aktywna
+                        // Obsługa sytuacji, gdy dane nie zostały znalezione
                         if (isActive) {
                             Log.e("EditReceiptActivity", "Nie znaleziono danych dla receiptId: $receiptId (prawdopodobnie usunięto)")
-                            // Nie pokazujemy Toast ani nie zamykamy, bo to może być normalna reakcja na usunięcie
+                            // Toast.makeText(this@EditReceiptActivity, R.string.error_receipt_not_found, Toast.LENGTH_SHORT).show()
+                            // finish() // Nie zamykamy, bo mogło być zainicjowane przez delete
                         }
                     }
                 }
@@ -278,6 +313,10 @@ class EditReceiptActivity : AppCompatActivity() {
 
         // Sekcja zdjęcia (miniatura + przycisk) jest widoczna TYLKO w trybie edycji
         editPhotoSectionLayout.visibility = if (isEditing) View.VISIBLE else View.GONE
+
+        // Pokaż/Ukryj przyciski nawigacyjne (tylko w trybie widoku i w odpowiednim kontekście)
+        showClientReceiptsButton.visibility = if (!isEditing && navigationContext == "STORE_LIST") View.VISIBLE else View.GONE
+        showStoreReceiptsButton.visibility = if (!isEditing && navigationContext == "CLIENT_LIST") View.VISIBLE else View.GONE
     }
 
 
@@ -331,28 +370,22 @@ class EditReceiptActivity : AppCompatActivity() {
      * Usuwa bieżący paragon, anulując najpierw obserwację danych.
      */
     private fun deleteReceipt() {
-        // Anuluj obserwację danych, aby uniknąć logowania błędu "nie znaleziono"
-        loadDataJob?.cancel()
+        loadDataJob?.cancel() // Anuluj obserwację danych
         Log.d("EditReceiptActivity", "Anulowano loadDataJob przed usunięciem paragonu.")
 
         lifecycleScope.launch {
-            // Pobierz paragon (potrzebny do przekazania do ViewModelu)
             val currentReceipt = editReceiptViewModel.getReceiptWithClientAndStoreNumber(receiptId)
                 .map { it.first?.receipt }
                 .firstOrNull()
 
             if (currentReceipt == null) {
-                // Ten Toast może się pojawić, jeśli coś pójdzie bardzo źle, ale nie powinien z powodu anulowania joba
                 Toast.makeText(this@EditReceiptActivity, R.string.error_cannot_get_receipt_data, Toast.LENGTH_LONG).show()
-                Log.e("EditReceiptActivity", "Nie udało się pobrać Receipt (id: $receiptId) do usunięcia, mimo anulowania joba.")
-                // Można spróbować wrócić do MainActivity nawet w tym przypadku
-                handleEditResult(EditReceiptViewModel.EditResult.ERROR_NOT_FOUND, true)
+                Log.e("EditReceiptActivity", "Nie udało się pobrać Receipt (id: $receiptId) do usunięcia.")
+                handleEditResult(EditReceiptViewModel.EditResult.ERROR_NOT_FOUND, true) // Traktuj jako błąd i nawiguj
                 return@launch
             }
 
-            // Wywołaj usunięcie w ViewModelu
             val result = editReceiptViewModel.deleteReceipt(currentReceipt)
-            // Obsłuż wynik (wyświetli Toast i nawiguje)
             handleEditResult(result, true)
         }
     }
@@ -380,17 +413,14 @@ class EditReceiptActivity : AppCompatActivity() {
      * Usuwa bieżącego klienta i jego paragony, anulując najpierw obserwację danych.
      */
     private fun deleteClient() {
-        // Anuluj obserwację danych, aby uniknąć logowania błędu "nie znaleziono"
-        loadDataJob?.cancel()
+        loadDataJob?.cancel() // Anuluj obserwację danych
         Log.d("EditReceiptActivity", "Anulowano loadDataJob przed usunięciem klienta.")
 
-        val clientIdToDelete = currentClientId ?: return // Ponowne sprawdzenie dla bezpieczeństwa
+        val clientIdToDelete = currentClientId ?: return
 
         lifecycleScope.launch {
             val clientStub = com.kaminski.paragownik.data.Client(id = clientIdToDelete, description = null)
-            // Wywołaj usunięcie w ViewModelu
             val result = editReceiptViewModel.deleteClient(clientStub)
-            // Obsłuż wynik (wyświetli Toast i nawiguje)
             handleEditResult(result, true)
         }
     }
@@ -415,7 +445,6 @@ class EditReceiptActivity : AppCompatActivity() {
         if (result == EditReceiptViewModel.EditResult.SUCCESS) {
             if (isDeleteOperation) {
                 // Po udanym usunięciu wróć do MainActivity
-                // loadDataJob już został anulowany w metodach deleteReceipt/deleteClient
                 finishAffinity()
                 startActivity(Intent(this@EditReceiptActivity, MainActivity::class.java).apply {
                     flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
@@ -433,7 +462,7 @@ class EditReceiptActivity : AppCompatActivity() {
      */
     private fun setupVerificationDateCheckBox() {
         editVerificationDateTodayCheckBox.setOnCheckedChangeListener { _, isChecked ->
-            if (isEditMode) { // Reaguj tylko w trybie edycji
+            if (isEditMode) {
                 if (isChecked) {
                     val currentDate = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault()).format(java.util.Calendar.getInstance().time)
                     editVerificationDateEditText.setText(currentDate)

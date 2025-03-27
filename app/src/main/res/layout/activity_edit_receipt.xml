@@ -361,6 +361,30 @@
             tools:visibility="visible"
             tools:layout_height="200dp"/>
 
+        <!-- Przycisk nawigacji: Pokaż paragony klienta (widoczny w trybie widoku z kontekstu sklepu) -->
+        <Button
+            android:id="@+id/showClientReceiptsButton"
+            style="@style/Widget.MaterialComponents.Button.TextButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="@string/button_show_client_receipts"
+            android:textColor="@color/scnd_color_bright"
+            android:visibility="gone"
+            tools:visibility="visible"/>
+
+        <!-- Przycisk nawigacji: Pokaż paragony drogerii (widoczny w trybie widoku z kontekstu klienta) -->
+        <Button
+            android:id="@+id/showStoreReceiptsButton"
+            style="@style/Widget.MaterialComponents.Button.TextButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="@string/button_show_store_receipts"
+            android:textColor="@color/scnd_color_bright"
+            android:visibility="gone"
+            tools:visibility="visible"/>
+
         <!-- Przycisk Edytuj (domyślnie widoczny). -->
         <Button
             android:id="@+id/editModeButton"

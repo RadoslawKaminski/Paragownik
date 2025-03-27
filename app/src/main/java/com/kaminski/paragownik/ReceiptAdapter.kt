@@ -6,7 +6,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
-import android.widget.LinearLayout // Import dla LinearLayout
+import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.core.net.toUri
 import androidx.core.view.isVisible
@@ -76,7 +76,6 @@ class ReceiptAdapter(
      */
     fun updateStoreMap(newMap: Map<Long, String>) {
         storeMap = newMap
-        // Nie odświeżamy tutaj adaptera, aktywność zrobi to po aktualizacji obu list
     }
 
     /**
@@ -144,8 +143,9 @@ class ReceiptAdapter(
                 holder.clientPhotoImageView.visibility = View.GONE
 
                 // Pobierz i ustaw numer sklepu z mapy
-                val storeNumber = storeMap[currentReceipt.storeId] ?: "?" // Użyj "?" jeśli ID nie ma w mapie
-                holder.storeNumberTextView.text = context.getString(R.string.store_number_prefix) + storeNumber
+                val storeNumber = storeMap[currentReceipt.storeId] ?: "?"
+                // Dodano spację po prefiksie
+                holder.storeNumberTextView.text = context.getString(R.string.store_number_prefix) + " " + storeNumber
                 holder.storeNumberTextView.visibility = View.VISIBLE
             }
         }

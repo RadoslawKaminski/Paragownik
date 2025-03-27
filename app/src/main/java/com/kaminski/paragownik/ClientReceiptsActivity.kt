@@ -196,7 +196,6 @@ class ClientReceiptsActivity : AppCompatActivity(), ReceiptAdapter.OnReceiptClic
                 Log.d("ClientReceiptsActivity", "Otrzymano mapę sklepów, rozmiar: ${it.size}")
                 receiptAdapter.updateStoreMap(it)
                 // Odśwież adapter, bo mogły już być załadowane paragony
-                // Sprawdź, czy lista paragonów nie jest pusta, zanim odświeżysz
                 if (receiptAdapter.receiptList.isNotEmpty()) {
                      receiptAdapter.notifyDataSetChanged()
                 }
@@ -207,11 +206,13 @@ class ClientReceiptsActivity : AppCompatActivity(), ReceiptAdapter.OnReceiptClic
 
     /**
      * Obsługa kliknięcia paragonu na liście.
-     * Uruchamia EditReceiptActivity dla wybranego paragonu.
+     * Uruchamia EditReceiptActivity dla wybranego paragonu, przekazując kontekst.
      */
     override fun onReceiptClick(receiptId: Long) {
         val intent = Intent(this, EditReceiptActivity::class.java)
         intent.putExtra("RECEIPT_ID", receiptId)
+        // Dodaj informację o kontekście
+        intent.putExtra("CONTEXT", "CLIENT_LIST") // Kontekst: lista klienta
         startActivity(intent)
     }
 }
