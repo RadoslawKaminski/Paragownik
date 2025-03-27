@@ -10,56 +10,99 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.kaminski.paragownik.data.Store
 import com.kaminski.paragownik.viewmodel.StoreViewModel
 
+/**
+ * Główna aktywność aplikacji. Wyświetla listę dostępnych drogerii (sklepów).
+ * Umożliwia przejście do listy paragonów dla wybranej drogerii
+ * oraz przejście do dodawania nowego klienta (bez kontekstu sklepu).
+ */
 class MainActivity : AppCompatActivity(), StoreAdapter.OnItemClickListener {
 
+    // ViewModel do zarządzania danymi sklepów
     private lateinit var storeViewModel: StoreViewModel
+    // Adapter dla RecyclerView wyświetlającego sklepy
     private lateinit var storeAdapter: StoreAdapter
-    private lateinit var fabAddClientMain: FloatingActionButton // Dodaj deklarację FAB
+    // Przycisk FAB do dodawania nowego klienta
+    private lateinit var fabAddClientMain: FloatingActionButton
 
+    /**
+     * Metoda wywoływana przy tworzeniu Aktywności.
+     * Inicjalizuje RecyclerView, Adapter, ViewModel, obserwuje dane sklepów
+     * i ustawia listener dla FAB.
+     */
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+        setContentView(R.layout.activity_main) // Ustawienie layoutu
 
+        // Inicjalizacja RecyclerView
         val storeRecyclerView: RecyclerView = findViewById(R.id.storeRecyclerView)
-        storeRecyclerView.layoutManager = LinearLayoutManager(this)
+        storeRecyclerView.layoutManager = LinearLayoutManager(this) // Ustawienie managera layoutu
 
+        // Inicjalizacja Adaptera z pustą listą i listenerem kliknięć (this implementuje interfejs)
         storeAdapter = StoreAdapter(emptyList(), this)
-        storeRecyclerView.adapter = storeAdapter
+        storeRecyclerView.adapter = storeAdapter // Przypisanie adaptera do RecyclerView
 
+        // Inicjalizacja ViewModelu
         storeViewModel = ViewModelProvider(this).get(StoreViewModel::class.java)
 
+        // Obserwacja LiveData `allStores` z ViewModelu
         storeViewModel.allStores.observe(this) { stores ->
-            stores?.let {
+            // Gdy lista sklepów się zmieni (lub zostanie załadowana po raz pierwszy):
+            stores?.let { // Sprawdź, czy lista nie jest null
+                // Zaktualizuj dane w adapterze
                 storeAdapter.storeList = it
+                // Powiadom adapter, że dane się zmieniły, aby odświeżył widok
                 storeAdapter.notifyDataSetChanged()
             }
         }
 
+        // --- Sekcja do wstawiania przykładowych danych (obecnie nieaktywna) ---
+        // Ta obserwacja była prawdopodobnie używana do wstawienia danych, jeśli baza jest pusta.
+        // Można ją usunąć lub zmodyfikować, jeśli potrzebne jest wstawianie danych startowych.
+        /*
         storeViewModel.allStores.observe(this) { stores ->
             if (stores.isNullOrEmpty()) {
-                insertSampleStores()
+                // insertSampleStores() // Wywołanie funkcji wstawiającej dane (obecnie zakomentowane)
             }
+            // Ta część jest duplikatem poprzedniej obserwacji, można ją usunąć.
             stores?.let {
                 storeAdapter.storeList = it
                 storeAdapter.notifyDataSetChanged()
             }
         }
+        */
 
-        fabAddClientMain = findViewById(R.id.fabAddClientMain) // Inicjalizacja FAB
-        fabAddClientMain.setOnClickListener { // Obsługa kliknięcia FAB
+        // Inicjalizacja FloatingActionButton
+        fabAddClientMain = findViewById(R.id.fabAddClientMain)
+        // Ustawienie listenera kliknięcia dla FAB
+        fabAddClientMain.setOnClickListener {
+            // Utwórz Intent do uruchomienia AddClientActivity
             val intent = Intent(this, AddClientActivity::class.java)
-            startActivity(intent) // Uruchom AddClientActivity bez przekazywania STORE_ID
+            // Uruchom AddClientActivity bez przekazywania STORE_ID
+            // (użytkownik będzie musiał wpisać numer sklepu dla pierwszego paragonu)
+            startActivity(intent)
         }
     }
 
+    /**
+     * Funkcja do wstawiania przykładowych danych sklepów (obecnie nieużywana).
+     */
     private fun insertSampleStores() {
-        //storeViewModel.insertStore(Store(storeNumber = "123"))
-        //storeViewModel.insertStore(Store(storeNumber = "456"))
+        // storeViewModel.insertStore(Store(storeNumber = "123"))
+        // storeViewModel.insertStore(Store(storeNumber = "456"))
     }
 
+    /**
+     * Metoda wywoływana, gdy użytkownik kliknie element na liście sklepów.
+     * Implementacja interfejsu [StoreAdapter.OnItemClickListener].
+     * @param storeId ID klikniętego sklepu.
+     */
     override fun onItemClick(storeId: Long) {
+        // Utwórz Intent do uruchomienia ReceiptListActivity
         val intent = Intent(this, ReceiptListActivity::class.java)
+        // Dodaj ID klikniętego sklepu jako dodatkową informację do Intentu
         intent.putExtra("STORE_ID", storeId)
+        // Uruchom ReceiptListActivity
         startActivity(intent)
     }
 }
+

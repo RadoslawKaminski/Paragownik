@@ -1,158 +1,160 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Layout pojedynczego elementu listy paragonów w ReceiptListActivity. -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginTop="16dp"
-    android:background="@color/main_color_dark"
+    android:layout_marginTop="16dp" 
+    android:background="@color/main_color_dark" 
     android:orientation="vertical"
     android:paddingStart="16dp"
-    android:paddingTop="8dp"
-    android:paddingEnd="16dp"> <!-- Dodany padding górny -->
+    android:paddingTop="8dp" 
+    android:paddingEnd="16dp">
 
-    <!-- Kontener na blok tekstu i ikonę edycji (poziomy) -->
+    <!-- Kontener poziomy na główną treść (tekst) i ikonę edycji. -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"> <!-- Poziomy kontener na tekst i ikonę -->
+        android:orientation="horizontal">
 
-        <!-- Blok z tekstem (numer, data, weryfikacja, opis, numery klienta) -->
+        <!-- Kontener pionowy na wszystkie informacje tekstowe (zajmuje dostępną szerokość). -->
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
+            android:layout_weight="1" 
             android:orientation="vertical">
 
-            <!-- Numer paragonu i Data paragonu w jednej linii -->
+            <!-- Numer paragonu i Data paragonu w jednej linii. -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:gravity="center_vertical"
+                android:gravity="center_vertical" 
                 android:orientation="horizontal">
 
-                <!-- Numer paragonu -->
+                <!-- Numer paragonu. -->
                 <TextView
                     android:id="@+id/receiptNumberTextView"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="8dp"
                     android:layout_marginEnd="8dp"
-                    android:textSize="24sp"
-                    android:textStyle="bold"
-                    tools:text="1234" />
+                    android:textSize="24sp" 
+                    android:textStyle="bold" 
+                    tools:text="1234" /> 
 
-                <!-- Separator pionowy -->
+                <!-- Separator pionowy. -->
                 <View
                     android:layout_width="1dp"
                     android:layout_height="match_parent"
                     android:layout_marginStart="8dp"
                     android:layout_marginEnd="8dp"
-                    android:background="@color/sub_white_text" /> <!-- Zmieniony kolor separatora -->
+                    android:background="@color/sub_white_text" /> 
 
-                <!-- Data paragonu -->
+                <!-- Data paragonu. -->
                 <TextView
                     android:id="@+id/receiptDateTextView"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="8dp"
                     android:layout_marginEnd="8dp"
-                    android:textSize="24sp"
-                    android:textStyle="bold"
-                    tools:text="01-01-2024" />
+                    android:textSize="24sp" 
+                    android:textStyle="bold" 
+                    tools:text="01-01-2024" /> 
             </LinearLayout>
 
-            <!-- Data weryfikacji -->
+            <!-- Data weryfikacji. -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                android:gravity="center_vertical"
+                android:gravity="center_vertical" 
                 android:orientation="horizontal">
 
+                <!-- Etykieta "Weryfikacja: ". -->
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Weryfikacja: "
-                    android:textSize="16sp" /> <!-- Zmniejszona czcionka -->
+                    android:textSize="16sp" /> 
 
+                <!-- Wartość daty weryfikacji (lub "Brak"). -->
                 <TextView
                     android:id="@+id/verificationDateTextView"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:textSize="20sp"
-                    tools:text="02-01-2024" />
+                    android:layout_weight="1" 
+                    android:textSize="20sp" 
+                    tools:text="02-01-2024" /> 
             </LinearLayout>
 
-            <!-- Opis klienta -->
+            <!-- Opis klienta. -->
             <TextView
                 android:id="@+id/clientDescriptionTextView"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                android:textSize="18sp"
-                tools:text="Opis klienta lorem ipsum dolor sit amet siala lala lalala lalala" />
+                android:textSize="18sp" 
+                tools:text="Opis klienta lorem ipsum dolor sit amet siala lala lalala lalala" /> 
 
-            <!--  NOWE POLA KLIENTA  -->
-            <!-- Numer aplikacji klienta -->
+            <!-- Numer aplikacji klienta (domyślnie ukryty). -->
             <TextView
                 android:id="@+id/clientAppNumberTextView"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
-                android:textColor="@color/sub_white_text"
-                android:textSize="14sp"
-                android:visibility="gone"
+                android:textColor="@color/sub_white_text" 
+                android:textSize="14sp" 
+                android:visibility="gone" 
                 tools:text="Nr aplikacji: 98765"
-                tools:visibility="visible" />
+                tools:visibility="visible" /> 
 
-            <!-- Numer Amodit -->
+            <!-- Numer Amodit (domyślnie ukryty). -->
             <TextView
                 android:id="@+id/amoditNumberTextView"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="2dp"
-                android:textColor="@color/sub_white_text"
-                android:textSize="14sp"
-                android:visibility="gone"
+                android:textColor="@color/sub_white_text" 
+                android:textSize="14sp" 
+                android:visibility="gone" 
                 tools:text="Amodit: 12345"
-                tools:visibility="visible" />
-            <!--  KONIEC NOWYCH PÓL KLIENTA -->
-
+                tools:visibility="visible" /> 
 
         </LinearLayout> <!-- Koniec bloku z tekstem -->
 
-        <!-- Blok z ikoną edycji (po prawej stronie) -->
+        <!-- Kontener na ikonę edycji (po prawej stronie). -->
         <LinearLayout
             android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:gravity="center_vertical"
+            android:layout_height="match_parent" 
+            android:gravity="center_vertical" 
             android:orientation="vertical"
-            android:paddingStart="8dp"> <!-- Dodany padding dla odstępu -->
+            android:paddingStart="8dp"> 
 
+            <!-- Ikona edycji (ImageView). -->
             <ImageView
                 android:id="@+id/editReceiptButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:clickable="true"
-                android:contentDescription="Edytuj paragon"
-                android:focusable="true"
-                android:minWidth="48dp"
-                android:minHeight="48dp"
-                android:padding="8dp"
-                android:src="@drawable/ic_edit_icon" />
+                android:background="?attr/selectableItemBackgroundBorderless" 
+                android:clickable="true" 
+                android:contentDescription="Edytuj paragon" 
+                android:focusable="true" 
+                android:minWidth="48dp" 
+                android:minHeight="48dp" 
+                android:padding="8dp" 
+                android:src="@drawable/ic_edit_icon" /> 
         </LinearLayout>
     </LinearLayout>
 
-    <!-- Linia separatora -->
+    <!-- Linia separatora na dole elementu. -->
     <View
         android:layout_width="match_parent"
         android:layout_height="1dp"
         android:layout_marginStart="16dp"
         android:layout_marginTop="16dp"
         android:layout_marginEnd="16dp"
-        android:background="@color/sub_white_text" /> <!-- Zmieniony kolor -->
+        android:background="@color/sub_white_text" /> 
 
 </LinearLayout>
+

@@ -23,201 +23,242 @@ import java.text.SimpleDateFormat
 import java.util.Locale
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.isActive
+import java.text.ParseException // Potrzebne do obsługi błędów parsowania daty w TextWatcherze
 
+/**
+ * Aktywność odpowiedzialna za edycję istniejącego paragonu oraz powiązanych danych klienta.
+ * Umożliwia również usunięcie pojedynczego paragonu lub całego klienta (wraz ze wszystkimi jego paragonami).
+ */
 class EditReceiptActivity : AppCompatActivity() {
 
-    // Pola UI
+    // --- Widoki UI ---
+    // Pola edycyjne dla danych paragonu
     private lateinit var editReceiptStoreNumberEditText: EditText
     private lateinit var editReceiptNumberEditText: EditText
     private lateinit var editReceiptDateEditText: EditText
     private lateinit var editVerificationDateEditText: EditText
     private lateinit var editVerificationDateTodayCheckBox: CheckBox
+
+    // Pola edycyjne dla danych klienta
     private lateinit var editClientDescriptionEditText: EditText
-    // --- NOWE POLA UI KLIENTA ---
     private lateinit var editClientAppNumberEditText: EditText
     private lateinit var editAmoditNumberEditText: EditText
-    // --- KONIEC NOWYCH PÓL UI KLIENTA ---
+
+    // Przyciski akcji
     private lateinit var saveReceiptButton: Button
     private lateinit var deleteReceiptButton: Button
     private lateinit var deleteClientButton: Button
 
-    // ViewModel
+    // --- ViewModel ---
     private lateinit var editReceiptViewModel: EditReceiptViewModel
 
-    // ID edytowanego paragonu
+    // --- Dane pomocnicze ---
+    // ID edytowanego paragonu, pobierane z Intentu
     private var receiptId: Long = -1L
-    // Przechowuje aktualne dane klienta (potrzebne przy usuwaniu)
+    // Przechowuje ID aktualnie edytowanego klienta (potrzebne przy usuwaniu klienta)
     private var currentClientId: Long? = null
+    // Referencja do korutyny ładującej dane, aby można ją było anulować (np. przy usuwaniu)
+    private var loadDataJob: Job? = null
 
-    private var loadDataJob: Job? = null // Zmienna do przechowywania Joba
-
+    /**
+     * Metoda wywoływana przy tworzeniu Aktywności.
+     * Inicjalizuje UI, ViewModel, pobiera ID paragonu z Intentu, ładuje dane
+     * i ustawia listenery dla przycisków.
+     */
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_edit_receipt)
+        setContentView(R.layout.activity_edit_receipt) // Ustawienie layoutu
 
-        // Inicjalizacja widoków
+        // Inicjalizacja wszystkich widoków UI
+        initializeViews()
+
+        // Inicjalizacja ViewModelu
+        editReceiptViewModel = ViewModelProvider(this).get(EditReceiptViewModel::class.java)
+
+        // Pobierz ID paragonu przekazane z poprzedniej aktywności (ReceiptListActivity)
+        receiptId = intent.getLongExtra("RECEIPT_ID", -1L)
+
+        // Sprawdź, czy ID paragonu jest poprawne. Jeśli nie, zakończ aktywność.
+        if (receiptId == -1L) {
+            Toast.makeText(this, "Błąd: Nieprawidłowe ID paragonu.", Toast.LENGTH_LONG).show()
+            Log.e("EditReceiptActivity", "Nieprawidłowe RECEIPT_ID przekazane w Intencie.")
+            finish() // Zamknij aktywność
+            return   // Zakończ wykonywanie onCreate
+        }
+
+        // Ustaw formatowanie dla pól dat (DD-MM-YYYY)
+        setupDateEditText(editReceiptDateEditText)
+        setupDateEditText(editVerificationDateEditText)
+        // Skonfiguruj działanie checkboxa "Dzisiaj" dla daty weryfikacji
+        setupVerificationDateCheckBox()
+
+        // Rozpocznij ładowanie danych paragonu i klienta z bazy danych
+        loadReceiptData()
+
+        // Ustaw listenery dla przycisków "Zapisz", "Usuń paragon", "Usuń klienta"
+        setupButtonClickListeners()
+    }
+
+    /**
+     * Inicjalizuje wszystkie referencje do widoków UI z layoutu `activity_edit_receipt.xml`.
+     */
+    private fun initializeViews() {
         editReceiptStoreNumberEditText = findViewById(R.id.editReceiptStoreNumberEditText)
         editReceiptNumberEditText = findViewById(R.id.editReceiptNumberEditText)
         editReceiptDateEditText = findViewById(R.id.editReceiptDateEditText)
         editVerificationDateEditText = findViewById(R.id.editVerificationDateEditText)
         editVerificationDateTodayCheckBox = findViewById(R.id.editVerificationDateTodayCheckBox)
         editClientDescriptionEditText = findViewById(R.id.editClientDescriptionEditText)
-        // --- INICJALIZACJA NOWYCH PÓL ---
         editClientAppNumberEditText = findViewById(R.id.editClientAppNumberEditText)
         editAmoditNumberEditText = findViewById(R.id.editAmoditNumberEditText)
-        // --- KONIEC INICJALIZACJI NOWYCH PÓL ---
         saveReceiptButton = findViewById(R.id.saveReceiptButton)
         deleteReceiptButton = findViewById(R.id.deleteReceiptButton)
         deleteClientButton = findViewById(R.id.deleteClientButton)
-
-        // Inicjalizacja ViewModelu
-        editReceiptViewModel = ViewModelProvider(this).get(EditReceiptViewModel::class.java)
-
-        // Pobierz ID paragonu z Intentu
-        receiptId = intent.getLongExtra("RECEIPT_ID", -1L)
-
-        // Sprawdź, czy ID paragonu jest poprawne
-        if (receiptId == -1L) {
-            Toast.makeText(this, "Błąd: Nieprawidłowe ID paragonu.", Toast.LENGTH_LONG).show()
-            Log.e("EditReceiptActivity", "Nieprawidłowe RECEIPT_ID przekazane w Intencie.")
-            finish() // Zakończ aktywność, jeśli ID jest nieprawidłowe
-            return
-        }
-
-        // Ustaw formatowanie dla pól dat
-        setupDateEditText(editReceiptDateEditText)
-        setupDateEditText(editVerificationDateEditText)
-        // Skonfiguruj checkbox "Dzisiaj"
-        setupVerificationDateCheckBox()
-
-        // Załaduj dane paragonu i klienta
-        loadReceiptData()
-
-        // Ustaw listenery dla przycisków
-        saveReceiptButton.setOnClickListener {
-            saveChanges()
-        }
-        deleteReceiptButton.setOnClickListener {
-            showDeleteReceiptDialog()
-        }
-        deleteClientButton.setOnClickListener {
-            showDeleteClientDialog()
-        }
     }
 
     /**
-     * Wczytuje dane paragonu i powiązanego klienta z ViewModelu i wypełnia pola formularza.
+     * Ustawia listenery kliknięć dla przycisków zapisu i usuwania.
      */
+    private fun setupButtonClickListeners() {
+        saveReceiptButton.setOnClickListener {
+            saveChanges() // Wywołaj funkcję zapisu zmian
+        }
+        deleteReceiptButton.setOnClickListener {
+            showDeleteReceiptDialog() // Pokaż dialog potwierdzenia usunięcia paragonu
+        }
+        deleteClientButton.setOnClickListener {
+            showDeleteClientDialog() // Pokaż dialog potwierdzenia usunięcia klienta
+        }
+    }
+
+
     /**
-     * Wczytuje dane paragonu i powiązanego klienta z ViewModelu i wypełnia pola formularza.
-     * Anuluje poprzednie zadanie ładowania, jeśli istnieje.
-     * Loguje błąd tylko wtedy, gdy dane nie zostaną znalezione, a korutyna jest nadal aktywna.
+     * Wczytuje dane paragonu (wraz z klientem i numerem sklepu) z ViewModelu.
+     * Używa `collectLatest` do obserwacji Flow, co zapewnia, że zawsze przetwarzane są najnowsze dane
+     * i anuluje poprzednie przetwarzanie, jeśli nowe dane pojawią się szybko.
+     * Anuluje poprzednie zadanie ładowania (`loadDataJob`), jeśli istniało.
+     * Wypełnia pola formularza pobranymi danymi.
+     * Loguje błąd tylko wtedy, gdy dane nie zostaną znalezione, a korutyna jest nadal aktywna
+     * (zapobiega logowaniu podczas normalnego zamykania aktywności po usunięciu).
      */
     private fun loadReceiptData() {
-        // Anuluj poprzednie zadanie ładowania, jeśli było aktywne
+        // Anuluj poprzednie zadanie ładowania danych, jeśli było aktywne
         loadDataJob?.cancel()
-        // Uruchom nowe zadanie w lifecycleScope i zapisz referencję do Joba
+        // Uruchom nową korutynę w zakresie cyklu życia Aktywności i zapisz referencję do Joba
         loadDataJob = lifecycleScope.launch {
+            // Obserwuj Flow zwracany przez ViewModel
             editReceiptViewModel.getReceiptWithClientAndStoreNumber(receiptId)
-                .collectLatest { pair ->
+                .collectLatest { pair -> // collectLatest: przetwarza tylko najnowsze dane
+                    // Rozpakuj parę (ReceiptWithClient?, String?)
                     val receiptWithClient = pair.first
-                    // val storeNumber = pair.second // Pobierzemy storeNumber w bloku if
+                    val storeNumber = pair.second
 
-                    // Sprawdź, czy otrzymano poprawne dane paragonu i klienta
+                    // Sprawdź, czy otrzymano poprawne dane (paragon i klient nie są null)
                     if (receiptWithClient != null && receiptWithClient.client != null) {
-                        // Dane są poprawne, wypełnij pola formularza
+                        // Dane są poprawne, można wypełnić formularz
                         val receipt = receiptWithClient.receipt
                         val client = receiptWithClient.client
-                        val storeNumber = pair.second // Pobierz numer sklepu
 
-                        // Zapisz ID klienta na potrzeby późniejszego usuwania
+                        // Zapisz ID klienta - będzie potrzebne do ewentualnego usunięcia klienta
                         currentClientId = client.id
 
-                        // Wypełnij pola formularza
-                        editReceiptStoreNumberEditText.setText(storeNumber ?: "")
+                        // Wypełnij pola formularza danymi paragonu i klienta
+                        editReceiptStoreNumberEditText.setText(storeNumber ?: "") // Użyj numeru sklepu z pary
                         editReceiptNumberEditText.setText(receipt.receiptNumber)
 
+                        // Formatowanie daty paragonu
                         val dateFormat = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault())
                         editReceiptDateEditText.setText(dateFormat.format(receipt.receiptDate))
 
                         // Obsługa daty weryfikacji (może być null)
                         receipt.verificationDate?.let { verificationDate ->
+                            // Jeśli data weryfikacji istnieje
                             val formattedVerificationDate = dateFormat.format(verificationDate)
                             editVerificationDateEditText.setText(formattedVerificationDate)
+                            // Sprawdź, czy data weryfikacji to dzisiaj
                             val todayDate = dateFormat.format(java.util.Calendar.getInstance().time)
                             if (formattedVerificationDate == todayDate) {
+                                // Jeśli tak, zaznacz checkbox i zablokuj pole
                                 editVerificationDateTodayCheckBox.isChecked = true
                                 editVerificationDateEditText.isEnabled = false
                             } else {
+                                // Jeśli nie, odznacz checkbox i odblokuj pole
                                 editVerificationDateTodayCheckBox.isChecked = false
                                 editVerificationDateEditText.isEnabled = true
                             }
                         } ?: run {
-                            editVerificationDateEditText.text.clear()
-                            editVerificationDateTodayCheckBox.isChecked = false
-                            editVerificationDateEditText.isEnabled = true
+                            // Jeśli data weryfikacji jest null
+                            editVerificationDateEditText.text.clear() // Wyczyść pole
+                            editVerificationDateTodayCheckBox.isChecked = false // Odznacz checkbox
+                            editVerificationDateEditText.isEnabled = true // Odblokuj pole
                         }
 
+                        // Wypełnij pola danych klienta (użyj pustego stringa, jeśli wartość jest null)
                         editClientDescriptionEditText.setText(client.description ?: "")
                         editClientAppNumberEditText.setText(client.clientAppNumber ?: "")
                         editAmoditNumberEditText.setText(client.amoditNumber ?: "")
                         // Logika ładowania zdjęcia (photoUri) zostanie dodana później
 
                     } else {
-                        // Dane są null (np. paragon został usunięty)
-                        // Loguj błąd TYLKO jeśli korutyna jest nadal aktywna
-                        // (zapobiega logowaniu podczas zamykania aktywności po usunięciu)
-                        if (isActive) { // Sprawdź, czy korutyna nie została anulowana
-                            Log.e("EditReceiptActivity", "Nie znaleziono ReceiptWithClient lub Client dla receiptId: $receiptId (lub został usunięty)")
+                        // Dane są null (receiptWithClient lub client jest null) - prawdopodobnie paragon został usunięty
+                        // Loguj błąd TYLKO jeśli korutyna jest nadal aktywna (nie została anulowana np. przez onDestroy lub usunięcie)
+                        if (isActive) {
+                            Log.e("EditReceiptActivity", "Nie znaleziono ReceiptWithClient lub Client dla receiptId: $receiptId (lub został usunięty w międzyczasie)")
+                            // Można by tu dodać np. zamknięcie aktywności, jeśli dane zniknęły
+                            // finish()
+                            // Toast.makeText(this@EditReceiptActivity, "Paragon został usunięty.", Toast.LENGTH_SHORT).show()
                         }
                     }
                 }
         }
     }
 
+
     /**
-     * Zbiera dane z formularza i wywołuje metodę ViewModelu do zapisania zmian.
+     * Zbiera dane z formularza edycji i wywołuje metodę [EditReceiptViewModel.updateReceiptAndClient]
+     * w celu zapisania zmian w bazie danych.
+     * Przeprowadza podstawową walidację pustych pól w UI.
+     * Obsługuje wynik operacji zapisu zwrócony przez ViewModel.
      */
     private fun saveChanges() {
-        // Zbierz dane z pól formularza
+        // Zbierz dane z pól formularza, usuwając białe znaki z początku i końca
         val storeNumberString = editReceiptStoreNumberEditText.text.toString().trim()
         val receiptNumber = editReceiptNumberEditText.text.toString().trim()
         val receiptDateString = editReceiptDateEditText.text.toString().trim()
         val verificationDateString = editVerificationDateEditText.text.toString().trim()
         val clientDescription = editClientDescriptionEditText.text.toString().trim()
-        // --- POBRANIE DANYCH Z NOWYCH PÓL ---
         val clientAppNumber = editClientAppNumberEditText.text.toString().trim()
         val amoditNumber = editAmoditNumberEditText.text.toString().trim()
         // photoUri będzie dodane później
-        // --- KONIEC POBRANIA DANYCH Z NOWYCH PÓL ---
 
-        // Podstawowa walidacja pustych pól (ViewModel zrobi resztę)
+        // Podstawowa walidacja pustych pól wymaganych dla paragonu w UI
         if (storeNumberString.isEmpty() || receiptNumber.isEmpty() || receiptDateString.isEmpty()) {
             Toast.makeText(this, "Wypełnij numer sklepu, numer paragonu i datę paragonu.", Toast.LENGTH_LONG).show()
-            return
+            return // Zakończ, jeśli brakuje podstawowych danych
         }
-
 
         // Wywołaj metodę ViewModelu w korutynie
         lifecycleScope.launch {
+            // Wywołaj metodę aktualizującą dane w ViewModelu
             val result = editReceiptViewModel.updateReceiptAndClient(
-                receiptId = receiptId,
+                receiptId = receiptId, // ID edytowanego paragonu
                 storeNumberString = storeNumberString,
                 receiptNumber = receiptNumber,
                 receiptDateString = receiptDateString,
+                // Przekaż datę weryfikacji jako null, jeśli jest pusta
                 verificationDateString = verificationDateString.takeIf { it.isNotEmpty() },
+                // Przekaż dane klienta jako null, jeśli są puste
                 clientDescription = clientDescription.takeIf { it.isNotEmpty() },
-                // Przekazanie nowych pól
                 clientAppNumber = clientAppNumber.takeIf { it.isNotEmpty() },
                 amoditNumber = amoditNumber.takeIf { it.isNotEmpty() },
                 photoUri = null // Na razie null
             )
 
-            // Obsługa wyniku operacji zapisu
+            // Obsługa wyniku operacji zapisu zwróconego przez ViewModel
             when (result) {
                 EditReceiptViewModel.EditResult.SUCCESS -> {
                     Toast.makeText(this@EditReceiptActivity, "Zmiany zapisane pomyślnie", Toast.LENGTH_SHORT).show()
-                    finish() // Powrót do poprzedniej aktywności po sukcesie
+                    finish() // Powrót do poprzedniej aktywności (ReceiptListActivity) po sukcesie
                 }
                 EditReceiptViewModel.EditResult.ERROR_NOT_FOUND -> {
                     Toast.makeText(this@EditReceiptActivity, "Błąd: Nie znaleziono paragonu do aktualizacji.", Toast.LENGTH_LONG).show()
@@ -242,51 +283,60 @@ class EditReceiptActivity : AppCompatActivity() {
     }
 
     /**
-     * Wyświetla dialog potwierdzający usunięcie paragonu.
+     * Wyświetla standardowy [AlertDialog] z pytaniem, czy użytkownik na pewno chce usunąć
+     * bieżący paragon. Informuje również o potencjalnym usunięciu klienta/drogerii.
      */
     private fun showDeleteReceiptDialog() {
         AlertDialog.Builder(this)
             .setTitle("Potwierdzenie usunięcia")
             .setMessage("Czy na pewno chcesz usunąć ten paragon?\n\n(Jeśli to ostatni paragon klienta lub drogerii, zostaną oni również usunięci).")
             .setPositiveButton("Usuń") { _, _ ->
-                deleteReceipt() // Wywołaj funkcję usuwania po potwierdzeniu
+                // Po kliknięciu "Usuń" wywołaj funkcję usuwającą paragon
+                deleteReceipt()
             }
-            .setNegativeButton("Anuluj", null)
-            .setIcon(android.R.drawable.ic_dialog_alert)
-            .show()
+            .setNegativeButton("Anuluj", null) // "Anuluj" nic nie robi, dialog się zamyka
+            .setIcon(android.R.drawable.ic_dialog_alert) // Standardowa ikona ostrzeżenia
+            .show() // Pokaż dialog
     }
 
     /**
-     * Wywołuje metodę ViewModelu do usunięcia bieżącego paragonu.
+     * Wywołuje metodę [EditReceiptViewModel.deleteReceipt] w celu usunięcia bieżącego paragonu.
+     * Najpierw pobiera aktualny obiekt paragonu z bazy (potrzebny jako argument dla metody ViewModelu).
+     * Po pomyślnym usunięciu nawiguje z powrotem do [MainActivity], czyszcząc stos aktywności.
      */
     private fun deleteReceipt() {
         lifecycleScope.launch {
-            // Pobierz aktualny obiekt paragonu (potrzebny do metody deleteReceipt w ViewModel)
-            // Używamy firstOrNull() do jednorazowego pobrania wartości z Flow
+            // Pobierz aktualny obiekt paragonu z bazy danych.
+            // Używamy `firstOrNull()` do jednorazowego pobrania najnowszej wartości z Flow.
+            // Mapujemy wynik, aby uzyskać tylko obiekt `Receipt` lub `null`.
             val currentReceipt = editReceiptViewModel.getReceiptWithClientAndStoreNumber(receiptId)
-                .map { it.first?.receipt } // Wyciągnij tylko paragon
-                .firstOrNull() // Pobierz pierwszą nie-null wartość lub null
+                .map { it.first?.receipt } // Wyciągnij tylko paragon z pary (może być null)
+                .firstOrNull()             // Pobierz pierwszą (i jedyną) emitowaną wartość lub null
 
+            // Sprawdź, czy udało się pobrać paragon
             if (currentReceipt == null) {
+                // Jeśli nie (np. został usunięty w międzyczasie), pokaż błąd i zakończ
                 Toast.makeText(this@EditReceiptActivity, "Błąd: Nie można pobrać danych paragonu do usunięcia.", Toast.LENGTH_LONG).show()
-                return@launch
+                Log.e("EditReceiptActivity", "Nie udało się pobrać Receipt (id: $receiptId) do usunięcia.")
+                return@launch // Zakończ korutynę
             }
 
-            // Wywołaj metodę usuwania w ViewModelu
+            // Wywołaj metodę usuwania w ViewModelu, przekazując pobrany obiekt paragonu
             val result = editReceiptViewModel.deleteReceipt(currentReceipt)
 
             // Obsługa wyniku operacji usuwania
             when (result) {
                 EditReceiptViewModel.EditResult.SUCCESS -> {
                     Toast.makeText(this@EditReceiptActivity, "Paragon usunięty", Toast.LENGTH_SHORT).show()
-                    // Powrót do MainActivity po usunięciu paragonu
-                    finishAffinity() // Zamknij bieżącą i poprzednie aktywności (np. ReceiptListActivity)
+                    // Po pomyślnym usunięciu paragonu, wróć do MainActivity, czyszcząc stos
+                    finishAffinity() // Zamknij bieżącą aktywność i wszystkie poprzednie w zadaniu
+                    // Uruchom MainActivity jako nowe zadanie
                     startActivity(Intent(this@EditReceiptActivity, MainActivity::class.java).apply {
-                        // Flagi czyszczące stos aktywności, aby MainActivity była nowym korzeniem
                         flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
                     })
                 }
                 EditReceiptViewModel.EditResult.ERROR_NOT_FOUND -> {
+                    // Ten błąd nie powinien wystąpić, bo sprawdziliśmy istnienie paragonu wcześniej
                     Toast.makeText(this@EditReceiptActivity, "Błąd: Nie znaleziono paragonu do usunięcia.", Toast.LENGTH_LONG).show()
                 }
                 EditReceiptViewModel.EditResult.ERROR_DATABASE -> {
@@ -300,45 +350,58 @@ class EditReceiptActivity : AppCompatActivity() {
     }
 
     /**
-     * Wyświetla dialog potwierdzający usunięcie klienta i wszystkich jego paragonów.
+     * Wyświetla [AlertDialog] z ostrzeżeniem o konsekwencjach usunięcia klienta
+     * (usunięcie wszystkich jego paragonów i potencjalnie pustych drogerii).
+     * Pyta o potwierdzenie przed wykonaniem operacji.
      */
     private fun showDeleteClientDialog() {
-        // Sprawdź, czy mamy ID klienta
+        // Sprawdź, czy mamy zapisane ID klienta (powinno być ustawione w loadReceiptData)
         if (currentClientId == null) {
             Toast.makeText(this, "Błąd: Nie można zidentyfikować klienta do usunięcia.", Toast.LENGTH_LONG).show()
-            return
+            Log.e("EditReceiptActivity", "Próba usunięcia klienta, ale currentClientId jest null.")
+            return // Zakończ, jeśli nie znamy ID klienta
         }
 
+        // Pokaż dialog potwierdzenia
         AlertDialog.Builder(this)
             .setTitle("Potwierdzenie usunięcia klienta")
             .setMessage("Czy na pewno chcesz usunąć tego klienta?\n\nUWAGA: Usunięcie klienta spowoduje USUNIĘCIE WSZYSTKICH jego paragonów! Drogerie, które staną się puste, również zostaną usunięte.")
             .setPositiveButton("Usuń Klienta") { _, _ ->
-                deleteClient() // Wywołaj funkcję usuwania klienta po potwierdzeniu
+                // Po kliknięciu "Usuń Klienta" wywołaj funkcję usuwającą klienta
+                deleteClient()
             }
-            .setNegativeButton("Anuluj", null)
-            .setIcon(android.R.drawable.ic_dialog_alert)
-            .show()
+            .setNegativeButton("Anuluj", null) // Anuluj nic nie robi
+            .setIcon(android.R.drawable.ic_dialog_alert) // Ikona ostrzeżenia
+            .show() // Pokaż dialog
     }
 
     /**
-     * Wywołuje metodę ViewModelu do usunięcia klienta (i kaskadowo jego paragonów).
+     * Wywołuje metodę [EditReceiptViewModel.deleteClient] w celu usunięcia klienta
+     * (i kaskadowo jego paragonów).
+     * Anuluje obserwację danych (`loadDataJob`), aby uniknąć błędów po usunięciu.
+     * Po pomyślnym usunięciu nawiguje z powrotem do [MainActivity], czyszcząc stos aktywności.
      */
     private fun deleteClient() {
-        val clientIdToDelete = currentClientId ?: return // Ponowne sprawdzenie dla bezpieczeństwa
+        // Pobierz ID klienta do usunięcia (ponowne sprawdzenie dla bezpieczeństwa)
+        val clientIdToDelete = currentClientId ?: return
 
         lifecycleScope.launch {
-            // Tworzymy tymczasowy obiekt Client tylko z ID, bo ViewModel i tak pobierze pełny obiekt
+            // Utwórz tymczasowy obiekt Client tylko z ID. ViewModel i tak pobierze pełny obiekt z bazy.
+            // Opis i inne pola nie są potrzebne do operacji delete.
             val clientStub = com.kaminski.paragownik.data.Client(id = clientIdToDelete, description = null)
+            // Wywołaj metodę usuwania w ViewModelu
             val result = editReceiptViewModel.deleteClient(clientStub)
 
             // Obsługa wyniku operacji usuwania klienta
             when (result) {
                 EditReceiptViewModel.EditResult.SUCCESS -> {
                     Toast.makeText(this@EditReceiptActivity, "Klient i jego paragony usunięte", Toast.LENGTH_SHORT).show()
-                    // Anuluj obserwację danych
+                    // Anuluj korutynę obserwującą dane (loadDataJob), aby uniknąć prób
+                    // dostępu do usuniętych danych po zamknięciu aktywności.
                     loadDataJob?.cancel()
-                    // Powrót do MainActivity po usunięciu klienta
+                    // Po pomyślnym usunięciu klienta, wróć do MainActivity, czyszcząc stos
                     finishAffinity() // Zamknij bieżącą i poprzednie aktywności
+                    // Uruchom MainActivity jako nowe zadanie
                     startActivity(Intent(this@EditReceiptActivity, MainActivity::class.java).apply {
                         flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
                     })
@@ -357,46 +420,58 @@ class EditReceiptActivity : AppCompatActivity() {
     }
 
     /**
-     * Konfiguruje CheckBox "Dzisiaj" dla daty weryfikacji.
+     * Konfiguruje działanie CheckBoxa "Dzisiaj" dla pola daty weryfikacji.
+     * Po zaznaczeniu ustawia aktualną datę i blokuje pole EditText.
+     * Po odznaczeniu czyści pole EditText i odblokowuje je.
      */
     private fun setupVerificationDateCheckBox() {
         editVerificationDateTodayCheckBox.setOnCheckedChangeListener { _, isChecked ->
             if (isChecked) {
-                // Ustaw aktualną datę i wyłącz EditText
+                // Jeśli zaznaczony:
+                // Pobierz aktualną datę
                 val currentDate = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault()).format(java.util.Calendar.getInstance().time)
+                // Ustaw datę w polu
                 editVerificationDateEditText.setText(currentDate)
+                // Zablokuj pole
                 editVerificationDateEditText.isEnabled = false
             } else {
-                editVerificationDateEditText.text.clear() // Wyczyść pole
+                // Jeśli odznaczony:
+                // Wyczyść pole daty weryfikacji
+                editVerificationDateEditText.text.clear()
+                // Odblokuj pole
                 editVerificationDateEditText.isEnabled = true
             }
         }
     }
 
     /**
-     * Konfiguruje EditText do automatycznego formatowania daty w formacie DD-MM-YYYY
-     * podczas wpisywania i edycji. Uproszczona wersja.
+     * Konfiguruje [EditText] do automatycznego formatowania daty w formacie DD-MM-YYYY
+     * podczas wpisywania i edycji. Używa [TextWatcher].
+     * Jest to ta sama funkcja co w [AddClientActivity].
      * @param editText Pole EditText do skonfigurowania.
      */
     private fun setupDateEditText(editText: EditText) {
-        // Nadal używamy klawiatury numerycznej
+        // Ustawienie typu wejściowego na numeryczny, aby sugerować odpowiednią klawiaturę
         editText.inputType = InputType.TYPE_CLASS_NUMBER
 
         editText.addTextChangedListener(object : TextWatcher {
-            private var current = ""
+            private var current = "" // Przechowuje aktualny sformatowany tekst
             private var isFormatting: Boolean = false // Flaga zapobiegająca rekurencji
 
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
 
             override fun afterTextChanged(s: Editable?) {
-                if (isFormatting || s == null) return // Jeśli już formatujemy lub s jest null, wyjdź
-                isFormatting = true // Rozpocznij formatowanie
+                // Jeśli już formatujemy lub tekst jest null, wyjdź
+                if (isFormatting || s == null) return
+                // Rozpocznij formatowanie
+                isFormatting = true
 
                 val userInput = s.toString()
+                // Jeśli tekst się nie zmienił, wyjdź
                 if (userInput == current) {
                     isFormatting = false
-                    return // Bez zmian, wyjdź
+                    return
                 }
 
                 // Usuń wszystkie znaki niebędące cyframi
@@ -409,26 +484,31 @@ class EditReceiptActivity : AppCompatActivity() {
                     formatted.append(digitsOnly.substring(0, minOf(len, 2))) // DD
                 }
                 if (len >= 3) {
-                    formatted.append("-").append(digitsOnly.substring(2, minOf(len, 4))) // MM
+                    // Dodaj myślnik i MM
+                    formatted.append("-").append(digitsOnly.substring(2, minOf(len, 4)))
                 }
                 if (len >= 5) {
-                    formatted.append("-").append(digitsOnly.substring(4, minOf(len, 8))) // YYYY
+                    // Dodaj myślnik i YYYY
+                    formatted.append("-").append(digitsOnly.substring(4, minOf(len, 8)))
                 }
 
+                // Zaktualizuj sformatowany tekst
                 current = formatted.toString()
+                // Ustaw tekst w EditText (co znów wywoła afterTextChanged)
                 editText.setText(current)
 
-                // Ustaw kursor na końcu sformatowanego tekstu
-                // To najprostsze podejście, które działa dobrze w większości przypadków
-                // przy dodawaniu i usuwaniu od końca.
+                // Ustaw kursor na końcu sformatowanego tekstu.
+                // To najprostsze podejście, działa dobrze przy dodawaniu/usuwaniu od końca.
                 try {
                     editText.setSelection(current.length)
                 } catch (e: Exception) {
-                    // Ignoruj błędy ustawiania kursora, jeśli wystąpią
+                    // Ignoruj błędy ustawiania kursora (np. IndexOutOfBounds)
                 }
 
-                isFormatting = false // Zakończ formatowanie
+                // Zakończ formatowanie
+                isFormatting = false
             }
         })
     }
 }
+

@@ -4,110 +4,127 @@ import androidx.room.Dao
 import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.Query
-import androidx.room.Transaction
+import androidx.room.Transaction // Import Transaction do zapytań obejmujących relacje
 import androidx.room.Update
-import com.kaminski.paragownik.data.Receipt
-import com.kaminski.paragownik.data.ReceiptWithClient
-import kotlinx.coroutines.flow.Flow
+import com.kaminski.paragownik.data.Receipt // Import encji Receipt
+import com.kaminski.paragownik.data.ReceiptWithClient // Import klasy relacyjnej
+import kotlinx.coroutines.flow.Flow // Import Flow do obserwacji zmian
 import java.util.Date // Upewnij się, że Date jest zaimportowane
 
 /**
- * Data Access Object (DAO) dla operacji na encji Paragon (Receipt).
+ * Data Access Object (DAO) dla operacji na encji [Receipt] (paragony).
+ * Definiuje metody dostępu do tabeli 'receipts' oraz powiązanych danych.
  */
 @Dao
 interface ReceiptDao {
+
     /**
      * Wstawia nowy paragon do bazy danych.
-     * @param receipt Obiekt paragonu do wstawienia.
-     * @return ID nowo wstawionego paragonu.
+     * @param receipt Obiekt [Receipt] do wstawienia.
+     * @return ID nowo wstawionego paragonu (Long).
      */
     @Insert
     suspend fun insertReceipt(receipt: Receipt): Long
 
     /**
      * Aktualizuje istniejący paragon w bazie danych.
-     * @param receipt Obiekt paragonu z zaktualizowanymi danymi.
+     * Dopasowanie odbywa się na podstawie klucza głównego obiektu [receipt].
+     * @param receipt Obiekt [Receipt] z zaktualizowanymi danymi.
      */
     @Update
     suspend fun updateReceipt(receipt: Receipt)
 
     /**
      * Usuwa paragon z bazy danych.
-     * @param receipt Obiekt paragonu do usunięcia.
+     * Dopasowanie odbywa się na podstawie klucza głównego obiektu [receipt].
+     * @param receipt Obiekt [Receipt] do usunięcia.
      */
     @Delete
     suspend fun deleteReceipt(receipt: Receipt)
 
     /**
      * Pobiera paragon na podstawie jego ID.
+     * Operacja jednorazowa (suspend).
      * @param receiptId ID paragonu do pobrania.
-     * @return Obiekt paragonu lub null, jeśli nie znaleziono.
+     * @return Obiekt [Receipt] lub `null`, jeśli nie znaleziono.
      */
     @Query("SELECT * FROM receipts WHERE id = :receiptId")
     suspend fun getReceiptById(receiptId: Long): Receipt?
 
     /**
-     * Pobiera listę paragonów (wraz z danymi klienta) dla określonego sklepu jako Flow.
+     * Pobiera listę paragonów (wraz z danymi klienta) dla określonego sklepu jako [Flow].
+     * Używa relacji [ReceiptWithClient] do pobrania powiązanych danych klienta.
+     * `@Transaction` zapewnia atomowość operacji pobierania danych z wielu tabel.
      * @param storeId ID sklepu, dla którego pobierane są paragony.
-     * @return Flow emitujący listę obiektów ReceiptWithClient.
+     * @return [Flow] emitujący listę obiektów [ReceiptWithClient].
      */
-    @Transaction // Zapewnia atomowość pobierania paragonu i klienta
+    @Transaction // Ważne przy pobieraniu relacji
     @Query("SELECT * FROM receipts WHERE storeId = :storeId")
     fun getReceiptsForStore(storeId: Long): Flow<List<ReceiptWithClient>>
 
     /**
-     * Pobiera pojedynczy paragon wraz z danymi klienta jako Flow.
+     * Pobiera pojedynczy paragon wraz z danymi powiązanego klienta jako [Flow].
+     * Używa relacji [ReceiptWithClient].
+     * `@Transaction` zapewnia atomowość.
      * @param receiptId ID paragonu do pobrania.
-     * @return Flow emitujący obiekt ReceiptWithClient.
+     * @return [Flow] emitujący obiekt [ReceiptWithClient]. Flow będzie emitował nową wartość
+     *         przy zmianie danych paragonu lub powiązanego klienta.
      */
     @Transaction
     @Query("SELECT * FROM receipts WHERE id = :receiptId")
-    fun getReceiptWithClientFlow(receiptId: Long): Flow<ReceiptWithClient> // Zwraca Flow<ReceiptWithClient?> jeśli może nie być klienta? Raczej nie, bo FK
+    fun getReceiptWithClientFlow(receiptId: Long): Flow<ReceiptWithClient?> // Zmieniono na nullable, bo getReceiptWithClientAndStoreNumber tego oczekuje
 
     /**
      * Zlicza liczbę paragonów przypisanych do danego klienta.
+     * Używane do sprawdzania, czy klient stał się pusty po usunięciu paragonu.
      * @param clientId ID klienta.
-     * @return Liczba paragonów klienta.
+     * @return Liczba paragonów (Int) przypisanych do klienta.
      */
     @Query("SELECT COUNT(*) FROM receipts WHERE clientId = :clientId")
     suspend fun getReceiptsForClientCount(clientId: Long): Int
 
     /**
      * Zlicza liczbę paragonów przypisanych do danego sklepu.
+     * Używane do sprawdzania, czy sklep stał się pusty po usunięciu paragonu/klienta.
      * @param storeId ID sklepu.
-     * @return Liczba paragonów w sklepie.
+     * @return Liczba paragonów (Int) w danym sklepie.
      */
     @Query("SELECT COUNT(*) FROM receipts WHERE storeId = :storeId")
     suspend fun getReceiptsForStoreCount(storeId: Long): Int
 
     /**
-     * Pobiera pojedynczy paragon wraz z danymi klienta (operacja suspend).
+     * Pobiera pojedynczy paragon wraz z danymi klienta (operacja jednorazowa suspend).
+     * Używa relacji [ReceiptWithClient].
+     * `@Transaction` zapewnia atomowość.
      * @param receiptId ID paragonu do pobrania.
-     * @return Obiekt ReceiptWithClient lub null, jeśli nie znaleziono.
+     * @return Obiekt [ReceiptWithClient] lub `null`, jeśli paragon o podanym ID nie został znaleziony.
      */
     @Transaction
     @Query("SELECT * FROM receipts WHERE id = :receiptId")
     suspend fun getReceiptWithClient(receiptId: Long): ReceiptWithClient?
 
-    // --- NOWE ZAPYTANIA ---
+    // --- NOWE ZAPYTANIA (dodane wcześniej) ---
+
     /**
-     * Znajduje paragon na podstawie numeru, daty i ID sklepu.
-     * Używane do sprawdzania duplikatów.
+     * Znajduje paragon na podstawie unikalnej kombinacji numeru, daty i ID sklepu.
+     * Używane do sprawdzania duplikatów przed wstawieniem lub aktualizacją paragonu.
      * @param receiptNumber Numer paragonu.
      * @param receiptDate Data paragonu.
      * @param storeId ID sklepu.
-     * @return Obiekt paragonu lub null, jeśli nie znaleziono.
+     * @return Obiekt [Receipt] jeśli znaleziono pasujący paragon, lub `null` w przeciwnym razie.
      */
     @Query("SELECT * FROM receipts WHERE receiptNumber = :receiptNumber AND receiptDate = :receiptDate AND storeId = :storeId LIMIT 1")
     suspend fun findByNumberDateStore(receiptNumber: String, receiptDate: Date, storeId: Long): Receipt?
 
     /**
-     * Pobiera listę unikalnych identyfikatorów sklepów (storeId) powiązanych z danym klientem.
-     * Używane przy usuwaniu klienta do sprawdzenia, które drogerie mogą stać się puste.
+     * Pobiera listę unikalnych identyfikatorów sklepów (storeId), z którymi powiązane są paragony
+     * danego klienta.
+     * Używane w logice usuwania klienta, aby sprawdzić, które sklepy mogą stać się puste.
      * @param clientId ID klienta.
-     * @return Lista ID sklepów (Long).
+     * @return Lista unikalnych ID sklepów (List<Long>).
      */
     @Query("SELECT DISTINCT storeId FROM receipts WHERE clientId = :clientId")
     suspend fun getStoreIdsForClient(clientId: Long): List<Long>
     // --- KONIEC NOWYCH ZAPYTAŃ ---
 }
+

@@ -1,13 +1,12 @@
-<?xml version="1.0" encoding="utf-8"?><!--
-   Sample backup rules file; uncomment and customize as necessary.
-   See https://developer.android.com/guide/topics/data/autobackup
-   for details.
-   Note: This file is ignored for devices older that API 31
-   See https://developer.android.com/about/versions/12/backup-restore
--->
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Zasady tworzenia kopii zapasowych w chmurze (Auto Backup). -->
+<!-- Domyślny plik generowany przez Android Studio. -->
+<!-- Obecnie skonfigurowany tak, aby nie uwzględniać żadnych danych w kopii zapasowej. -->
+<!-- Zobacz https://developer.android.com/guide/topics/data/autobackup -->
 <full-backup-content>
-    <!--
-   <include domain="sharedpref" path="."/>
-   <exclude domain="sharedpref" path="device.xml"/>
--->
+    <!-- Przykład: Uwzględnij wszystkie SharedPreferences -->
+    <!-- <include domain="sharedpref" path="."/> -->
+    <!-- Przykład: Wyklucz konkretny plik SharedPreferences -->
+    <!-- <exclude domain="sharedpref" path="device.xml"/> -->
 </full-backup-content>
+

@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Layout dla aktywności wyświetlającej listę paragonów (ReceiptListActivity). -->
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
@@ -6,26 +7,30 @@
     android:layout_height="match_parent"
     tools:context=".ReceiptListActivity">
 
+    <!-- RecyclerView do wyświetlania listy paragonów dla wybranego sklepu. -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/receiptRecyclerView"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="16dp" 
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        tools:listitem="@layout/receipt_item" />
+        tools:listitem="@layout/receipt_item" /> <!-- Wskazuje przykładowy layout elementu listy. -->
 
+    <!-- FloatingActionButton (FAB) do inicjowania dodawania nowego paragonu/klienta -->
+    <!-- w kontekście bieżącego sklepu. -->
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fabAddClient"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_margin="16dp"
-        android:clickable="true"
-        android:focusable="true"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:srcCompat="@android:drawable/ic_input_add" />
+        android:layout_margin="16dp" 
+        android:clickable="true" 
+        android:focusable="true" 
+        app:layout_constraintBottom_toBottomOf="parent" 
+        app:layout_constraintEnd_toEndOf="parent" 
+        app:srcCompat="@android:drawable/ic_input_add" /> <!-- Ikona plusa. -->
 
 </androidx.constraintlayout.widget.ConstraintLayout>
+

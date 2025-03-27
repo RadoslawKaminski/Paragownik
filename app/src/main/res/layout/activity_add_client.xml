@@ -1,28 +1,31 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Layout dla aktywności dodawania klienta i paragonów (AddClientActivity). -->
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/main_color_dark"
-    android:padding="16dp"
-    android:theme="@style/Theme.Paragownik"
+    android:background="@color/main_color_dark" 
+    android:padding="16dp" 
+    android:theme="@style/Theme.Paragownik" 
     tools:context=".AddClientActivity">
 
+    <!-- ScrollView umożliwia przewijanie zawartości, jeśli nie mieści się na ekranie. -->
     <ScrollView
         android:layout_width="0dp"
         android:layout_height="0dp"
-        app:layout_constraintBottom_toTopOf="@+id/addClientButton"
+        app:layout_constraintBottom_toTopOf="@+id/addClientButton" 
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
+        <!-- Główny kontener LinearLayout (pionowy) wewnątrz ScrollView. -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
-            <!-- Tytuł ekranu -->
+            <!-- Tytuł ekranu. -->
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -31,67 +34,72 @@
                 android:text="Dodaj paragony klienta"
                 android:textSize="24sp" />
 
-            <!-- Sekcja pierwszego paragonu -->
+            <!-- Sekcja pierwszego paragonu. -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical">
 
-                <!-- Numer drogerii i paragonu -->
+                <!-- Numer drogerii i paragonu w jednej linii. -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal">
 
+                    <!-- Kontener dla numeru drogerii. -->
                     <LinearLayout
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_marginEnd="8dp"
-                        android:layout_weight="4"
+                        android:layout_weight="4" 
                         android:orientation="vertical">
 
+                        <!-- Pole edycji numeru drogerii. -->
                         <EditText
                             android:id="@+id/receiptStoreNumberEditText"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:hint="Dogeria"
-                            android:inputType="number"
-                            android:maxLength="4" />
+                            android:inputType="number" 
+                            android:maxLength="4" /> 
                     </LinearLayout>
 
+                    <!-- Kontener dla numeru paragonu. -->
                     <LinearLayout
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="8dp"
-                        android:layout_weight="5"
+                        android:layout_weight="5" 
                         android:orientation="vertical">
 
+                        <!-- Pole edycji numeru paragonu. -->
                         <EditText
                             android:id="@+id/receiptNumberEditText"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:hint="Numer paragonu"
-                            android:inputType="number"
-                            android:maxLength="4" />
+                            android:inputType="number" 
+                            android:maxLength="4" /> 
                     </LinearLayout>
                 </LinearLayout>
 
-                <!-- Data paragonu -->
+                <!-- Pole edycji daty paragonu. -->
                 <EditText
                     android:id="@+id/receiptDateEditText"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="20dp"
                     android:hint="Data paragonu (DD-MM-YYYY)"
-                    android:inputType="date" /> <!-- InputType zostanie zmodyfikowany przez TextWatcher -->
+                    android:inputType="date" /> <!-- inputType modyfikowany przez TextWatcher na number -->
 
-                <!-- Sekcja daty weryfikacji -->
+                <!-- Sekcja daty weryfikacji (opcjonalna). -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="16dp"
                     android:orientation="vertical">
 
+                    <!-- Etykieta sekcji. -->
                     <TextView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -99,33 +107,38 @@
                         android:text="Weryfikacja (opcjonalne):"
                         android:textSize="18sp" />
 
+                    <!-- Pole daty weryfikacji i checkbox "Dzisiaj" w jednej linii. -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="horizontal">
 
+                        <!-- Kontener dla pola daty weryfikacji. -->
                         <LinearLayout
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
-                            android:layout_weight="5"
+                            android:layout_weight="5" 
                             android:orientation="vertical">
 
+                            <!-- Pole edycji daty weryfikacji. -->
                             <EditText
                                 android:id="@+id/verificationDateEditText"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:hint="DD-MM-YYYY"
-                                android:inputType="date" /> <!-- InputType zostanie zmodyfikowany przez TextWatcher -->
+                                android:inputType="date" /> <!-- inputType modyfikowany przez TextWatcher na number -->
                         </LinearLayout>
 
+                        <!-- Kontener dla checkboxa "Dzisiaj". -->
                         <LinearLayout
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_marginStart="8dp"
-                            android:layout_weight="3"
-                            android:gravity="center_vertical"
+                            android:layout_weight="3" 
+                            android:gravity="center_vertical" 
                             android:orientation="vertical">
 
+                            <!-- Checkbox "Dzisiaj". -->
                             <CheckBox
                                 android:id="@+id/verificationDateTodayCheckBox"
                                 android:layout_width="wrap_content"
@@ -138,13 +151,14 @@
 
             </LinearLayout> <!-- Koniec sekcji pierwszego paragonu -->
 
-            <!-- Sekcja danych klienta -->
+            <!-- Sekcja danych klienta (opcjonalna). -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="24dp"
                 android:orientation="vertical">
 
+                <!-- Etykieta sekcji. -->
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -152,76 +166,77 @@
                     android:text="Dane klienta (opcjonalne):"
                     android:textSize="18sp" />
 
-                <!-- Opis klienta -->
+                <!-- Pole edycji opisu klienta (wieloliniowe). -->
                 <EditText
                     android:id="@+id/clientDescriptionEditText"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:gravity="top"
+                    android:gravity="top" 
                     android:hint="Opis klienta"
-                    android:inputType="textMultiLine"
-                    android:lines="2" /> <!-- Aby tekst zaczynał się od góry -->
+                    android:inputType="textMultiLine" 
+                    android:lines="2" /> 
 
-                <!--  NOWE POLA KLIENTA  -->
+                <!-- Pole edycji numeru aplikacji klienta. -->
                 <EditText
                     android:id="@+id/clientAppNumberEditText"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
                     android:hint="Numer aplikacji klienta"
-                    android:inputType="number"
-                    android:maxLength="14" />
+                    android:inputType="number" 
+                    android:maxLength="14" /> 
 
+                <!-- Pole edycji numeru Amodit. -->
                 <EditText
                     android:id="@+id/amoditNumberEditText"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
                     android:hint="Numer Amodit"
-                    android:inputType="number"
-                    android:maxLength="8" />
-                <!--  KONIEC NOWYCH PÓL KLIENTA -->
+                    android:inputType="number" 
+                    android:maxLength="8" /> <!-- DODANO maxLength="8" dla spójności -->
 
             </LinearLayout> <!-- Koniec sekcji danych klienta -->
 
 
-            <!-- Kontener na dodatkowe paragony -->
+            <!-- Kontener na dynamicznie dodawane pola dodatkowych paragonów. -->
             <LinearLayout
                 android:id="@+id/receiptsContainer"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
                 android:orientation="vertical">
-                <!-- Dodatkowe paragony będą dodawane tutaj dynamicznie -->
+                <!-- Widoki z additional_receipt_fields.xml będą dodawane tutaj programowo. -->
             </LinearLayout>
 
-            <!-- Przycisk dodawania kolejnego paragonu -->
+            <!-- Przycisk dodawania kolejnego paragonu (innej drogerii). -->
             <Button
                 android:id="@+id/addAdditionalReceiptButton"
-                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton" 
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
                 android:text="Dodaj paragon kolejnej drogerii"
-                android:textColor="@color/scnd_color_bright"
-                app:strokeColor="@color/scnd_color_bright" />
+                android:textColor="@color/scnd_color_bright" 
+                app:strokeColor="@color/scnd_color_bright" /> 
 
         </LinearLayout>
 
     </ScrollView>
 
-    <!-- Przycisk zapisu -->
+    <!-- Przycisk zapisu (na dole ekranu). -->
     <Button
         android:id="@+id/addClientButton"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:backgroundTint="@color/green_save"
-        android:paddingVertical="16dp"
+        android:backgroundTint="@color/green_save" 
+        android:paddingVertical="16dp" 
         android:text="Zapisz"
-        android:textColor="@color/white_text"
-        android:textSize="18sp"
-        app:layout_constraintBottom_toBottomOf="parent"
+        android:textColor="@color/white_text" 
+        android:textSize="18sp" 
+        app:layout_constraintBottom_toBottomOf="parent" 
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
+

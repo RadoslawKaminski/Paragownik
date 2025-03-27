@@ -1,4 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Definicja koloru tła dla ikony launchera. -->
 <resources>
+    <!-- Używa głównego ciemnego koloru tła aplikacji. -->
     <color name="ic_launcher_background">#242C37</color>
 </resources>
+

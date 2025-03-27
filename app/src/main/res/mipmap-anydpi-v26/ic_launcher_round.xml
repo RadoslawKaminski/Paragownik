@@ -1,5 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Definicja adaptacyjnej ikony launchera (okrągła). -->
 <adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Tło ikony. -->
     <background android:drawable="@color/ic_launcher_background"/>
+    <!-- Pierwszy plan ikony. -->
     <foreground android:drawable="@mipmap/ic_launcher_foreground"/>
 </adaptive-icon>
+

@@ -1,19 +1,18 @@
-<?xml version="1.0" encoding="utf-8"?><!--
-   Sample data extraction rules file; uncomment and customize as necessary.
-   See https://developer.android.com/about/versions/12/backup-restore#xml-changes
-   for details.
--->
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Zasady ekstrakcji danych dla transferu między urządzeniami (Device-to-Device Transfer). -->
+<!-- Domyślny plik generowany przez Android Studio. -->
+<!-- Obecnie skonfigurowany tak, aby nie uwzględniać żadnych danych. -->
+<!-- Zobacz https://developer.android.com/about/versions/12/backup-restore#xml-changes -->
 <data-extraction-rules>
     <cloud-backup>
-        <!-- Use <include> and <exclude> to control what is backed up.
-        <include .../>
-        <exclude .../>
-        -->
+        <!-- Zasady dla kopii zapasowej w chmurze (Android 12+). -->
+        <!-- Użyj <include> i <exclude> do określenia, co ma być uwzględnione. -->
+        <!-- <include .../> -->
+        <!-- <exclude .../> -->
     </cloud-backup>
-    <!--
     <device-transfer>
-        <include .../>
-        <exclude .../>
+        <!-- Zasady dla transferu między urządzeniami (Android 12+). -->
+        <!-- <include .../> -->
+        <!-- <exclude .../> -->
     </device-transfer>
-    -->
 </data-extraction-rules>

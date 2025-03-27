@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Definicje kolorów używanych w aplikacji. -->
 <resources>
+    <!-- Domyślne kolory Material Design (mogą być nieużywane). -->
     <color name="purple_200">#FFBB86FC</color>
     <color name="purple_500">#FF6200EE</color>
     <color name="purple_700">#FF3700B3</color>
@@ -8,11 +10,13 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
 
-    <color name="main_color_dark">#242c37</color> <!-- Ciemnoniebieskie tło -->
-    <color name="scnd_color_bright">#698db7</color> <!-- Jasnoniebieskie tło (Beige) -->
-    <color name="green_save">#64D14C</color> <!-- Zielony przycisk -->
-    <color name="white_text">#f8f9f3</color> <!-- Biały tekst -->
-    <color name="sub_white_text">#9Df8f9f3</color> <!-- tekst hintu itp -->
-    <color name="edit_text_background">#2E3743</color> <!-- Delikatnie jaśniejsze szare tło dla EditText -->
+    <!-- Kolory niestandardowe dla motywu aplikacji. -->
+    <color name="main_color_dark">#242c37</color> <!-- Główne ciemne tło. -->
+    <color name="scnd_color_bright">#698db7</color> <!-- Drugorzędny, jaśniejszy kolor (np. dla akcentów, ikon). -->
+    <color name="green_save">#64D14C</color> <!-- Zielony kolor dla przycisku zapisu. -->
+    <color name="white_text">#f8f9f3</color> <!-- Główny kolor tekstu (lekko złamana biel). -->
+    <color name="sub_white_text">#9Df8f9f3</color> <!-- Kolor dla podpowiedzi (hint) i mniej ważnych tekstów (półprzezroczysty biały). -->
+    <color name="edit_text_background">#2E3743</color> <!-- Kolor tła dla pól EditText (nieco jaśniejszy niż główne tło). -->
 
 </resources>
+

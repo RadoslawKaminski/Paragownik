@@ -26,81 +26,98 @@ import java.util.Locale
 
 /**
  * Aktywność odpowiedzialna za dodawanie nowego klienta wraz z jednym lub wieloma paragonami.
+ * Umożliwia wprowadzenie danych pierwszego paragonu, danych klienta oraz dynamiczne dodawanie
+ * kolejnych paragonów z innych drogerii.
  */
 class AddClientActivity : AppCompatActivity() {
 
     // --- Widoki UI ---
-    private lateinit var storeNumberEditTextFirstReceipt: EditText
-    private lateinit var receiptNumberEditText: EditText
-    private lateinit var receiptDateEditText: EditText
-    private lateinit var verificationDateEditText: EditText
-    private lateinit var verificationDateTodayCheckBox: CheckBox
-    private lateinit var clientDescriptionEditText: EditText
-    private lateinit var clientAppNumberEditText: EditText // Nowe pole
-    private lateinit var amoditNumberEditText: EditText    // Nowe pole
-    private lateinit var addClientButton: Button
-    private lateinit var addAdditionalReceiptButton: Button
-    private lateinit var receiptsContainer: LinearLayout // Kontener na dynamiczne pola paragonów
+    // Pola EditText dla pierwszego paragonu
+    private lateinit var storeNumberEditTextFirstReceipt: EditText // Numer drogerii (może być zablokowany)
+    private lateinit var receiptNumberEditText: EditText           // Numer paragonu
+    private lateinit var receiptDateEditText: EditText             // Data paragonu (formatowana)
+    private lateinit var verificationDateEditText: EditText        // Data weryfikacji (formatowana)
+    private lateinit var verificationDateTodayCheckBox: CheckBox   // Checkbox "Dzisiaj" dla daty weryfikacji
+
+    // Pola EditText dla danych klienta
+    private lateinit var clientDescriptionEditText: EditText       // Opis klienta
+    private lateinit var clientAppNumberEditText: EditText         // Numer aplikacji klienta
+    private lateinit var amoditNumberEditText: EditText            // Numer Amodit
+
+    // Przyciski
+    private lateinit var addClientButton: Button                   // Przycisk zapisu klienta i paragonów
+    private lateinit var addAdditionalReceiptButton: Button        // Przycisk dodawania kolejnego paragonu
+
+    // Kontener na dynamicznie dodawane pola paragonów
+    private lateinit var receiptsContainer: LinearLayout
 
     // --- ViewModels ---
-    private lateinit var addClientViewModel: AddClientViewModel
-    private lateinit var storeViewModel: StoreViewModel // Do pobierania numeru sklepu, jeśli ID przekazano
+    private lateinit var addClientViewModel: AddClientViewModel // ViewModel do logiki dodawania
+    private lateinit var storeViewModel: StoreViewModel         // ViewModel do pobierania danych sklepu
 
     // --- Dane pomocnicze ---
-    // Lista przechowująca referencje do pól dynamicznie dodanych paragonów
+    // Lista przechowująca referencje do widoków (EditText) dynamicznie dodanych paragonów.
+    // Ułatwia zbieranie danych i zarządzanie tymi widokami.
     private val receiptFieldsList = ArrayList<ReceiptFields>()
-    // ID sklepu przekazane z poprzedniej aktywności (jeśli dotyczy)
+
+    // ID sklepu przekazane z MainActivity lub ReceiptListActivity, jeśli użytkownik dodaje
+    // paragon w kontekście konkretnego sklepu. -1L oznacza brak przekazanego ID.
     private var storeIdFromIntent: Long = -1L
 
     /**
      * Struktura pomocnicza do przechowywania referencji do pól EditText
      * dla dynamicznie dodawanych sekcji paragonów.
+     * `storeNumberEditText` jest nullable, bo dla pierwszego paragonu używamy dedykowanego pola.
      */
     private data class ReceiptFields(
-        val storeNumberEditText: EditText?, // Null dla pierwszego paragonu (używamy dedykowanego pola)
+        val storeNumberEditText: EditText?,
         val receiptNumberEditText: EditText,
         val receiptDateEditText: EditText
     )
 
     /**
-     * Struktura danych przekazywana do ViewModelu, zawierająca informacje
-     * o pojedynczym paragonie do dodania.
-     * Musi być publiczna lub wewnętrzna (internal), aby ViewModel miał do niej dostęp.
+     * Struktura danych przekazywana do [AddClientViewModel.addClientWithReceiptsTransactionally].
+     * Zawiera informacje o pojedynczym paragonie do dodania (numer sklepu, numer paragonu, data).
+     * Musi być publiczna lub `internal`, aby ViewModel miał do niej dostęp.
      */
     data class ReceiptData(
         val storeNumber: String,
         val receiptNumber: String,
-        val receiptDate: String
+        val receiptDate: String // Data jako String, parsowanie odbywa się w ViewModelu
     )
 
+    /**
+     * Metoda wywoływana przy tworzeniu Aktywności.
+     * Inicjalizuje UI, ViewModels, obsługuje przekazane dane (Intent) i ustawia listenery.
+     */
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_add_client)
+        setContentView(R.layout.activity_add_client) // Ustawienie layoutu dla tej aktywności
 
-        // Inicjalizacja wszystkich widoków UI
+        // Inicjalizacja wszystkich widoków UI z layoutu XML
         initializeViews()
 
-        // Inicjalizacja ViewModeli
+        // Inicjalizacja ViewModeli za pomocą ViewModelProvider
         addClientViewModel = ViewModelProvider(this).get(AddClientViewModel::class.java)
         storeViewModel = ViewModelProvider(this).get(StoreViewModel::class.java)
 
-        // Sprawdzenie, czy aktywność została uruchomiona z kontekstem sklepu
+        // Sprawdzenie, czy aktywność została uruchomiona z dodatkowym ID sklepu
         handleIntentExtras()
 
-        // Konfiguracja formatowania i walidacji dla pól dat
+        // Konfiguracja TextWatcherów do automatycznego formatowania i walidacji pól dat
         setupDateEditText(receiptDateEditText)
         setupDateEditText(verificationDateEditText)
 
-        // Dodanie pól pierwszego paragonu do listy zarządzającej
-        // Pierwszy element ma null dla storeNumberEditText, bo używamy dedykowanego pola
+        // Dodanie referencji do pól pierwszego paragonu do listy zarządzającej.
+        // Pierwszy element ma null dla storeNumberEditText, bo używamy dedykowanego pola.
         receiptFieldsList.add(ReceiptFields(null, receiptNumberEditText, receiptDateEditText))
 
-        // Konfiguracja listenerów dla interaktywnych elementów UI
+        // Konfiguracja listenerów dla przycisków i checkboxa
         setupListeners()
     }
 
     /**
-     * Inicjalizuje wszystkie referencje do widoków UI z layoutu.
+     * Inicjalizuje wszystkie referencje do widoków UI z layoutu `activity_add_client.xml`.
      */
     private fun initializeViews() {
         storeNumberEditTextFirstReceipt = findViewById(R.id.receiptStoreNumberEditText)
@@ -109,136 +126,165 @@ class AddClientActivity : AppCompatActivity() {
         verificationDateEditText = findViewById(R.id.verificationDateEditText)
         verificationDateTodayCheckBox = findViewById(R.id.verificationDateTodayCheckBox)
         clientDescriptionEditText = findViewById(R.id.clientDescriptionEditText)
-        clientAppNumberEditText = findViewById(R.id.clientAppNumberEditText) // Inicjalizacja nowego pola
-        amoditNumberEditText = findViewById(R.id.amoditNumberEditText)       // Inicjalizacja nowego pola
+        clientAppNumberEditText = findViewById(R.id.clientAppNumberEditText)
+        amoditNumberEditText = findViewById(R.id.amoditNumberEditText)
         addClientButton = findViewById(R.id.addClientButton)
         addAdditionalReceiptButton = findViewById(R.id.addAdditionalReceiptButton)
         receiptsContainer = findViewById(R.id.receiptsContainer)
     }
 
     /**
-     * Sprawdza, czy Intent zawiera dodatkowe dane (np. ID sklepu) i odpowiednio reaguje.
+     * Sprawdza, czy Intent, który uruchomił tę Aktywność, zawiera dodatkowe dane "STORE_ID".
+     * Jeśli tak, pobiera ID, blokuje edycję pola numeru sklepu dla pierwszego paragonu
+     * i asynchronicznie wczytuje numer sklepu, aby go wyświetlić.
      */
     private fun handleIntentExtras() {
+        // Sprawdź, czy Intent zawiera klucz "STORE_ID"
         if (intent.hasExtra("STORE_ID")) {
+            // Pobierz wartość Long, domyślnie -1L jeśli klucza nie ma (choć już sprawdziliśmy hasExtra)
             storeIdFromIntent = intent.getLongExtra("STORE_ID", -1L)
-            // Jeśli ID sklepu jest przekazane, zablokuj edycję numeru sklepu dla pierwszego paragonu
-            storeNumberEditTextFirstReceipt.isEnabled = false
+            // Jeśli ID sklepu jest poprawne (różne od -1L)
+            if (storeIdFromIntent != -1L) {
+                // Zablokuj edycję numeru sklepu dla pierwszego paragonu
+                storeNumberEditTextFirstReceipt.isEnabled = false
 
-            // Asynchronicznie pobierz numer sklepu i ustaw go w polu EditText
-            lifecycleScope.launch {
-                val store = storeViewModel.getStoreById(storeIdFromIntent)
-                store?.let {
-                    storeNumberEditTextFirstReceipt.setText(it.storeNumber)
+                // Uruchom korutynę w zakresie cyklu życia Aktywności do pobrania danych sklepu
+                lifecycleScope.launch {
+                    // Pobierz obiekt Store z ViewModelu na podstawie ID
+                    val store = storeViewModel.getStoreById(storeIdFromIntent)
+                    // Jeśli sklep został znaleziony (nie jest null)
+                    store?.let {
+                        // Ustaw numer sklepu w polu EditText
+                        storeNumberEditTextFirstReceipt.setText(it.storeNumber)
+                    }
                 }
             }
         }
     }
 
     /**
-     * Ustawia listenery dla przycisków i checkboxa.
+     * Ustawia listenery dla interaktywnych elementów UI:
+     * - CheckBox "Dzisiaj" dla daty weryfikacji.
+     * - Przycisk dodawania kolejnego paragonu.
+     * - Przycisk zapisu klienta i paragonów.
      */
     private fun setupListeners() {
-        // Listener dla checkboxa "Dzisiaj" (data weryfikacji)
+        // Listener dla zmiany stanu checkboxa "Dzisiaj"
         verificationDateTodayCheckBox.setOnCheckedChangeListener { _, isChecked ->
             if (isChecked) {
-                // Ustaw aktualną datę i wyłącz pole edycji
+                // Jeśli zaznaczony:
+                // Pobierz aktualną datę w formacie DD-MM-YYYY
                 val currentDate = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault()).format(java.util.Calendar.getInstance().time)
+                // Ustaw datę w polu EditText
                 verificationDateEditText.setText(currentDate)
+                // Wyłącz możliwość edycji pola
                 verificationDateEditText.isEnabled = false
             } else {
-                // Włącz pole edycji (nie czyścimy go, użytkownik może chcieć edytować)
+                // Jeśli odznaczony:
+                // Włącz możliwość edycji pola (nie czyścimy go, użytkownik może chcieć edytować)
                 verificationDateEditText.isEnabled = true
             }
         }
 
-        // Listener dla przycisku dodawania kolejnego paragonu
+        // Listener dla kliknięcia przycisku dodawania kolejnego paragonu
         addAdditionalReceiptButton.setOnClickListener {
+            // Wywołaj funkcję dodającą nowy zestaw pól dla paragonu
             addNewReceiptFields()
         }
 
-        // Listener dla głównego przycisku zapisu
+        // Listener dla kliknięcia głównego przycisku zapisu
         addClientButton.setOnClickListener {
+            // Wywołaj funkcję zbierającą dane, walidującą i inicjującą zapis
             saveClientAndReceipts()
         }
     }
 
     /**
-     * Główna funkcja zapisu. Zbiera dane z formularza, waliduje je
-     * i wywołuje metodę transakcyjną w ViewModelu.
+     * Główna funkcja zapisu. Wykonywana po kliknięciu przycisku "Zapisz".
+     * 1. Zbiera dane klienta z pól EditText.
+     * 2. Zbiera datę weryfikacji (tylko dla pierwszego paragonu).
+     * 3. Zbiera dane wszystkich paragonów (pierwszego i dynamicznie dodanych).
+     * 4. Przeprowadza podstawową walidację (puste pola, format daty) w UI.
+     * 5. Jeśli walidacja w UI przejdzie, wywołuje metodę transakcyjną w ViewModelu.
+     * 6. Obsługuje wynik zwrócony przez ViewModel (sukces lub różne typy błędów).
      */
     private fun saveClientAndReceipts() {
-        // 1. Zbierz dane klienta z pól EditText
+        // 1. Zbierz dane klienta, usuwając białe znaki z początku i końca
         val clientDescription = clientDescriptionEditText.text.toString().trim()
         val clientAppNumber = clientAppNumberEditText.text.toString().trim()
         val amoditNumber = amoditNumberEditText.text.toString().trim()
-        // photoUri będzie dodane w przyszłości
+        // photoUri będzie dodane w przyszłości, na razie null
 
         // 2. Zbierz datę weryfikacji (tylko dla pierwszego paragonu)
         val verificationDateString = verificationDateEditText.text.toString().trim()
 
-        // 3. Zbierz dane wszystkich paragonów (pierwszego i dodatkowych)
+        // 3. Przygotuj listę do przechowywania danych paragonów do dodania
         val receiptsToAdd = mutableListOf<ReceiptData>()
-        var hasEmptyFields = false // Flaga do podstawowej walidacji pustych pól
+        var hasEmptyFields = false // Flaga do podstawowej walidacji pustych pól w UI
 
-        // Przetwarzanie danych pierwszego paragonu
+        // --- Przetwarzanie danych PIERWSZEGO paragonu ---
         val firstStoreNumber = storeNumberEditTextFirstReceipt.text.toString().trim()
         val firstReceiptNumber = receiptNumberEditText.text.toString().trim()
         val firstReceiptDate = receiptDateEditText.text.toString().trim()
 
-        // Podstawowa walidacja pierwszego paragonu
-        if (firstStoreNumber.isEmpty() || firstReceiptNumber.isEmpty() || firstReceiptDate.isEmpty() || !isValidDate(firstReceiptDate)) {
-            hasEmptyFields = true
-            if (!isValidDate(firstReceiptDate) && firstReceiptDate.isNotEmpty()) {
-                Toast.makeText(this, "Nieprawidłowy format daty pierwszego paragonu (DD-MM-YYYY)", Toast.LENGTH_LONG).show()
-                return // Zatrzymaj, jeśli data jest źle sformatowana
-            }
+        // Podstawowa walidacja pierwszego paragonu w UI
+        if (firstStoreNumber.isEmpty() || firstReceiptNumber.isEmpty() || firstReceiptDate.isEmpty()) {
+            hasEmptyFields = true // Zaznacz, że znaleziono puste pole
+        } else if (!isValidDate(firstReceiptDate)) { // Sprawdź format daty, jeśli pole nie jest puste
+            Toast.makeText(this, "Nieprawidłowy format daty pierwszego paragonu (DD-MM-YYYY)", Toast.LENGTH_LONG).show()
+            return // Zatrzymaj proces zapisu, jeśli data jest źle sformatowana
         } else {
+            // Jeśli wszystko OK, dodaj dane pierwszego paragonu do listy
             receiptsToAdd.add(ReceiptData(firstStoreNumber, firstReceiptNumber, firstReceiptDate))
         }
 
-        // Przetwarzanie danych dodatkowych paragonów (jeśli pierwszy był poprawny)
-        if (!hasEmptyFields) {
-            for (receiptFields in receiptFieldsList.drop(1)) { // Pomiń pierwszy element listy (już przetworzony)
-                val storeNumber = receiptFields.storeNumberEditText?.text.toString().trim()
+        // --- Przetwarzanie danych DODATKOWYCH paragonów (jeśli pierwszy był poprawny) ---
+        if (!hasEmptyFields) { // Kontynuuj tylko, jeśli pierwszy paragon nie miał pustych pól
+            // Iteruj przez listę referencji do pól dodatkowych paragonów (pomijając pierwszy)
+            for (receiptFields in receiptFieldsList.drop(1)) {
+                // Pobierz dane z pól EditText (storeNumberEditText może być null, ale w pętli drop(1) nigdy nie będzie)
+                val storeNumber = receiptFields.storeNumberEditText?.text.toString().trim() ?: "" // Bezpieczne odpakowanie, choć nie powinno być null
                 val receiptNumber = receiptFields.receiptNumberEditText.text.toString().trim()
                 val receiptDate = receiptFields.receiptDateEditText.text.toString().trim()
 
-                // Podstawowa walidacja dodatkowych paragonów
-                if (storeNumber.isEmpty() || receiptNumber.isEmpty() || receiptDate.isEmpty() || !isValidDate(receiptDate)) {
-                    hasEmptyFields = true
-                    if (!isValidDate(receiptDate) && receiptDate.isNotEmpty()) {
-                        Toast.makeText(this, "Nieprawidłowy format daty w dodatkowym paragonie (DD-MM-YYYY)", Toast.LENGTH_LONG).show()
-                        return // Zatrzymaj, jeśli data jest źle sformatowana
-                    }
-                    break // Przerwij pętlę, jeśli znaleziono puste pole lub zły format daty
+                // Podstawowa walidacja dodatkowych paragonów w UI
+                if (storeNumber.isEmpty() || receiptNumber.isEmpty() || receiptDate.isEmpty()) {
+                    hasEmptyFields = true // Zaznacz, że znaleziono puste pole
+                    break // Przerwij pętlę, nie ma sensu sprawdzać dalej
+                } else if (!isValidDate(receiptDate)) { // Sprawdź format daty
+                    Toast.makeText(this, "Nieprawidłowy format daty w dodatkowym paragonie (DD-MM-YYYY)", Toast.LENGTH_LONG).show()
+                    return // Zatrzymaj proces zapisu
+                } else {
+                    // Jeśli wszystko OK, dodaj dane dodatkowego paragonu do listy
+                    receiptsToAdd.add(ReceiptData(storeNumber, receiptNumber, receiptDate))
                 }
-                receiptsToAdd.add(ReceiptData(storeNumber, receiptNumber, receiptDate))
             }
         }
 
         // 4. Końcowa walidacja przed wysłaniem do ViewModelu
         if (hasEmptyFields) {
-            Toast.makeText(this, "Wypełnij wszystkie wymagane pola paragonów (numer, data, sklep) poprawnym formatem daty", Toast.LENGTH_LONG).show()
-            return // Zakończ, jeśli są błędy walidacji
+            // Jeśli którekolwiek z wymaganych pól paragonu było puste
+            Toast.makeText(this, "Wypełnij wszystkie wymagane pola paragonów (numer, data, sklep)", Toast.LENGTH_LONG).show()
+            return // Zakończ funkcję
         }
         if (receiptsToAdd.isEmpty()) {
-            // Teoretycznie nieosiągalne przy obecnej logice, ale dla pewności
+            // Teoretycznie nieosiągalne przy obecnej logice (bo pierwszy paragon jest wymagany),
+            // ale dodane dla pewności.
             Toast.makeText(this, "Dodaj przynajmniej jeden paragon", Toast.LENGTH_SHORT).show()
             return
         }
 
         // 5. Wywołanie metody ViewModelu w korutynie
         lifecycleScope.launch {
-            // Wywołaj metodę transakcyjną, przekazując zebrane dane
-            // Użyj takeIf { it.isNotEmpty() } aby przekazać null dla pustych pól opcjonalnych
+            // Wywołaj metodę transakcyjną w ViewModelu, przekazując zebrane dane.
+            // Użyj `takeIf { it.isNotEmpty() }` aby przekazać `null` dla pustych pól opcjonalnych (opis, numery klienta, data weryfikacji).
             val result = addClientViewModel.addClientWithReceiptsTransactionally(
                 clientDescription = clientDescription.takeIf { it.isNotEmpty() },
                 clientAppNumber = clientAppNumber.takeIf { it.isNotEmpty() },
                 amoditNumber = amoditNumber.takeIf { it.isNotEmpty() },
                 photoUri = null, // Na razie brak obsługi zdjęcia
-                receiptsData = receiptsToAdd,
-                verificationDateString = verificationDateString.takeIf { it.isNotEmpty() }
+                receiptsData = receiptsToAdd, // Lista danych paragonów
+                verificationDateString = verificationDateString.takeIf { it.isNotEmpty() } // Data weryfikacji lub null
             )
 
             // 6. Obsługa wyniku zwróconego przez ViewModel
@@ -248,28 +294,39 @@ class AddClientActivity : AppCompatActivity() {
 
     /**
      * Sprawdza, czy podany ciąg znaków reprezentuje poprawną datę w formacie DD-MM-YYYY.
+     * Używa [SimpleDateFormat] ze ścisłym sprawdzaniem (`isLenient = false`).
+     * @param dateStr Ciąg znaków do sprawdzenia.
+     * @return `true` jeśli format jest poprawny, `false` w przeciwnym razie.
      */
     private fun isValidDate(dateStr: String): Boolean {
-        if (dateStr.length != 10) return false // Podstawowa długość
+        // Podstawowe sprawdzenie długości (musi być 10 znaków: DD-MM-YYYY)
+        if (dateStr.length != 10) return false
+        // Utwórz formatter daty
         val dateFormat = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault())
-        dateFormat.isLenient = false // Ścisłe sprawdzanie
+        // Ustaw ścisłe sprawdzanie formatu (np. nie zaakceptuje 32-13-2024)
+        dateFormat.isLenient = false
         return try {
-            dateFormat.parse(dateStr) // Spróbuj sparsować
+            // Spróbuj sparsować datę
+            dateFormat.parse(dateStr)
+            // Jeśli parsowanie się udało, format jest poprawny
             true
         } catch (e: ParseException) {
-            false // Błąd parsowania oznacza nieprawidłowy format
+            // Jeśli wystąpił błąd parsowania, format jest nieprawidłowy
+            false
         }
     }
 
     /**
-     * Wyświetla odpowiedni komunikat Toast w zależności od wyniku operacji zapisu.
-     * @param result Wynik operacji zwrócony przez ViewModel ([AddClientViewModel.AddResult]).
+     * Wyświetla odpowiedni komunikat Toast w zależności od wyniku operacji zapisu
+     * zwróconego przez [AddClientViewModel].
+     * W przypadku sukcesu zamyka Aktywność.
+     * @param result Wynik operacji typu [AddClientViewModel.AddResult].
      */
     private fun handleSaveResult(result: AddClientViewModel.AddResult) {
         when (result) {
             AddClientViewModel.AddResult.SUCCESS -> {
                 Toast.makeText(this@AddClientActivity, "Klient i paragony dodane pomyślnie", Toast.LENGTH_SHORT).show()
-                finish() // Zamknij aktywność po sukcesie
+                finish() // Zamknij aktywność po pomyślnym dodaniu
             }
             AddClientViewModel.AddResult.ERROR_DATE_FORMAT -> {
                 Toast.makeText(this@AddClientActivity, "Błąd: Nieprawidłowy format daty (DD-MM-YYYY)", Toast.LENGTH_LONG).show()
@@ -290,109 +347,138 @@ class AddClientActivity : AppCompatActivity() {
     }
 
     /**
-     * Influje layout `additional_receipt_fields.xml`, dodaje go do kontenera
-     * i konfiguruje obsługę usuwania dla nowo dodanego zestawu pól.
+     * Influje (tworzy) widok z layoutu `additional_receipt_fields.xml`,
+     * dodaje go do kontenera `receiptsContainer`, konfiguruje formatowanie daty
+     * dla nowego pola daty, dodaje referencje do nowo utworzonych pól do listy `receiptFieldsList`
+     * i ustawia listener dla przycisku usuwania tego konkretnego zestawu pól.
      */
     private fun addNewReceiptFields() {
+        // Pobierz LayoutInflater systemowy
         val inflater = LayoutInflater.from(this)
-        // Utwórz widok na podstawie layoutu XML, nie dołączając go jeszcze do rodzica (trzeci argument false)
+        // Utwórz widok na podstawie layoutu XML.
+        // `receiptsContainer` jest przekazany jako rodzic, ale `false` oznacza,
+        // że widok nie jest jeszcze do niego dołączany (zrobimy to ręcznie).
         val receiptFieldsView = inflater.inflate(R.layout.additional_receipt_fields, receiptsContainer, false)
 
-        // Znajdź widoki wewnątrz nowo utworzonego layoutu
+        // Znajdź widoki EditText i ImageButton wewnątrz nowo utworzonego layoutu
         val storeNumberEditText = receiptFieldsView.findViewById<EditText>(R.id.additionalStoreNumberEditText)
         val receiptNumberEditText = receiptFieldsView.findViewById<EditText>(R.id.additionalReceiptNumberEditText)
         val receiptDateEditText = receiptFieldsView.findViewById<EditText>(R.id.additionalReceiptDateEditText)
         val removeReceiptButton = receiptFieldsView.findViewById<ImageButton>(R.id.removeReceiptButton)
 
-        // Skonfiguruj formatowanie daty dla nowego pola
+        // Skonfiguruj formatowanie daty dla nowego pola daty
         setupDateEditText(receiptDateEditText)
 
         // Stwórz obiekt przechowujący referencje do nowo utworzonych pól
         val newReceiptFields = ReceiptFields(
-            storeNumberEditText,
+            storeNumberEditText, // Przekazujemy referencję do pola numeru sklepu
             receiptNumberEditText,
             receiptDateEditText
         )
         // Dodaj referencje do listy zarządzającej
         receiptFieldsList.add(newReceiptFields)
-        // Dodaj fizycznie widok do kontenera na ekranie
+        // Dodaj fizycznie widok (cały LinearLayout z additional_receipt_fields.xml) do kontenera na ekranie
         receiptsContainer.addView(receiptFieldsView)
 
-        // Ustaw listener dla przycisku usuwania tego konkretnego zestawu pól
+        // Ustaw listener dla przycisku usuwania (czerwony minus) tego konkretnego zestawu pól
         removeReceiptButton.setOnClickListener {
-            // Usuń widok z layoutu
+            // Usuń widok (LinearLayout) z kontenera `receiptsContainer`
             receiptsContainer.removeView(receiptFieldsView)
-            // Usuń referencje z listy zarządzającej
+            // Usuń również referencje do pól tego widoku z listy zarządzającej
             receiptFieldsList.remove(newReceiptFields)
         }
     }
 
     /**
      * Konfiguruje [EditText] do automatycznego formatowania wpisywanej daty
-     * do formatu DD-MM-YYYY oraz podstawowej walidacji.
-     * @param editText Pole EditText do skonfigurowania.
+     * do formatu DD-MM-YYYY oraz podstawowej walidacji podczas wpisywania.
+     * Używa [TextWatcher] do monitorowania zmian w tekście.
+     * @param editText Pole EditText, które ma być skonfigurowane.
      */
     private fun setupDateEditText(editText: EditText) {
         // Ustawienie typu wejściowego - pozwala na cyfry, ale TextWatcher zajmie się resztą
-        editText.inputType = InputType.TYPE_CLASS_NUMBER // Użyjemy klawiatury numerycznej
+        // Użycie TYPE_CLASS_NUMBER sugeruje użytkownikowi klawiaturę numeryczną.
+        editText.inputType = InputType.TYPE_CLASS_NUMBER
 
         editText.addTextChangedListener(object : TextWatcher {
-            private var current = ""
-            private val ddmmyyyy = "DDMMYYYY"
-            private val cal = java.util.Calendar.getInstance()
-            private var isFormatting: Boolean = false // Flaga zapobiegająca rekurencji
+            // Zmienne pomocnicze TextWatchera
+            private var current = "" // Przechowuje aktualny sformatowany tekst
+            // private val ddmmyyyy = "DDMMYYYY" // Nieużywane, można usunąć
+            // private val cal = java.util.Calendar.getInstance() // Nieużywane, można usunąć
+            private var isFormatting: Boolean = false // Flaga zapobiegająca nieskończonej pętli formatowania
 
+            // Metody TextWatchera - beforeTextChanged i onTextChanged nie są potrzebne w tym przypadku
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
 
+            /**
+             * Wywoływane po zmianie tekstu w EditText.
+             * Odpowiada za formatowanie wprowadzonego tekstu.
+             */
             override fun afterTextChanged(s: Editable?) {
-                if (isFormatting) return // Jeśli już formatujemy, wyjdź
-                isFormatting = true // Ustaw flagę
+                // Jeśli flaga isFormatting jest ustawiona (czyli jesteśmy w trakcie formatowania), wyjdź, aby uniknąć pętli.
+                if (isFormatting) return
+                // Ustaw flagę, że rozpoczynamy formatowanie
+                isFormatting = true
 
+                // Pobierz aktualny tekst wprowadzony przez użytkownika
                 val userInput = s.toString()
+                // Jeśli tekst się nie zmienił od ostatniego formatowania, wyjdź.
                 if (userInput == current) {
-                    isFormatting = false
-                    return // Bez zmian, wyjdź
+                    isFormatting = false // Zresetuj flagę
+                    return
                 }
 
-                // Usuń wszystkie znaki niebędące cyframi
+                // Usuń wszystkie znaki, które nie są cyframi
                 val digitsOnly = userInput.replace("[^\\d]".toRegex(), "")
-                val len = digitsOnly.length
+                val len = digitsOnly.length // Długość ciągu samych cyfr
 
-                // Formatowanie DD-MM-YYYY
+                // Budowanie sformatowanego ciągu DD-MM-YYYY
                 val sb = StringBuilder()
-                var cursorPos = editText.selectionStart // Zapamiętaj pozycję kursora
+                val cursorPos = editText.selectionStart // Zapamiętaj pozycję kursora przed formatowaniem
 
+                // Dodaj cyfry dnia (DD)
                 if (len >= 1) {
-                    sb.append(digitsOnly.substring(0, minOf(len, 2))) // DD
+                    sb.append(digitsOnly.substring(0, minOf(len, 2))) // Weź maksymalnie 2 pierwsze cyfry
+                    // Jeśli wpisano 2 cyfry dnia LUB użytkownik wpisał myślnik po dniu
                     if (len > 2 || (userInput.length > sb.length && userInput[sb.length] == '-')) {
-                        if (sb.length == 2) sb.append('-')
+                        if (sb.length == 2) sb.append('-') // Dodaj myślnik po DD
+                        // Dodaj cyfry miesiąca (MM)
                         if (len >= 3) {
-                            sb.append(digitsOnly.substring(2, minOf(len, 4))) // MM
+                            sb.append(digitsOnly.substring(2, minOf(len, 4))) // Weź cyfry od 3 do 4 (max 2)
+                            // Jeśli wpisano 2 cyfry miesiąca LUB użytkownik wpisał myślnik po miesiącu
                             if (len > 4 || (userInput.length > sb.length && userInput[sb.length] == '-')) {
-                                if (sb.length == 5) sb.append('-')
+                                if (sb.length == 5) sb.append('-') // Dodaj myślnik po MM
+                                // Dodaj cyfry roku (YYYY)
                                 if (len >= 5) {
-                                    sb.append(digitsOnly.substring(4, minOf(len, 8))) // YYYY
+                                    sb.append(digitsOnly.substring(4, minOf(len, 8))) // Weź cyfry od 5 do 8 (max 4)
                                 }
                             }
                         }
                     }
                 }
 
+                // Zaktualizuj sformatowany tekst
                 current = sb.toString()
+                // Ustaw sformatowany tekst w EditText (to wywoła ponownie afterTextChanged, dlatego flaga isFormatting jest ważna)
                 editText.setText(current)
 
-                // Przywróć pozycję kursora, dbając o granice
-                // Proste ustawienie na końcu jest często wystarczające przy dodawaniu
+                // Przywróć pozycję kursora.
+                // Proste ustawienie na końcu jest często wystarczające przy dodawaniu znaków.
+                // Przy usuwaniu może być mniej idealne, ale jest kompromisem dla prostoty.
                 try {
-                    editText.setSelection(minOf(cursorPos + 1 , current.length)) // Spróbuj przesunąć kursor
+                    // Spróbuj ustawić kursor mniej więcej tam, gdzie był, lub na końcu, jeśli pozycja jest nieprawidłowa.
+                    // minOf zapobiega wyjściu poza zakres. +1 próbuje przesunąć kursor za dodany myślnik.
+                    editText.setSelection(minOf(cursorPos + 1 , current.length))
                 } catch (e: Exception) {
-                    editText.setSelection(current.length) // W razie problemu ustaw na końcu
+                    // W razie problemów (np. IndexOutOfBoundsException), ustaw kursor na końcu tekstu.
+                    editText.setSelection(current.length)
                 }
 
-
-                isFormatting = false // Zakończ formatowanie
+                // Zakończ formatowanie, resetując flagę
+                isFormatting = false
             }
         })
     }
 }
+

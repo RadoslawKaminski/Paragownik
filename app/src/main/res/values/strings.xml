@@ -1,3 +1,6 @@
+<!-- Definicje ciągów tekstowych używanych w aplikacji. -->
 <resources>
+    <!-- Nazwa aplikacji wyświetlana np. pod ikoną launchera. -->
     <string name="app_name">Paragownik</string>
 </resources>
+

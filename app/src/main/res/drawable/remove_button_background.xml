@@ -1,8 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Tło dla przycisku usuwania (czerwony okrąg). -->
 <shape xmlns:android="http://schemas.android.com/apk/res/android"
-    android:shape="oval">
+    android:shape="oval"> <!-- Kształt owalny (w praktyce koło, jeśli width=height). -->
+    <!-- Kolor wypełnienia - czerwony. -->
     <solid android:color="@android:color/holo_red_dark" />
+    <!-- Rozmiar kształtu (definiuje rozmiar koła). -->
     <size
         android:width="30dp"
         android:height="30dp" />
 </shape>
+

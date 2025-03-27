@@ -1,34 +1,50 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Główny plik manifestu aplikacji Android. -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     package="com.kaminski.paragownik">
 
+    <!-- Definicja aplikacji. -->
     <application
-        android:allowBackup="true"
-        android:dataExtractionRules="@xml/data_extraction_rules"
-        android:fullBackupContent="@xml/backup_rules"
-        android:icon="@mipmap/ic_launcher"
-        android:label="@string/app_name"
-        android:roundIcon="@mipmap/ic_launcher_round"
-        android:supportsRtl="true"
-        android:theme="@style/Theme.Paragownik"
-        tools:targetApi="31">
+        android:allowBackup="true"          
+        android:dataExtractionRules="@xml/data_extraction_rules" 
+        android:fullBackupContent="@xml/backup_rules" 
+        android:icon="@mipmap/ic_launcher"      
+        android:label="@string/app_name"        
+        android:roundIcon="@mipmap/ic_launcher_round" 
+        android:supportsRtl="true"             
+        android:theme="@style/Theme.Paragownik" 
+        tools:targetApi="31">                  
+
+        <!-- Deklaracja aktywności AddClientActivity. -->
+        <!-- exported="false" oznacza, że nie może być uruchamiana przez inne aplikacje. -->
         <activity
             android:name=".AddClientActivity"
             android:exported="false" />
+
+        <!-- Deklaracja aktywności ReceiptListActivity. -->
         <activity
             android:name=".ReceiptListActivity"
             android:exported="false" />
+
+        <!-- Deklaracja głównej aktywności MainActivity. -->
+        <!-- exported="true" oznacza, że może być uruchamiana przez system (np. z launchera). -->
         <activity
             android:name=".MainActivity"
             android:exported="true">
+            <!-- Filtr intencji określający, że jest to główny punkt wejścia aplikacji. -->
             <intent-filter>
+                <!-- Akcja: Główny punkt wejścia. -->
                 <action android:name="android.intent.action.MAIN" />
-
+                <!-- Kategoria: Pojawia się w launcherze aplikacji. -->
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!-- Deklaracja aktywności EditReceiptActivity. -->
         <activity android:name=".EditReceiptActivity" />
+
     </application>
 
 </manifest>
+

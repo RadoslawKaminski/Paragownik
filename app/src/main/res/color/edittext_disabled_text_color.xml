@@ -1,5 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Selektor koloru tekstu dla EditText. -->
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:color="@color/sub_white_text" android:state_enabled="false" /> <!-- Przeźroczysty biały dla wyłączonych -->
-    <item android:color="@color/white_text" /> <!-- Domyślny biały dla włączonych -->
+    <!-- Kolor tekstu, gdy EditText jest wyłączony (state_enabled="false"). -->
+    <item android:color="@color/sub_white_text" android:state_enabled="false" />
+    <!-- Domyślny kolor tekstu (gdy EditText jest włączony). -->
+    <item android:color="@color/white_text" />
 </selector>
+

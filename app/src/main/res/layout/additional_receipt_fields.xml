@@ -1,83 +1,91 @@
+<!-- Layout dla dynamicznie dodawanej sekcji pól nowego paragonu w AddClientActivity. -->
+<!-- Główny kontener to LinearLayout pionowy. -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginTop="24dp"
+    android:layout_marginTop="24dp" 
     android:orientation="vertical">
 
+    <!-- Separator wizualny z przyciskiem usuwania. -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:gravity="center_vertical"
+        android:gravity="center_vertical" 
         android:orientation="horizontal">
 
+        <!-- Linia pozioma jako separator (zajmuje dostępną przestrzeń). -->
         <View
             android:layout_width="0dp"
             android:layout_height="1dp"
             android:layout_marginStart="16dp"
             android:layout_marginEnd="8dp"
-            android:layout_weight="1"
-            android:background="@color/white_text" />
+            android:layout_weight="1" 
+            android:background="@color/white_text" /> 
 
+        <!-- Przycisk (ikona) do usuwania tej sekcji paragonu. -->
         <ImageButton
             android:id="@+id/removeReceiptButton"
-            android:layout_width="30dp"
-            android:layout_height="30dp"
-            android:background="@drawable/remove_button_background"
-            android:contentDescription="Usuń paragon"
-            android:src="@drawable/ic_remove_icon" />
+            android:layout_width="30dp" 
+            android:layout_height="30dp" 
+            android:background="@drawable/remove_button_background" 
+            android:contentDescription="Usuń paragon" 
+            android:src="@drawable/ic_remove_icon" /> 
     </LinearLayout>
 
 
-    <!-- Dodatkowy paragon - Numer drogerii i Numer paragonu w jednej linii -->
+    <!-- Pola dla dodatkowego paragonu: Numer drogerii i Numer paragonu w jednej linii. -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="24dp"
+        android:layout_marginTop="24dp" 
         android:orientation="horizontal">
 
+        <!-- Kontener dla numeru drogerii. -->
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginEnd="8dp"
-            android:layout_weight="4"
+            android:layout_weight="4" 
             android:orientation="vertical">
 
+            <!-- Pole edycji numeru drogerii. -->
             <EditText
                 android:id="@+id/additionalStoreNumberEditText"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:hint="Dogeria"
-                android:inputType="number"
-                android:maxLength="4"
-
-                />
+                android:inputType="number" 
+                android:maxLength="4" />
         </LinearLayout>
 
+        <!-- Kontener dla numeru paragonu. -->
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
-            android:layout_weight="5"
+            android:layout_weight="5" 
             android:orientation="vertical">
 
+            <!-- Pole edycji numeru paragonu. -->
             <EditText
                 android:id="@+id/additionalReceiptNumberEditText"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:hint="Numer paragonu"
-                android:inputType="number"
+                android:inputType="number" 
                 android:maxLength="4" />
         </LinearLayout>
 
     </LinearLayout>
 
+    <!-- Pole edycji daty paragonu. -->
     <EditText
         android:id="@+id/additionalReceiptDateEditText"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
+        android:layout_marginTop="20dp" 
         android:hint="Data paragonu (DD-MM-YYYY)"
-
-        android:inputType="date" />
+        android:inputType="date" /> <!-- Zmieniane przez TextWatcher -->
 
 </LinearLayout>
+

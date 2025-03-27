@@ -1,20 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Layout dla aktywności edycji paragonu i klienta (EditReceiptActivity). -->
+<!-- Używa ScrollView, aby umożliwić przewijanie na mniejszych ekranach. -->
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/main_color_dark"
-    android:padding="16dp"
+    android:background="@color/main_color_dark" 
+    android:padding="16dp" 
     tools:context=".EditReceiptActivity">
 
+    <!-- Główny kontener LinearLayout (pionowy) wewnątrz ScrollView. -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:paddingBottom="16dp"> <!-- Dodany padding na dole dla przycisków -->
+        android:paddingBottom="16dp"> <!-- Dodatkowy padding na dole dla przycisków -->
 
-        <!-- Tytuł (opcjonalnie, jeśli nie używasz Toolbar/ActionBar) -->
+        <!-- Tytuł ekranu. -->
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -23,67 +26,72 @@
             android:text="Edytuj Paragon i Klienta"
             android:textSize="24sp" />
 
-        <!-- Sekcja danych paragonu -->
+        <!-- Sekcja edycji danych paragonu. -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
-            <!-- Numer drogerii i paragonu -->
+            <!-- Numer drogerii i paragonu w jednej linii. -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal">
 
+                <!-- Kontener dla numeru drogerii. -->
                 <LinearLayout
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_marginEnd="8dp"
-                    android:layout_weight="4"
+                    android:layout_weight="4" 
                     android:orientation="vertical">
 
+                    <!-- Pole edycji numeru drogerii. -->
                     <EditText
                         android:id="@+id/editReceiptStoreNumberEditText"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:hint="Dogeria"
-                        android:inputType="number"
-                        android:maxLength="4" />
+                        android:inputType="number" 
+                        android:maxLength="4" /> 
                 </LinearLayout>
 
+                <!-- Kontener dla numeru paragonu. -->
                 <LinearLayout
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="8dp"
-                    android:layout_weight="5"
+                    android:layout_weight="5" 
                     android:orientation="vertical">
 
+                    <!-- Pole edycji numeru paragonu. -->
                     <EditText
                         android:id="@+id/editReceiptNumberEditText"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:hint="Numer paragonu"
-                        android:inputType="number"
-                        android:maxLength="4" />
+                        android:inputType="number" 
+                        android:maxLength="4" /> 
                 </LinearLayout>
             </LinearLayout>
 
-            <!-- Data paragonu -->
+            <!-- Pole edycji daty paragonu. -->
             <EditText
                 android:id="@+id/editReceiptDateEditText"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="20dp"
                 android:hint="Data paragonu (DD-MM-YYYY)"
-                android:inputType="date" /> <!-- Zmienione przez TextWatcher -->
+                android:inputType="date" /> <!-- Zmieniane przez TextWatcher -->
 
-            <!-- Sekcja daty weryfikacji -->
+            <!-- Sekcja edycji daty weryfikacji. -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
                 android:orientation="vertical">
 
+                <!-- Etykieta sekcji. -->
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -91,33 +99,38 @@
                     android:text="Weryfikacja (opcjonalne):"
                     android:textSize="18sp" />
 
+                <!-- Pole daty weryfikacji i checkbox "Dzisiaj" w jednej linii. -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal">
 
+                    <!-- Kontener dla pola daty weryfikacji. -->
                     <LinearLayout
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_weight="5"
+                        android:layout_weight="5" 
                         android:orientation="vertical">
 
+                        <!-- Pole edycji daty weryfikacji. -->
                         <EditText
                             android:id="@+id/editVerificationDateEditText"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:hint="DD-MM-YYYY"
-                            android:inputType="date" /> <!-- Zmienione przez TextWatcher -->
+                            android:inputType="date" /> <!-- Zmieniane przez TextWatcher -->
                     </LinearLayout>
 
+                    <!-- Kontener dla checkboxa "Dzisiaj". -->
                     <LinearLayout
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="8dp"
-                        android:layout_weight="3"
-                        android:gravity="center_vertical"
+                        android:layout_weight="3" 
+                        android:gravity="center_vertical" 
                         android:orientation="vertical">
 
+                        <!-- Checkbox "Dzisiaj". -->
                         <CheckBox
                             android:id="@+id/editVerificationDateTodayCheckBox"
                             android:layout_width="wrap_content"
@@ -130,13 +143,14 @@
 
         </LinearLayout> <!-- Koniec sekcji danych paragonu -->
 
-        <!-- Sekcja danych klienta -->
+        <!-- Sekcja edycji danych klienta. -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="24dp"
             android:orientation="vertical">
 
+            <!-- Etykieta sekcji. -->
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -144,70 +158,74 @@
                 android:text="Dane klienta (opcjonalne):"
                 android:textSize="18sp" />
 
-            <!-- Opis klienta -->
+            <!-- Pole edycji opisu klienta (wieloliniowe). -->
             <EditText
                 android:id="@+id/editClientDescriptionEditText"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:hint="Opis klienta"
-                android:inputType="textMultiLine"
-                android:lines="2"
-                android:gravity="top"/>
+                android:inputType="textMultiLine" 
+                android:lines="2" 
+                android:gravity="top"/> 
 
-            <!--  NOWE POLA KLIENTA  -->
+            <!-- Pole edycji numeru aplikacji klienta. -->
             <EditText
                 android:id="@+id/editClientAppNumberEditText"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
                 android:hint="Numer aplikacji klienta"
-                android:inputType="number"
-                android:maxLength="14" />
+                android:inputType="number" 
+                android:maxLength="14" /> 
 
+            <!-- Pole edycji numeru Amodit. -->
             <EditText
                 android:id="@+id/editAmoditNumberEditText"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
                 android:hint="Numer Amodit"
-                android:inputType="number"
-                android:maxLength="8" />
-            <!-- KONIEC NOWYCH PÓL KLIENTA  -->
+                android:inputType="number" 
+                android:maxLength="8" /> 
 
         </LinearLayout> <!-- Koniec sekcji danych klienta -->
 
 
-        <!-- Przyciski akcji -->
+        <!-- Przyciski akcji (Zapisz, Usuń paragon, Usuń klienta). -->
+        <!-- Przycisk zapisu zmian. -->
         <Button
             android:id="@+id/saveReceiptButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="24dp"
-        android:layout_marginBottom="16dp"
-        android:backgroundTint="@color/green_save"
-        android:paddingVertical="16dp"
-        android:text="Zapisz zmiany"
-        android:textColor="@color/white_text"
-        android:textSize="18sp" />
+            android:layout_marginBottom="16dp" 
+            android:backgroundTint="@color/green_save" 
+            android:paddingVertical="16dp" 
+            android:text="Zapisz zmiany"
+            android:textColor="@color/white_text" 
+            android:textSize="18sp" />
 
+        <!-- Przycisk usuwania tylko tego paragonu (styl Outlined). -->
         <Button
             android:id="@+id/deleteReceiptButton"
-            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton" 
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="8dp"
-            app:strokeColor="@android:color/holo_red_dark"
-            android:textColor="@android:color/holo_red_dark"
+            app:strokeColor="@android:color/holo_red_dark" 
+            android:textColor="@android:color/holo_red_dark" 
             android:text="Usuń ten paragon" />
 
+        <!-- Przycisk usuwania klienta i wszystkich jego paragonów (styl Outlined). -->
         <Button
             android:id="@+id/deleteClientButton"
-            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton" 
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:strokeColor="@android:color/holo_red_dark"
-            android:textColor="@android:color/holo_red_dark"
+            app:strokeColor="@android:color/holo_red_dark" 
+            android:textColor="@android:color/holo_red_dark" 
             android:text="Usuń klienta i wszystkie paragony" />
 
     </LinearLayout>
 </ScrollView>
+
