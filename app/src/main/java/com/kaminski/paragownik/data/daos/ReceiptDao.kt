@@ -54,12 +54,15 @@ interface ReceiptDao {
     /**
      * Pobiera listę paragonów (wraz z danymi klienta) dla określonego sklepu jako [Flow].
      * Używa relacji [ReceiptWithClient] do pobrania powiązanych danych klienta.
+     * Wyniki są sortowane według daty weryfikacji (NULLe na górze, potem rosnąco).
      * `@Transaction` zapewnia atomowość operacji pobierania danych z wielu tabel.
      * @param storeId ID sklepu, dla którego pobierane są paragony.
      * @return [Flow] emitujący listę obiektów [ReceiptWithClient].
      */
     @Transaction // Ważne przy pobieraniu relacji
-    @Query("SELECT * FROM receipts WHERE storeId = :storeId")
+    // Zapytanie pobierające paragony dla danego sklepu, posortowane wg daty weryfikacji.
+    // NULLe (brak daty) są na górze (DESC), pozostałe daty rosnąco (ASC).
+    @Query("SELECT * FROM receipts WHERE storeId = :storeId ORDER BY verificationDate IS NULL DESC, verificationDate ASC")
     fun getReceiptsForStore(storeId: Long): Flow<List<ReceiptWithClient>>
 
     /**
@@ -126,11 +129,13 @@ interface ReceiptDao {
 
     /**
      * Pobiera listę paragonów (wraz z danymi klienta) dla określonego klienta jako [Flow].
-     * Używa relacji [ReceiptWithClient].
+     * Używa relacji [ReceiptWithClient]. Wyniki są sortowane numerycznie rosnąco według numeru sklepu.
      * @param clientId ID klienta, dla którego pobierane są paragony.
      * @return [Flow] emitujący listę obiektów [ReceiptWithClient].
      */
-    @Transaction // Ważne przy pobieraniu relacji
-    @Query("SELECT * FROM receipts WHERE clientId = :clientId")
-    fun getReceiptsWithClientForClient(clientId: Long): Flow<List<ReceiptWithClient>> // Dodano
+    // Zapytanie pobierające paragony dla danego klienta, łącząc z tabelą sklepów,
+    // aby posortować wyniki numerycznie rosnąco według numeru sklepu.
+    @Transaction
+    @Query("SELECT receipts.* FROM receipts INNER JOIN stores ON receipts.storeId = stores.id WHERE receipts.clientId = :clientId ORDER BY CAST(stores.storeNumber AS INTEGER) ASC")
+    fun getReceiptsWithClientForClient(clientId: Long): Flow<List<ReceiptWithClient>>
 }

@@ -1,11 +1,11 @@
 package com.kaminski.paragownik.data.daos
 
 import androidx.room.Dao
+import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.Query
-import androidx.room.Delete
-import com.kaminski.paragownik.data.Store // Import encji Store
-import kotlinx.coroutines.flow.Flow // Import Flow do obserwacji zmian
+import com.kaminski.paragownik.data.Store
+import kotlinx.coroutines.flow.Flow
 
 /**
  * Data Access Object (DAO) dla operacji na encji [Store] (sklepy/drogerie).
@@ -35,10 +35,12 @@ interface StoreDao {
     /**
      * Pobiera wszystkie sklepy z bazy danych jako [Flow].
      * Flow emituje nową listę za każdym razem, gdy dane w tabeli 'stores' ulegną zmianie.
+     * Wyniki są sortowane numerycznie rosnąco według numeru sklepu.
      * @return [Flow] emitujący listę obiektów [Store].
      */
-    @Query("SELECT * FROM stores")
-    fun getAllStores(): Flow<List<Store>> // TODO: Dodać sortowanie w zapytaniu (Task II.8)
+    // Zapytanie pobierające wszystkie sklepy, posortowane numerycznie rosnąco według numeru sklepu.
+    @Query("SELECT * FROM stores ORDER BY CAST(storeNumber AS INTEGER) ASC")
+    fun getAllStores(): Flow<List<Store>>
 
     /**
      * Pobiera pojedynczy sklep na podstawie jego ID.
