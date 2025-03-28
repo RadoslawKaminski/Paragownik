@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Layout dla aktywności przeglądania/edycji paragonu i klienta (EditReceiptActivity). -->
+    <!-- Layout dla aktywności przeglądania/edycji paragonu i klienta (EditReceiptActivity). -->
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
@@ -126,13 +126,23 @@
                     android:orientation="vertical"
                     android:visibility="gone"
                     tools:visibility="visible">
-                    <!-- Etykieta -->
+                    <!-- Etykieta sekcji (tryb edycji). -->
                     <TextView
+                        android:id="@+id/verificationSectionTitleEdit"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="8dp"
                         android:text="@string/verification_section_title"
                         android:textSize="18sp" />
+                    <!-- Etykieta sekcji (tryb widoku). -->
+                    <TextView
+                        android:id="@+id/verificationSectionTitleView"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="8dp"
+                        android:text="@string/verification_section_title_view"
+                        android:textSize="18sp"
+                        android:visibility="gone"/>
                     <!-- Data i Checkbox -->
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -181,13 +191,23 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="24dp"
                 android:orientation="vertical">
-                <!-- Etykieta -->
+                <!-- Etykieta sekcji (tryb edycji). -->
                 <TextView
+                    android:id="@+id/clientDataSectionTitleEdit"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="8dp"
                     android:text="@string/client_data_section_title"
                     android:textSize="18sp" />
+                <!-- Etykieta sekcji (tryb widoku). -->
+                <TextView
+                    android:id="@+id/clientDataSectionTitleView"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="8dp"
+                    android:text="@string/client_data_section_title_view"
+                    android:textSize="18sp"
+                    android:visibility="gone"/>
 
                 <!-- Opis klienta -->
                 <LinearLayout
@@ -210,7 +230,7 @@
                 </LinearLayout>
 
                 <!-- Numer aplikacji -->
-                 <LinearLayout
+                <LinearLayout
                     android:id="@+id/editAppNumberLayout"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -218,33 +238,33 @@
                     android:layout_marginTop="8dp"
                     android:visibility="gone"
                     tools:visibility="visible">
-                     <LinearLayout
-                         android:layout_width="match_parent"
-                         android:layout_height="wrap_content"
-                         android:orientation="horizontal"
-                         android:gravity="center_vertical">
-                         <TextView
-                             android:layout_width="wrap_content"
-                             android:layout_height="wrap_content"
-                             android:text="@string/label_client_app_number"
-                             android:paddingEnd="8dp"
-                             android:textSize="16sp"/>
-                         <EditText
-                             android:id="@+id/editClientAppNumberEditText"
-                             android:layout_width="0dp"
-                             android:layout_height="wrap_content"
-                             android:layout_weight="1"
-                             android:enabled="false"
-                             android:autofillHints="number"
-                             android:hint="@string/client_app_number_hint"
-                             android:inputType="number"
-                             android:maxLength="14"
-                             android:layout_marginBottom="0dp"/>
-                     </LinearLayout>
-                 </LinearLayout>
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical">
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/label_client_app_number"
+                            android:paddingEnd="8dp"
+                            android:textSize="16sp"/>
+                        <EditText
+                            android:id="@+id/editClientAppNumberEditText"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:enabled="false"
+                            android:autofillHints="number"
+                            android:hint="@string/client_app_number_hint"
+                            android:inputType="number"
+                            android:maxLength="14"
+                            android:layout_marginBottom="0dp"/>
+                    </LinearLayout>
+                </LinearLayout>
 
                 <!-- Numer Amodit -->
-                 <LinearLayout
+                <LinearLayout
                     android:id="@+id/editAmoditNumberLayout"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -252,30 +272,30 @@
                     android:layout_marginTop="8dp"
                     android:visibility="gone"
                     tools:visibility="visible">
-                     <LinearLayout
-                         android:layout_width="match_parent"
-                         android:layout_height="wrap_content"
-                         android:orientation="horizontal"
-                         android:gravity="center_vertical">
-                         <TextView
-                             android:layout_width="wrap_content"
-                             android:layout_height="wrap_content"
-                             android:text="@string/label_amodit_number"
-                             android:paddingEnd="8dp"
-                             android:textSize="16sp"/>
-                         <EditText
-                             android:id="@+id/editAmoditNumberEditText"
-                             android:layout_width="0dp"
-                             android:layout_height="wrap_content"
-                             android:layout_weight="1"
-                             android:enabled="false"
-                             android:autofillHints="number"
-                             android:hint="@string/amodit_number_hint"
-                             android:inputType="number"
-                             android:maxLength="8"
-                             android:layout_marginBottom="0dp"/>
-                     </LinearLayout>
-                 </LinearLayout>
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical">
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/label_amodit_number"
+                            android:paddingEnd="8dp"
+                            android:textSize="16sp"/>
+                        <EditText
+                            android:id="@+id/editAmoditNumberEditText"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:enabled="false"
+                            android:autofillHints="number"
+                            android:hint="@string/amodit_number_hint"
+                            android:inputType="number"
+                            android:maxLength="8"
+                            android:layout_marginBottom="0dp"/>
+                    </LinearLayout>
+                </LinearLayout>
 
                 <!-- Sekcja zdjęcia (miniatura + przycisk) -->
                 <LinearLayout
@@ -389,8 +409,6 @@
                 android:visibility="gone"
                 app:strokeColor="@color/scnd_color_bright"
                 tools:visibility="visible"/>
-
-            <!-- Przycisk Edytuj został zastąpiony ikoną w ConstraintLayout -->
 
         </LinearLayout>
     </ScrollView>

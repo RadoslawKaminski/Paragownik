@@ -14,6 +14,7 @@ import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.LinearLayout
+import android.widget.TextView // Import TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
@@ -60,12 +61,17 @@ class EditReceiptActivity : AppCompatActivity() {
     private lateinit var largeClientPhotoImageView: ImageView // Duże zdjęcie (w trybie widoku)
     private lateinit var showClientReceiptsButton: Button // Przycisk nawigacji do paragonów klienta
     private lateinit var showStoreReceiptsButton: Button // Przycisk nawigacji do paragonów sklepu
-    // Layouty do ukrywania/pokazywania
+    // Layouty i etykiety do ukrywania/pokazywania
     private lateinit var editVerificationSectionLayout: LinearLayout
+    private lateinit var verificationSectionTitleEdit: TextView // Etykieta edycji
+    private lateinit var verificationSectionTitleView: TextView // Etykieta widoku
     private lateinit var editDescriptionLayout: LinearLayout
     private lateinit var editAppNumberLayout: LinearLayout
     private lateinit var editAmoditNumberLayout: LinearLayout
-    private lateinit var editPhotoSectionLayout: LinearLayout // Sekcja z miniaturą i przyciskiem dodaj
+    private lateinit var editPhotoSectionLayout: LinearLayout
+    private lateinit var clientDataSectionTitleEdit: TextView // Etykieta edycji
+    private lateinit var clientDataSectionTitleView: TextView // Etykieta widoku
+
 
     // --- ViewModel ---
     private lateinit var editReceiptViewModel: EditReceiptViewModel
@@ -73,11 +79,11 @@ class EditReceiptActivity : AppCompatActivity() {
     // --- Dane pomocnicze ---
     private var receiptId: Long = -1L
     private var currentClientId: Long? = null
-    private var currentStoreId: Long = -1L // ID sklepu dla nawigacji wstecznej
+    private var currentStoreId: Long = -1L
     private var loadDataJob: Job? = null
     private var selectedPhotoUri: Uri? = null
     private var isEditMode = false
-    private var navigationContext: String? = null // Skąd przyszliśmy? "STORE_LIST" lub "CLIENT_LIST"
+    private var navigationContext: String? = null
 
     // Launcher do wybierania zdjęcia z galerii
     private val pickImageLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
@@ -154,6 +160,11 @@ class EditReceiptActivity : AppCompatActivity() {
         editAppNumberLayout = findViewById(R.id.editAppNumberLayout)
         editAmoditNumberLayout = findViewById(R.id.editAmoditNumberLayout)
         editPhotoSectionLayout = findViewById(R.id.editPhotoSectionLayout)
+        // Etykiety sekcji
+        verificationSectionTitleEdit = findViewById(R.id.verificationSectionTitleEdit)
+        verificationSectionTitleView = findViewById(R.id.verificationSectionTitleView)
+        clientDataSectionTitleEdit = findViewById(R.id.clientDataSectionTitleEdit)
+        clientDataSectionTitleView = findViewById(R.id.clientDataSectionTitleView)
     }
 
     /**
@@ -287,12 +298,14 @@ class EditReceiptActivity : AppCompatActivity() {
     private fun updateUiMode(isEditing: Boolean) {
         isEditMode = isEditing
 
-        // Włącz/Wyłącz EditTexty
+        // Włącz/Wyłącz EditTexty i CheckBox
         editReceiptStoreNumberEditText.isEnabled = isEditing
         editReceiptNumberEditText.isEnabled = isEditing
         editReceiptDateEditText.isEnabled = isEditing
         editVerificationDateEditText.isEnabled = isEditing && !editVerificationDateTodayCheckBox.isChecked
         editVerificationDateTodayCheckBox.isEnabled = isEditing
+        // Ukryj CheckBox w trybie widoku
+        editVerificationDateTodayCheckBox.visibility = if (isEditing) View.VISIBLE else View.GONE
         editClientDescriptionEditText.isEnabled = isEditing
         editClientAppNumberEditText.isEnabled = isEditing
         editAmoditNumberEditText.isEnabled = isEditing
@@ -307,11 +320,25 @@ class EditReceiptActivity : AppCompatActivity() {
         // Pokaż/Ukryj duży obrazek (tylko w trybie widoku, jeśli jest zdjęcie)
         largeClientPhotoImageView.visibility = if (!isEditing && selectedPhotoUri != null) View.VISIBLE else View.GONE
 
-        // Pokaż/Ukryj opcjonalne sekcje
-        editVerificationSectionLayout.visibility = if (isEditing || !editVerificationDateEditText.text.isNullOrBlank()) View.VISIBLE else View.GONE
-        editDescriptionLayout.visibility = if (isEditing || !editClientDescriptionEditText.text.isNullOrBlank()) View.VISIBLE else View.GONE
-        editAppNumberLayout.visibility = if (isEditing || !editClientAppNumberEditText.text.isNullOrBlank()) View.VISIBLE else View.GONE
-        editAmoditNumberLayout.visibility = if (isEditing || !editAmoditNumberEditText.text.isNullOrBlank()) View.VISIBLE else View.GONE
+        // Pokaż/Ukryj opcjonalne sekcje i przełącz etykiety
+        val hasVerificationDate = !editVerificationDateEditText.text.isNullOrBlank()
+        editVerificationSectionLayout.visibility = if (isEditing || hasVerificationDate) View.VISIBLE else View.GONE
+        // Pokaż odpowiednią etykietę sekcji weryfikacji
+        verificationSectionTitleEdit.visibility = if (isEditing && editVerificationSectionLayout.visibility == View.VISIBLE) View.VISIBLE else View.GONE // Poprawiono warunek
+        verificationSectionTitleView.visibility = if (!isEditing && hasVerificationDate) View.VISIBLE else View.GONE
+
+        val hasDescription = !editClientDescriptionEditText.text.isNullOrBlank()
+        editDescriptionLayout.visibility = if (isEditing || hasDescription) View.VISIBLE else View.GONE
+
+        val hasAppNumber = !editClientAppNumberEditText.text.isNullOrBlank()
+        editAppNumberLayout.visibility = if (isEditing || hasAppNumber) View.VISIBLE else View.GONE
+
+        val hasAmoditNumber = !editAmoditNumberEditText.text.isNullOrBlank()
+        editAmoditNumberLayout.visibility = if (isEditing || hasAmoditNumber) View.VISIBLE else View.GONE
+
+        // Przełącz etykietę sekcji danych klienta
+        clientDataSectionTitleEdit.visibility = if (isEditing) View.VISIBLE else View.GONE
+        clientDataSectionTitleView.visibility = if (!isEditing) View.VISIBLE else View.GONE
 
         // Sekcja zdjęcia (miniatura + przycisk) jest widoczna TYLKO w trybie edycji
         editPhotoSectionLayout.visibility = if (isEditing) View.VISIBLE else View.GONE

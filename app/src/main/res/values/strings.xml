@@ -75,6 +75,9 @@
     <!-- Przyciski nawigacyjne w EditReceiptActivity -->
     <string name="button_show_client_receipts">Pokaż wszystkie paragony klienta</string>
     <string name="button_show_store_receipts">Pokaż wszystkie paragony drogerii</string>
+    <!-- Etykiety sekcji w trybie widoku -->
+    <string name="verification_section_title_view">Weryfikacja:</string> <!-- Dodano -->
+    <string name="client_data_section_title_view">Dane klienta:</string> <!-- Dodano -->
 
 
     <!-- Receipt Item -->
@@ -108,11 +111,11 @@
     <string name="cd_add_receipt_to_client_fab">Dodaj nowy paragon dla tego klienta</string>
 
     <!-- AddReceiptToClientActivity -->
-    <string name="add_receipt_to_client_title">Dodaj Paragony dla Klienta</string> <!-- Dodano -->
-    <string name="add_receipt_button">Dodaj kolejny paragon</string> <!-- Dodano -->
-    <string name="save_receipts_button">Zapisz paragony</string> <!-- Dodano -->
-    <string name="hint_store_number_required">Drogeria *</string> <!-- Dodano -->
-    <string name="hint_receipt_number_required">Numer paragonu *</string> <!-- Dodano -->
-    <string name="hint_receipt_date_required">Data paragonu (DD-MM-YYYY) *</string> <!-- Dodano -->
+    <string name="add_receipt_to_client_title">Dodaj Paragony dla Klienta</string>
+    <string name="add_receipt_button">Dodaj kolejny paragon</string>
+    <string name="save_receipts_button">Zapisz paragony</string>
+    <string name="hint_store_number_required">Drogeria</string> <!-- Usunięto * -->
+    <string name="hint_receipt_number_required">Numer paragonu</string> <!-- Usunięto * -->
+    <string name="hint_receipt_date_required">Data paragonu (DD-MM-YYYY)</string> <!-- Usunięto * -->
 
 </resources>
