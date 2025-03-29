@@ -29,6 +29,7 @@ import java.text.ParseException
 import java.text.SimpleDateFormat
 import java.util.Locale
 import java.util.UUID // Do generowania unikalnych nazw plików
+import java.util.Calendar // Potrzebne dla Calendar.getInstance()
 
 /**
  * Aktywność odpowiedzialna za dodawanie nowego klienta wraz z jednym lub wieloma paragonami.
@@ -41,8 +42,8 @@ class AddClientActivity : AppCompatActivity() {
     private lateinit var storeNumberEditTextFirstReceipt: EditText
     private lateinit var receiptNumberEditText: EditText
     private lateinit var receiptDateEditText: EditText
-    private lateinit var verificationDateEditText: EditText
-    private lateinit var verificationDateTodayCheckBox: CheckBox
+    private lateinit var verificationDateEditText: EditText // Data weryfikacji dla pierwszego paragonu
+    private lateinit var verificationDateTodayCheckBox: CheckBox // Checkbox "Dzisiaj" dla pierwszego paragonu
     private lateinit var clientDescriptionEditText: EditText
     private lateinit var clientAppNumberEditText: EditText
     private lateinit var amoditNumberEditText: EditText
@@ -67,9 +68,11 @@ class AddClientActivity : AppCompatActivity() {
      * dla dynamicznie dodawanych sekcji paragonów.
      */
     private data class ReceiptFields(
-        val storeNumberEditText: EditText?,
+        val storeNumberEditText: EditText?, // Null dla pierwszego paragonu w liście
         val receiptNumberEditText: EditText,
-        val receiptDateEditText: EditText
+        val receiptDateEditText: EditText,
+        val verificationDateEditText: EditText?, // Null dla pierwszego paragonu w liście
+        val verificationDateTodayCheckBox: CheckBox? // Null dla pierwszego paragonu w liście
     )
 
     /**
@@ -78,7 +81,8 @@ class AddClientActivity : AppCompatActivity() {
     data class ReceiptData(
         val storeNumber: String,
         val receiptNumber: String,
-        val receiptDate: String
+        val receiptDate: String,
+        val verificationDateString: String? // Dodane opcjonalne pole
     )
 
     // Launcher do wybierania zdjęcia z galerii
@@ -110,8 +114,9 @@ class AddClientActivity : AppCompatActivity() {
         initializeViewModels()
         handleIntentExtras()
         setupDateEditText(receiptDateEditText)
-        setupDateEditText(verificationDateEditText)
-        receiptFieldsList.add(ReceiptFields(null, receiptNumberEditText, receiptDateEditText))
+        setupDateEditText(verificationDateEditText) // Formatowanie dla daty weryfikacji pierwszego paragonu
+        // Dodajemy pierwszy paragon do listy, pola weryfikacji są obsługiwane oddzielnie
+        receiptFieldsList.add(ReceiptFields(null, receiptNumberEditText, receiptDateEditText, null, null))
         setupListeners()
     }
 
@@ -122,8 +127,8 @@ class AddClientActivity : AppCompatActivity() {
         storeNumberEditTextFirstReceipt = findViewById(R.id.receiptStoreNumberEditText)
         receiptNumberEditText = findViewById(R.id.receiptNumberEditText)
         receiptDateEditText = findViewById(R.id.receiptDateEditText)
-        verificationDateEditText = findViewById(R.id.verificationDateEditText)
-        verificationDateTodayCheckBox = findViewById(R.id.verificationDateTodayCheckBox)
+        verificationDateEditText = findViewById(R.id.verificationDateEditText) // Pierwszy paragon
+        verificationDateTodayCheckBox = findViewById(R.id.verificationDateTodayCheckBox) // Pierwszy paragon
         clientDescriptionEditText = findViewById(R.id.clientDescriptionEditText)
         clientAppNumberEditText = findViewById(R.id.clientAppNumberEditText)
         amoditNumberEditText = findViewById(R.id.amoditNumberEditText)
@@ -164,10 +169,10 @@ class AddClientActivity : AppCompatActivity() {
      * Ustawia listenery dla interaktywnych elementów UI.
      */
     private fun setupListeners() {
-        // Listener dla checkboxa "Dzisiaj"
+        // Listener dla checkboxa "Dzisiaj" PIERWSZEGO paragonu
         verificationDateTodayCheckBox.setOnCheckedChangeListener { _, isChecked ->
             if (isChecked) {
-                val currentDate = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault()).format(java.util.Calendar.getInstance().time)
+                val currentDate = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault()).format(Calendar.getInstance().time)
                 verificationDateEditText.setText(currentDate)
                 verificationDateEditText.isEnabled = false
             } else {
@@ -199,7 +204,7 @@ class AddClientActivity : AppCompatActivity() {
         val clientDescription = clientDescriptionEditText.text.toString().trim()
         val clientAppNumber = clientAppNumberEditText.text.toString().trim()
         val amoditNumber = amoditNumberEditText.text.toString().trim()
-        val verificationDateString = verificationDateEditText.text.toString().trim()
+        val firstVerificationDateString = verificationDateEditText.text.toString().trim() // Pobierz datę weryfikacji dla pierwszego paragonu
 
         val receiptsToAdd = mutableListOf<ReceiptData>()
         var hasEmptyFields = false
@@ -214,13 +219,16 @@ class AddClientActivity : AppCompatActivity() {
         } else if (!isValidDate(firstReceiptDate)) {
             Toast.makeText(this, R.string.error_invalid_receipt_date_format, Toast.LENGTH_LONG).show()
             return
+        } else if (firstVerificationDateString.isNotEmpty() && !isValidDate(firstVerificationDateString)) { // Walidacja daty weryfikacji pierwszego paragonu
+            Toast.makeText(this, R.string.error_invalid_verification_date_format, Toast.LENGTH_LONG).show()
+            return
         } else {
-            receiptsToAdd.add(ReceiptData(firstStoreNumber, firstReceiptNumber, firstReceiptDate))
+            receiptsToAdd.add(ReceiptData(firstStoreNumber, firstReceiptNumber, firstReceiptDate, firstVerificationDateString.takeIf { it.isNotEmpty() })) // Dodano datę weryfikacji
         }
 
         // Przetwarzanie dodatkowych paragonów
         if (!hasEmptyFields) {
-            for (receiptFields in receiptFieldsList.drop(1)) {
+            for (receiptFields in receiptFieldsList.drop(1)) { // Pomiń pierwszy paragon, bo już przetworzony
                 val storeNumberEditText = receiptFields.storeNumberEditText
                 if (storeNumberEditText == null) {
                     Log.e("AddClientActivity", "Błąd krytyczny: storeNumberEditText jest null w pętli dodatkowych paragonów!")
@@ -230,6 +238,8 @@ class AddClientActivity : AppCompatActivity() {
                 val storeNumber = storeNumberEditText.text.toString().trim()
                 val receiptNumber = receiptFields.receiptNumberEditText.text.toString().trim()
                 val receiptDate = receiptFields.receiptDateEditText.text.toString().trim()
+                val verificationDateEditText = receiptFields.verificationDateEditText // Pobierz pole daty weryfikacji
+                val verificationDateString = verificationDateEditText?.text?.toString()?.trim() ?: "" // Pobierz datę weryfikacji
 
                 if (storeNumber.isEmpty() || receiptNumber.isEmpty() || receiptDate.isEmpty()) {
                     hasEmptyFields = true
@@ -237,8 +247,11 @@ class AddClientActivity : AppCompatActivity() {
                 } else if (!isValidDate(receiptDate)) {
                     Toast.makeText(this, R.string.error_invalid_additional_receipt_date_format, Toast.LENGTH_LONG).show()
                     return
+                } else if (verificationDateString.isNotEmpty() && !isValidDate(verificationDateString)) { // Walidacja daty weryfikacji dodatkowego paragonu
+                    Toast.makeText(this, R.string.error_invalid_additional_verification_date_format, Toast.LENGTH_LONG).show()
+                    return
                 } else {
-                    receiptsToAdd.add(ReceiptData(storeNumber, receiptNumber, receiptDate))
+                    receiptsToAdd.add(ReceiptData(storeNumber, receiptNumber, receiptDate, verificationDateString.takeIf { it.isNotEmpty() })) // Dodano datę weryfikacji
                 }
             }
         }
@@ -259,10 +272,8 @@ class AddClientActivity : AppCompatActivity() {
                 clientDescription = clientDescription.takeIf { it.isNotEmpty() },
                 clientAppNumber = clientAppNumber.takeIf { it.isNotEmpty() },
                 amoditNumber = amoditNumber.takeIf { it.isNotEmpty() },
-                // Przekaż URI jako String, jeśli zostało wybrane (teraz to trwałe URI)
                 photoUri = selectedPhotoUri?.toString(),
-                receiptsData = receiptsToAdd,
-                verificationDateString = verificationDateString.takeIf { it.isNotEmpty() }
+                receiptsData = receiptsToAdd // Przekazujemy listę z datami weryfikacji wewnątrz
             )
             handleSaveResult(result)
         }
@@ -289,7 +300,8 @@ class AddClientActivity : AppCompatActivity() {
     private fun handleSaveResult(result: AddClientViewModel.AddResult) {
         val messageResId = when (result) {
             AddClientViewModel.AddResult.SUCCESS -> R.string.save_success_message
-            AddClientViewModel.AddResult.ERROR_DATE_FORMAT -> R.string.error_invalid_date_format
+            AddClientViewModel.AddResult.ERROR_DATE_FORMAT -> R.string.error_invalid_date_format // Ogólny błąd formatu daty
+            AddClientViewModel.AddResult.ERROR_VERIFICATION_DATE_FORMAT -> R.string.error_invalid_verification_date_format // Błąd formatu daty weryfikacji
             AddClientViewModel.AddResult.ERROR_DUPLICATE_RECEIPT -> R.string.error_duplicate_receipt
             AddClientViewModel.AddResult.ERROR_STORE_NUMBER_MISSING -> R.string.error_store_number_missing
             AddClientViewModel.AddResult.ERROR_DATABASE -> R.string.error_database
@@ -316,13 +328,29 @@ class AddClientActivity : AppCompatActivity() {
         val receiptNumberEditText = receiptFieldsView.findViewById<EditText>(R.id.additionalReceiptNumberEditText)
         val receiptDateEditText = receiptFieldsView.findViewById<EditText>(R.id.additionalReceiptDateEditText)
         val removeReceiptButton = receiptFieldsView.findViewById<ImageButton>(R.id.removeReceiptButton)
+        val verificationDateEditText = receiptFieldsView.findViewById<EditText>(R.id.additionalVerificationDateEditText) // Nowe pole
+        val verificationDateTodayCheckBox = receiptFieldsView.findViewById<CheckBox>(R.id.additionalVerificationDateTodayCheckBox) // Nowy checkbox
 
         setupDateEditText(receiptDateEditText)
+        setupDateEditText(verificationDateEditText) // Ustaw formatowanie dla daty weryfikacji
+
+        // Listener dla checkboxa "Dzisiaj" w dodatkowych polach
+        verificationDateTodayCheckBox.setOnCheckedChangeListener { _, isChecked ->
+            if (isChecked) {
+                val currentDate = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault()).format(Calendar.getInstance().time)
+                verificationDateEditText.setText(currentDate)
+                verificationDateEditText.isEnabled = false
+            } else {
+                verificationDateEditText.isEnabled = true
+            }
+        }
 
         val newReceiptFields = ReceiptFields(
             storeNumberEditText,
             receiptNumberEditText,
-            receiptDateEditText
+            receiptDateEditText,
+            verificationDateEditText, // Dodano
+            verificationDateTodayCheckBox // Dodano
         )
         receiptFieldsList.add(newReceiptFields)
         receiptsContainer.addView(receiptFieldsView)
@@ -440,3 +468,4 @@ class AddClientActivity : AppCompatActivity() {
         }
     }
 }
+

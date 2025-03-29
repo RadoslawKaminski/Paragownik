@@ -21,7 +21,8 @@
     <string name="save_success_message">Zmiany zapisane pomyślnie</string>
     <string name="delete_success_message">Element usunięty pomyślnie</string>
     <string name="error_not_found">Błąd: Nie znaleziono elementu.</string>
-    <string name="error_invalid_date_format">Błąd: Nieprawidłowy format daty (DD-MM-YYYY).</string>
+    <string name="error_invalid_date_format">Błąd: Nieprawidłowy format daty (DD-MM-YYYY).</string> <!-- Zaktualizowano opis -->
+    <string name="error_invalid_verification_date_format">Błąd: Nieprawidłowy format daty weryfikacji (DD-MM-YYYY).</string> <!-- Dodano -->
     <string name="error_duplicate_receipt">Błąd: Paragon o podanym numerze, dacie i sklepie już istnieje.</string>
     <string name="error_store_number_missing">Błąd: Numer drogerii nie może być pusty.</string>
     <string name="error_database">Błąd: Wystąpił problem z bazą danych.</string>
@@ -56,6 +57,7 @@
     <string name="error_add_at_least_one_receipt">Dodaj przynajmniej jeden paragon</string>
     <string name="error_invalid_receipt_date_format">Nieprawidłowy format daty paragonu (DD-MM-YYYY)</string>
     <string name="error_invalid_additional_receipt_date_format">Nieprawidłowy format daty w dodatkowym paragonie (DD-MM-YYYY)</string>
+    <string name="error_invalid_additional_verification_date_format">Nieprawidłowy format daty weryfikacji w dodatkowym paragonie (DD-MM-YYYY)</string> <!-- Dodano -->
     <string name="cd_remove_receipt_button">Usuń ten paragon</string>
 
     <!-- EditReceiptActivity -->

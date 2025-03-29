@@ -1,5 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!-- Layout dodawania paragonów do istniejącego klienta -->
+<?xml version="1.0" encoding="utf-8"?><!-- Layout dodawania paragonów do istniejącego klienta -->
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
@@ -146,6 +145,7 @@
                         android:layout_marginEnd="8dp"
                         android:layout_weight="4"
                         android:orientation="vertical">
+
                         <EditText
                             android:id="@+id/firstStoreNumberEditText"
                             android:layout_width="match_parent"
@@ -162,6 +162,7 @@
                         android:layout_marginStart="8dp"
                         android:layout_weight="5"
                         android:orientation="vertical">
+
                         <EditText
                             android:id="@+id/firstReceiptNumberEditText"
                             android:layout_width="match_parent"
@@ -182,14 +183,60 @@
                     android:autofillHints="date"
                     android:hint="@string/hint_receipt_date_required"
                     android:inputType="date" />
-            </LinearLayout>
+
+                <!-- Pole daty weryfikacji i checkbox "Dzisiaj" w jednej linii. -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:baselineAligned="false"
+                    android:orientation="horizontal">
+
+                    <!-- Kontener dla pola daty weryfikacji. -->
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="5"
+                        android:orientation="vertical">
+
+                        <!-- Pole edycji daty weryfikacji. -->
+                        <EditText
+                            android:id="@+id/firstVerificationDateEditText"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:autofillHints="date"
+                            android:hint="@string/verification_date_hint"
+                            android:inputType="date" /> <!-- inputType modyfikowany przez TextWatcher na number -->
+                    </LinearLayout>
+
+                    <!-- Kontener dla checkboxa "Dzisiaj". -->
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:layout_weight="3"
+                        android:gravity="center_vertical"
+                        android:orientation="vertical">
+
+                        <!-- Checkbox "Dzisiaj". -->
+                        <CheckBox
+                            android:id="@+id/firstVerificationDateTodayCheckBox"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/today"
+                            android:textColor="@color/white_text" />
+                    </LinearLayout>
+                </LinearLayout> <!-- Koniec sekcji daty weryfikacji -->
+
+            </LinearLayout> <!-- Koniec pierwszego zestawu pól -->
+
 
             <!-- Kontener na dynamicznie dodawane pola dodatkowych paragonów. -->
             <LinearLayout
                 android:id="@+id/newReceiptsContainer"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"/>
+                android:orientation="vertical" />
 
             <!-- Przycisk dodawania kolejnego paragonu. -->
             <Button
@@ -220,3 +267,4 @@
         app:layout_constraintStart_toStartOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
+

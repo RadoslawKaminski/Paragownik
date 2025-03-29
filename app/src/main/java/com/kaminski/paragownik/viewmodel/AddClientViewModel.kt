@@ -4,7 +4,7 @@ import android.app.Application
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.room.withTransaction
-import com.kaminski.paragownik.AddClientActivity.ReceiptData
+import com.kaminski.paragownik.AddClientActivity.ReceiptData // Zmieniono import, jeśli ReceiptData jest tam zagnieżdżone
 import com.kaminski.paragownik.R // Potrzebne dla zasobów string
 import com.kaminski.paragownik.data.AppDatabase
 import com.kaminski.paragownik.data.Client
@@ -23,7 +23,7 @@ import java.util.Locale
 /**
  * ViewModel dla AddClientActivity.
  * Odpowiada za logikę biznesową związaną z dodawaniem nowego klienta
- * wraz z jednym lub wieloma paragonami do bazy danych, w tym URI zdjęcia.
+ * wraz z jednym lub wieloma paragonami do bazy danych, w tym URI zdjęcia i daty weryfikacji.
  */
 class AddClientViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -38,7 +38,8 @@ class AddClientViewModel(application: Application) : AndroidViewModel(applicatio
      */
     enum class AddResult {
         SUCCESS,
-        ERROR_DATE_FORMAT,
+        ERROR_DATE_FORMAT, // Ogólny błąd formatu daty paragonu
+        ERROR_VERIFICATION_DATE_FORMAT, // Błąd formatu daty weryfikacji
         ERROR_DUPLICATE_RECEIPT,
         ERROR_STORE_NUMBER_MISSING,
         ERROR_DATABASE,
@@ -47,14 +48,13 @@ class AddClientViewModel(application: Application) : AndroidViewModel(applicatio
 
     /**
      * Dodaje nowego klienta wraz z listą powiązanych paragonów w jednej transakcji bazodanowej.
-     * Zapisuje również przekazane URI zdjęcia klienta.
+     * Zapisuje również przekazane URI zdjęcia klienta i daty weryfikacji.
      *
      * @param clientDescription Opis klienta.
      * @param clientAppNumber Numer aplikacji klienta.
      * @param amoditNumber Numer Amodit klienta.
      * @param photoUri URI zdjęcia klienta jako String (może być null).
-     * @param receiptsData Lista danych paragonów do dodania.
-     * @param verificationDateString Data weryfikacji dla pierwszego paragonu (jako String).
+     * @param receiptsData Lista danych paragonów do dodania (zawiera opcjonalną datę weryfikacji).
      * @return [AddResult] Enum wskazujący wynik operacji.
      */
     suspend fun addClientWithReceiptsTransactionally(
@@ -62,8 +62,7 @@ class AddClientViewModel(application: Application) : AndroidViewModel(applicatio
         clientAppNumber: String?,
         amoditNumber: String?,
         photoUri: String?, // Akceptuje URI zdjęcia
-        receiptsData: List<ReceiptData>,
-        verificationDateString: String?
+        receiptsData: List<ReceiptData> // Lista zawiera teraz datę weryfikacji
     ): AddResult = withContext(Dispatchers.IO) {
         val dateFormat = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault())
         dateFormat.isLenient = false
@@ -85,14 +84,15 @@ class AddClientViewModel(application: Application) : AndroidViewModel(applicatio
                 }
 
                 // Krok 2: Przetwarzanie i dodawanie Paragonów
-                for (i in receiptsData.indices) {
-                    val receiptData = receiptsData[i]
+                for (receiptData in receiptsData) { // Używamy bezpośrednio receiptData z listy
+                    val verificationDateStringFromData = receiptData.verificationDateString // Pobierz z ReceiptData
 
                     if (receiptData.storeNumber.isBlank()) {
                         Log.e("AddClientViewModel", "Transakcja: Brak numeru drogerii dla paragonu: ${receiptData.receiptNumber}")
                         throw StoreNumberMissingException()
                     }
 
+                    // Parsowanie daty paragonu
                     val receiptDate: Date = try {
                         dateFormat.parse(receiptData.receiptDate) as Date
                     } catch (e: ParseException) {
@@ -100,12 +100,13 @@ class AddClientViewModel(application: Application) : AndroidViewModel(applicatio
                         throw DateFormatException()
                     }
 
-                    val verificationDate: Date? = if (i == 0 && !verificationDateString.isNullOrBlank()) {
+                    // Parsowanie daty weryfikacji (teraz dla każdego paragonu)
+                    val verificationDate: Date? = if (!verificationDateStringFromData.isNullOrBlank()) {
                         try {
-                            dateFormat.parse(verificationDateString) as Date
+                            dateFormat.parse(verificationDateStringFromData) as Date
                         } catch (e: ParseException) {
-                            Log.w("AddClientViewModel", "Transakcja: Błąd formatu daty weryfikacji (ignorowanie): $verificationDateString")
-                            null
+                            Log.e("AddClientViewModel", "Transakcja: Błąd formatu daty weryfikacji: $verificationDateStringFromData")
+                            throw VerificationDateFormatException() // Rzuć nowy wyjątek
                         }
                     } else {
                         null
@@ -139,7 +140,7 @@ class AddClientViewModel(application: Application) : AndroidViewModel(applicatio
                         receiptNumber = receiptData.receiptNumber,
                         receiptDate = receiptDate,
                         storeId = storeId,
-                        verificationDate = verificationDate,
+                        verificationDate = verificationDate, // Używamy sparsowanej daty weryfikacji
                         clientId = clientId
                     )
                     receiptDao.insertReceipt(receipt)
@@ -149,6 +150,8 @@ class AddClientViewModel(application: Application) : AndroidViewModel(applicatio
             AddResult.SUCCESS
         } catch (e: DateFormatException) {
             AddResult.ERROR_DATE_FORMAT
+        } catch (e: VerificationDateFormatException) { // Obsługa nowego wyjątku
+            AddResult.ERROR_VERIFICATION_DATE_FORMAT
         } catch (e: DuplicateReceiptException) {
             AddResult.ERROR_DUPLICATE_RECEIPT
         } catch (e: StoreNumberMissingException) {
@@ -164,7 +167,9 @@ class AddClientViewModel(application: Application) : AndroidViewModel(applicatio
 
     // Prywatne klasy wyjątków
     private class DateFormatException : Exception()
+    private class VerificationDateFormatException : Exception() // Nowy wyjątek
     private class DuplicateReceiptException : Exception()
     private class StoreNumberMissingException : Exception()
     private class DatabaseException(message: String) : Exception(message)
 }
+

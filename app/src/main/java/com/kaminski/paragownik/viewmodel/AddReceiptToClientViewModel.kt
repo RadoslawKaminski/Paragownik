@@ -23,7 +23,8 @@ import java.util.Locale // Import Locale
 
 /**
  * ViewModel dla AddReceiptToClientActivity.
- * Odpowiada za pobranie danych klienta i logikę dodawania nowych paragonów do niego.
+ * Odpowiada za pobranie danych klienta i logikę dodawania nowych paragonów do niego,
+ * w tym obsługę daty weryfikacji.
  */
 class AddReceiptToClientViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -35,7 +36,8 @@ class AddReceiptToClientViewModel(application: Application) : AndroidViewModel(a
     // Możliwe wyniki operacji zapisu paragonów
     enum class SaveReceiptsResult {
         SUCCESS,
-        ERROR_DATE_FORMAT,
+        ERROR_DATE_FORMAT, // Ogólny błąd formatu daty paragonu
+        ERROR_VERIFICATION_DATE_FORMAT, // Błąd formatu daty weryfikacji
         ERROR_DUPLICATE_RECEIPT,
         ERROR_STORE_NUMBER_MISSING,
         ERROR_DATABASE,
@@ -61,10 +63,10 @@ class AddReceiptToClientViewModel(application: Application) : AndroidViewModel(a
 
     /**
      * Dodaje nowe paragony do istniejącego klienta w jednej transakcji.
-     * Obsługuje tworzenie sklepów i walidację duplikatów.
+     * Obsługuje tworzenie sklepów, walidację duplikatów i daty weryfikacji.
      *
      * @param clientId ID klienta, do którego dodajemy paragony.
-     * @param receiptsData Lista danych paragonów do dodania.
+     * @param receiptsData Lista danych paragonów do dodania (zawiera opcjonalną datę weryfikacji).
      * @return SaveReceiptsResult wskazujący wynik operacji.
      */
     suspend fun saveReceiptsForClient(
@@ -128,12 +130,26 @@ class AddReceiptToClientViewModel(application: Application) : AndroidViewModel(a
                         throw DuplicateReceiptException()
                     }
 
+                    val verificationDateStringFromData = receiptData.verificationDateString // Pobierz z ReceiptData
+
+                    // Parsowanie daty weryfikacji
+                    val verificationDate: Date? = if (!verificationDateStringFromData.isNullOrBlank()) {
+                        try {
+                            dateFormat.parse(verificationDateStringFromData) as Date
+                        } catch (e: ParseException) {
+                            Log.e("AddReceiptVM", "Transakcja: Błąd formatu daty weryfikacji: $verificationDateStringFromData")
+                            throw VerificationDateFormatException() // Rzuć nowy wyjątek
+                        }
+                    } else {
+                        null
+                    }
+
                     // Dodanie Paragonu - wywołanie DAO jest suspend
                     val receipt = Receipt(
                         receiptNumber = receiptData.receiptNumber,
                         receiptDate = receiptDate,
                         storeId = storeId,
-                        verificationDate = null, // W tym widoku nie ustawiamy daty weryfikacji
+                        verificationDate = verificationDate, // Używamy sparsowanej daty weryfikacji
                         clientId = clientId // Używamy przekazanego ID klienta
                     )
                     val insertedReceiptId = receiptDao.insertReceipt(receipt) // suspend
@@ -146,6 +162,8 @@ class AddReceiptToClientViewModel(application: Application) : AndroidViewModel(a
             SaveReceiptsResult.SUCCESS
         } catch (e: DateFormatException) {
             SaveReceiptsResult.ERROR_DATE_FORMAT
+        } catch (e: VerificationDateFormatException) { // Obsługa nowego wyjątku
+            SaveReceiptsResult.ERROR_VERIFICATION_DATE_FORMAT
         } catch (e: DuplicateReceiptException) {
             SaveReceiptsResult.ERROR_DUPLICATE_RECEIPT
         } catch (e: StoreNumberMissingException) {
@@ -161,7 +179,9 @@ class AddReceiptToClientViewModel(application: Application) : AndroidViewModel(a
 
     // Prywatne klasy wyjątków
     private class DateFormatException : Exception()
+    private class VerificationDateFormatException : Exception() // Nowy wyjątek
     private class DuplicateReceiptException : Exception()
     private class StoreNumberMissingException : Exception()
     private class DatabaseException(message: String) : Exception(message)
 }
+

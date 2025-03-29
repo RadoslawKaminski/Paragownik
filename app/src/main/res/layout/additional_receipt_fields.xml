@@ -1,4 +1,4 @@
-<!-- Layout dla dynamicznie dodawanej sekcji pól nowego paragonu w AddClientActivity. -->
+<!-- Layout dla dynamicznie dodawanej sekcji pól nowego paragonu. -->
 <!-- Główny kontener to LinearLayout pionowy. -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
@@ -91,4 +91,49 @@
         android:hint="@string/receipt_date_hint"
         android:inputType="date" /> <!-- Zmieniane przez TextWatcher -->
 
+    <!-- Pole daty weryfikacji i checkbox "Dzisiaj" w jednej linii. -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:baselineAligned="false"
+        android:orientation="horizontal">
+
+        <!-- Kontener dla pola daty weryfikacji. -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="5"
+            android:orientation="vertical">
+
+            <!-- Pole edycji daty weryfikacji. -->
+            <EditText
+                android:id="@+id/additionalVerificationDateEditText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:autofillHints="date"
+                android:hint="@string/verification_date_hint"
+                android:inputType="date" /> <!-- inputType modyfikowany przez TextWatcher na number -->
+        </LinearLayout>
+
+        <!-- Kontener dla checkboxa "Dzisiaj". -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_weight="3"
+            android:gravity="center_vertical"
+            android:orientation="vertical">
+
+            <!-- Checkbox "Dzisiaj". -->
+            <CheckBox
+                android:id="@+id/additionalVerificationDateTodayCheckBox"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/today"
+                android:textColor="@color/white_text" />
+        </LinearLayout>
+    </LinearLayout> <!-- Koniec sekcji daty weryfikacji -->
+
 </LinearLayout>
+
