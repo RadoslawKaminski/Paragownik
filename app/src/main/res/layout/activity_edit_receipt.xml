@@ -334,22 +334,18 @@
                         android:paddingBottom="4dp"/>
                 </HorizontalScrollView>
 
-                 <!-- Kontener dla miniatur w trybie widoku -->
-                 <HorizontalScrollView
-                    android:id="@+id/clientPhotosScrollViewView"
+                 <!-- RecyclerView dla dużych zdjęć klienta w trybie widoku -->
+                 <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/clientPhotosRecyclerViewView"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
+                    android:orientation="horizontal"
                     android:visibility="gone"
-                    tools:visibility="visible">
-                    <LinearLayout
-                        android:id="@+id/clientPhotosContainerView"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:paddingTop="4dp"
-                        android:paddingBottom="4dp"/>
-                </HorizontalScrollView>
+                    app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+                    tools:visibility="visible"
+                    tools:listitem="@layout/large_photo_item"
+                    tools:itemCount="3"/>
 
                 <!-- Przycisk dodawania zdjęcia klienta (tylko tryb edycji) -->
                 <Button
@@ -401,22 +397,18 @@
                         android:paddingBottom="4dp"/>
                 </HorizontalScrollView>
 
-                 <!-- Kontener dla miniatur w trybie widoku -->
-                 <HorizontalScrollView
-                    android:id="@+id/transactionPhotosScrollViewView"
+                 <!-- RecyclerView dla dużych zdjęć transakcji w trybie widoku -->
+                 <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/transactionPhotosRecyclerViewView"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
+                    android:orientation="horizontal"
                     android:visibility="gone"
-                    tools:visibility="visible">
-                    <LinearLayout
-                        android:id="@+id/transactionPhotosContainerView"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:paddingTop="4dp"
-                        android:paddingBottom="4dp"/>
-                </HorizontalScrollView>
+                    app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+                    tools:visibility="visible"
+                    tools:listitem="@layout/large_photo_item"
+                    tools:itemCount="2"/>
 
                 <!-- Przycisk dodawania zdjęcia transakcji (tylko tryb edycji) -->
                 <Button

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Layout dla pojedynczego dużego zdjęcia w RecyclerView -->
+<ImageView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/largePhotoImageViewItem"
+    android:layout_width="wrap_content"
+    android:layout_height="300dp"
+    android:adjustViewBounds="true"
+    android:contentDescription="@string/cd_client_large_photo"
+    android:scaleType="fitCenter"
+    android:layout_marginEnd="8dp"
+    tools:srcCompat="@drawable/ic_photo_placeholder" />
+
