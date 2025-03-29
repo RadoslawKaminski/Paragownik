@@ -37,6 +37,9 @@ class ReceiptAdapter(
     // Mapa przechowująca ID sklepu -> Numer sklepu (używana w trybie CLIENT_LIST)
     var storeMap: Map<Long, String> = emptyMap()
         private set // Ustawiana tylko przez metodę updateStoreMap
+    // Mapa przechowująca ID klienta -> URI miniatury (używana w trybie STORE_LIST)
+    var clientThumbnailsMap: Map<Long, String?> = emptyMap() // <-- DODAJ
+        private set
 
     /**
      * Interfejs dla obsługi kliknięcia elementu listy paragonów.
@@ -79,12 +82,21 @@ class ReceiptAdapter(
     }
 
     /**
+     * Aktualizuje mapę miniatur klientów.
+     * @param newMap Nowa mapa [ID klienta -> URI miniatury?].
+     */
+    fun updateClientThumbnailsMap(newMap: Map<Long, String?>) { // <-- DODAJ
+        clientThumbnailsMap = newMap
+    }
+
+
+    /**
      * Łączy dane z widokami w ViewHolderze w zależności od trybu wyświetlania.
      */
     override fun onBindViewHolder(holder: ReceiptViewHolder, position: Int) {
         val currentReceiptWithClient = receiptList[position]
         val currentReceipt = currentReceiptWithClient.receipt
-        val client = currentReceiptWithClient.client
+        val client = currentReceiptWithClient.client // Może być null, jeśli coś pójdzie nie tak z relacją
 
         val dateFormat = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault())
 
@@ -101,37 +113,49 @@ class ReceiptAdapter(
                 // Tryb listy paragonów sklepu: pokaż dane klienta, ukryj numer sklepu
                 holder.storeNumberTextView.visibility = View.GONE
 
-                // Pokaż opis klienta (lub "Brak opisu")
-                holder.clientDescriptionTextView.text = client?.description?.takeIf { it.isNotBlank() }
-                    ?: context.getString(R.string.no_client_description)
-                holder.clientDescriptionTextView.isVisible = !holder.clientDescriptionTextView.text.isNullOrBlank()
+                if (client != null) {
+                    // Pokaż opis klienta (lub ID)
+                    holder.clientDescriptionTextView.text = if (client.description.isNullOrBlank()) {
+                         context.getString(R.string.client_item_id_prefix) + client.id.toString()
+                    } else {
+                        client.description
+                    }
+                    holder.clientDescriptionTextView.isVisible = true // Zawsze widoczne (ID lub opis)
 
-                // Pokaż numer aplikacji klienta, jeśli istnieje
-                val appNumberText = client?.clientAppNumber?.takeIf { it.isNotBlank() }?.let {
-                    context.getString(R.string.client_item_app_number_prefix) + " " + it
-                }
-                holder.clientAppNumberTextView.text = appNumberText
-                holder.clientAppNumberTextView.isVisible = appNumberText != null
+                    // Pokaż numer aplikacji klienta, jeśli istnieje
+                    val appNumberText = client.clientAppNumber?.takeIf { it.isNotBlank() }?.let {
+                        context.getString(R.string.client_item_app_number_prefix) + " " + it
+                    }
+                    holder.clientAppNumberTextView.text = appNumberText
+                    holder.clientAppNumberTextView.isVisible = appNumberText != null
 
-                // Pokaż numer Amodit, jeśli istnieje
-                val amoditNumberText = client?.amoditNumber?.takeIf { it.isNotBlank() }?.let {
-                    context.getString(R.string.client_item_amodit_number_prefix) + " " + it
-                }
-                holder.amoditNumberTextView.text = amoditNumberText
-                holder.amoditNumberTextView.isVisible = amoditNumberText != null
+                    // Pokaż numer Amodit, jeśli istnieje
+                    val amoditNumberText = client.amoditNumber?.takeIf { it.isNotBlank() }?.let {
+                        context.getString(R.string.client_item_amodit_number_prefix) + " " + it
+                    }
+                    holder.amoditNumberTextView.text = amoditNumberText
+                    holder.amoditNumberTextView.isVisible = amoditNumberText != null
 
-                // Pokaż miniaturę zdjęcia klienta, jeśli istnieje
-                if (!client?.photoUri.isNullOrBlank()) {
-                    try {
-                        val photoUri = client!!.photoUri!!.toUri()
-                        holder.clientPhotoImageView.setImageURI(photoUri)
-                        holder.clientPhotoImageView.visibility = View.VISIBLE
-                    } catch (e: Exception) {
-                        Log.w("ReceiptAdapter", "Błąd ładowania zdjęcia klienta ${client?.id}, URI: ${client?.photoUri}", e)
-                        holder.clientPhotoImageView.setImageResource(R.drawable.ic_photo_placeholder)
-                        holder.clientPhotoImageView.visibility = View.VISIBLE
+                    // Pokaż miniaturę zdjęcia klienta, jeśli istnieje
+                    val thumbnailUriString = clientThumbnailsMap[client.id] // Pobierz URI z mapy
+                    if (!thumbnailUriString.isNullOrBlank()) { // Użyj pobranego URI
+                        try {
+                            holder.clientPhotoImageView.setImageURI(thumbnailUriString.toUri())
+                            holder.clientPhotoImageView.visibility = View.VISIBLE
+                        } catch (e: Exception) {
+                            Log.w("ReceiptAdapter", "Błąd ładowania miniatury klienta ${client.id}, URI: $thumbnailUriString", e)
+                            holder.clientPhotoImageView.setImageResource(R.drawable.ic_photo_placeholder)
+                            holder.clientPhotoImageView.visibility = View.VISIBLE // Pokaż placeholder
+                        }
+                    } else {
+                        holder.clientPhotoImageView.visibility = View.GONE // Ukryj, jeśli nie ma miniatury
                     }
                 } else {
+                    // Sytuacja awaryjna - brak danych klienta
+                    holder.clientDescriptionTextView.text = context.getString(R.string.error_client_not_found)
+                    holder.clientDescriptionTextView.isVisible = true
+                    holder.clientAppNumberTextView.visibility = View.GONE
+                    holder.amoditNumberTextView.visibility = View.GONE
                     holder.clientPhotoImageView.visibility = View.GONE
                 }
             }
@@ -161,3 +185,4 @@ class ReceiptAdapter(
      */
     override fun getItemCount() = receiptList.size
 }
+

@@ -9,6 +9,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.kaminski.paragownik.data.ClientWithThumbnail // Dodano import
 import com.kaminski.paragownik.viewmodel.ClientListViewModel
 
 /**
@@ -36,19 +37,19 @@ class ClientListActivity : AppCompatActivity(), ClientAdapter.OnClientClickListe
         clientRecyclerView = findViewById(R.id.clientRecyclerView)
         clientRecyclerView.layoutManager = LinearLayoutManager(this)
 
-        // Inicjalizacja Adaptera z pustą listą i listenerem kliknięć (this)
-        clientAdapter = ClientAdapter(emptyList(), this)
+        // Inicjalizacja Adaptera z pustą listą ClientWithThumbnail
+        clientAdapter = ClientAdapter(emptyList<ClientWithThumbnail>(), this) // Zmieniono typ
         clientRecyclerView.adapter = clientAdapter
 
         // Inicjalizacja ViewModelu
         clientListViewModel = ViewModelProvider(this).get(ClientListViewModel::class.java)
 
         // Obserwuj LiveData `allClients` z ViewModelu
-        clientListViewModel.allClients.observe(this) { clients ->
+        clientListViewModel.allClients.observe(this) { clients -> // clients jest teraz List<ClientWithThumbnail>
             // Gdy lista klientów się zmieni:
             clients?.let { // Sprawdź null
                 // Zaktualizuj dane w adapterze
-                clientAdapter.clientList = it
+                clientAdapter.clientList = it // Przypisanie List<ClientWithThumbnail> do pola adaptera
                 // Powiadom adapter o zmianie danych
                 clientAdapter.notifyDataSetChanged() // TODO: Rozważyć DiffUtil
                 Log.d("ClientListActivity", "Zaktualizowano listę klientów, liczba: ${it.size}")
@@ -71,3 +72,4 @@ class ClientListActivity : AppCompatActivity(), ClientAdapter.OnClientClickListe
         startActivity(intent)
     }
 }
+

@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Layout pojedynczej miniatury zdjęcia z przyciskiem usuwania -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_marginEnd="8dp"> <!-- Margines między miniaturami -->
+
+    <!-- Miniatura zdjęcia -->
+    <ImageView
+        android:id="@+id/photoThumbnailImageView"
+        android:layout_width="80dp"
+        android:layout_height="80dp"
+        android:background="@drawable/rounded_edittext_background"
+        android:contentDescription="@string/cd_photo_thumbnail"
+        android:padding="3dp"
+        android:scaleType="centerCrop"
+        tools:srcCompat="@drawable/ic_photo_placeholder" />
+
+    <!-- Przycisk usuwania (widoczny tylko w trybie edycji) -->
+    <ImageButton
+        android:id="@+id/deletePhotoButton"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:layout_gravity="top|end"
+        android:background="@drawable/remove_button_background"
+        android:contentDescription="@string/cd_delete_photo_button"
+        android:padding="4dp"
+        android:src="@drawable/ic_remove_icon"
+        android:visibility="gone"
+        app:tint="@color/white_text"
+        tools:visibility="visible"/>
+
+</FrameLayout>
+

@@ -86,9 +86,23 @@ class ReceiptListActivity : AppCompatActivity(), ReceiptAdapter.OnReceiptClickLi
         receiptViewModel.receiptsForStore.observe(this) { receiptsWithClients ->
             receiptsWithClients?.let {
                 receiptAdapter.receiptList = it
-                receiptAdapter.notifyDataSetChanged()
+                // Odświeżamy adapter dopiero po aktualizacji mapy miniatur
+                // receiptAdapter.notifyDataSetChanged()
             }
         }
+
+        // Obserwacja mapy miniatur klientów
+        storeViewModel.clientThumbnailsMap.observe(this) { thumbnailsMap ->
+            thumbnailsMap?.let {
+                Log.d("ReceiptListActivity", "Otrzymano mapę miniatur klientów, rozmiar: ${it.size}")
+                receiptAdapter.updateClientThumbnailsMap(it)
+                // Odśwież adapter, bo mogły już być załadowane paragony
+                if (receiptAdapter.receiptList.isNotEmpty()) {
+                    receiptAdapter.notifyDataSetChanged() // TODO: DiffUtil
+                }
+            }
+        }
+
 
         // Listener dla FAB
         fabAddClient.setOnClickListener {

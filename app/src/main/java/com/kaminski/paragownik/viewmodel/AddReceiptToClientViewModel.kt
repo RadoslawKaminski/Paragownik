@@ -3,18 +3,26 @@ package com.kaminski.paragownik.viewmodel
 import android.app.Application
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.LiveData // Dodano import
+import androidx.lifecycle.MutableLiveData // Dodano import
+import androidx.lifecycle.asLiveData // Dodano import
+import androidx.lifecycle.switchMap // Dodano import
 import androidx.room.withTransaction // Import dla transakcji
 import com.kaminski.paragownik.AddClientActivity // Potrzebne dla ReceiptData
 import com.kaminski.paragownik.R // Potrzebne dla zasobów string
 import com.kaminski.paragownik.data.AppDatabase
 import com.kaminski.paragownik.data.Client
+import com.kaminski.paragownik.data.PhotoType // Dodano import
 import com.kaminski.paragownik.data.Receipt // Import Receipt
 import com.kaminski.paragownik.data.Store // Import Store
 import com.kaminski.paragownik.data.daos.ClientDao
+import com.kaminski.paragownik.data.daos.PhotoDao // Dodano import
 import com.kaminski.paragownik.data.daos.ReceiptDao
 import com.kaminski.paragownik.data.daos.StoreDao
 import kotlinx.coroutines.Dispatchers // Import Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flatMapLatest // Dodano import
+import kotlinx.coroutines.flow.map // Dodano import
 import kotlinx.coroutines.withContext // Import withContext
 import java.text.ParseException // Import ParseException
 import java.text.SimpleDateFormat // Import SimpleDateFormat
@@ -23,15 +31,15 @@ import java.util.Locale // Import Locale
 
 /**
  * ViewModel dla AddReceiptToClientActivity.
- * Odpowiada za pobranie danych klienta i logikę dodawania nowych paragonów do niego,
- * w tym obsługę daty weryfikacji.
+ * Odpowiada za pobranie danych klienta (w tym miniatury) i logikę dodawania nowych paragonów do niego.
  */
 class AddReceiptToClientViewModel(application: Application) : AndroidViewModel(application) {
 
     private val clientDao: ClientDao
     private val receiptDao: ReceiptDao
     private val storeDao: StoreDao
-    private val database: AppDatabase // Dodano referencję do bazy danych
+    private val photoDao: PhotoDao // <-- DODAJ
+    private val database: AppDatabase
 
     // Możliwe wyniki operacji zapisu paragonów
     enum class SaveReceiptsResult {
@@ -45,21 +53,39 @@ class AddReceiptToClientViewModel(application: Application) : AndroidViewModel(a
         ERROR_NO_RECEIPTS
     }
 
+    private val currentClientId = MutableLiveData<Long>() // Dodaj, jeśli nie ma
+    val clientDataWithThumbnail: LiveData<Pair<Client?, String?>> // Zmieniamy na Pair(Client, ThumbnailUri)
+
+
     init {
         database = AppDatabase.getDatabase(application) // Inicjalizacja bazy
         clientDao = database.clientDao()
         receiptDao = database.receiptDao()
         storeDao = database.storeDao()
+        photoDao = database.photoDao() // <-- DODAJ
+
+        // Inicjalizacja LiveData klienta z miniaturą
+        clientDataWithThumbnail = currentClientId.switchMap { clientId ->
+            clientDao.getClientByIdFlow(clientId).flatMapLatest { client ->
+                if (client == null) {
+                    // Jeśli klient nie istnieje, zwróć null dla obu
+                    kotlinx.coroutines.flow.flowOf(Pair(null, null))
+                } else {
+                    // Pobierz pierwsze zdjęcie klienta
+                    photoDao.getFirstPhotoForClientByType(clientId)
+                        .map { photo -> client to photo?.uri } // Zwróć parę (Client, thumbnailUri)
+                }
+            }.asLiveData()
+        }
     }
 
-    /**
-     * Pobiera dane klienta jako Flow.
-     * @param clientId ID klienta.
-     * @return Flow emitujący obiekt Client lub null.
-     */
-    fun getClientByIdFlow(clientId: Long): Flow<Client?> {
-        return clientDao.getClientByIdFlow(clientId)
+     /** Ustawia ID klienta do obserwacji. */
+    fun loadClientData(clientId: Long) {
+        if (currentClientId.value != clientId) {
+            currentClientId.value = clientId
+        }
     }
+
 
     /**
      * Dodaje nowe paragony do istniejącego klienta w jednej transakcji.

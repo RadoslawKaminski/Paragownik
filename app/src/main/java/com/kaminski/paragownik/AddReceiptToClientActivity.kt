@@ -87,6 +87,7 @@ class AddReceiptToClientActivity : AppCompatActivity() {
 
         // Inicjalizacja ViewModelu
         viewModel = ViewModelProvider(this).get(AddReceiptToClientViewModel::class.java)
+        viewModel.loadClientData(clientId) // <-- DODAJ
 
         // Ustawienie listenerów
         setupListeners()
@@ -147,55 +148,58 @@ class AddReceiptToClientActivity : AppCompatActivity() {
     }
 
     /**
-     * Obserwuje dane klienta z ViewModelu i aktualizuje UI.
+     * Obserwuje dane klienta i jego miniaturę z ViewModelu i aktualizuje UI.
      */
     private fun observeClientData() {
-        lifecycleScope.launch {
-            viewModel.getClientByIdFlow(clientId).collect { client ->
-                if (client == null) {
-                    Log.e("AddReceiptToClient", "Nie znaleziono klienta o ID: $clientId w observeClientData")
-                    Toast.makeText(this@AddReceiptToClientActivity, R.string.error_client_not_found, Toast.LENGTH_SHORT).show()
-                    // Rozważ finish() lub inną obsługę błędu
-                    return@collect
-                }
+        viewModel.clientDataWithThumbnail.observe(this) { pair ->
+            val client = pair?.first
+            val thumbnailUriString = pair?.second
 
-                // Ustaw opis lub ID
-                clientDescriptionTextView.text = if (client.description.isNullOrBlank()) {
-                    getString(R.string.client_item_id_prefix) + client.id.toString()
-                } else {
-                    client.description
-                }
+            if (client == null) {
+                Log.e("AddReceiptToClient", "Nie znaleziono klienta o ID: $clientId w observeClientData")
+                Toast.makeText(this@AddReceiptToClientActivity, R.string.error_client_not_found, Toast.LENGTH_SHORT).show()
+                // Rozważ finish() lub inną obsługę błędu
+                clientPhotoImageView.visibility = View.GONE // Ukryj ImageView
+                return@observe
+            }
 
-                // Ustaw numer aplikacji
-                val appNumberText = client.clientAppNumber?.takeIf { it.isNotBlank() }?.let {
-                    getString(R.string.client_item_app_number_prefix) + " " + it
-                }
-                clientAppNumberTextView.text = appNumberText
-                clientAppNumberTextView.isVisible = appNumberText != null
+            // Ustaw opis lub ID
+            clientDescriptionTextView.text = if (client.description.isNullOrBlank()) {
+                getString(R.string.client_item_id_prefix) + client.id.toString()
+            } else {
+                client.description
+            }
 
-                // Ustaw numer Amodit
-                val amoditNumberText = client.amoditNumber?.takeIf { it.isNotBlank() }?.let {
-                    getString(R.string.client_item_amodit_number_prefix) + " " + it
-                }
-                clientAmoditNumberTextView.text = amoditNumberText
-                clientAmoditNumberTextView.isVisible = amoditNumberText != null
+            // Ustaw numer aplikacji
+            val appNumberText = client.clientAppNumber?.takeIf { it.isNotBlank() }?.let {
+                getString(R.string.client_item_app_number_prefix) + " " + it
+            }
+            clientAppNumberTextView.text = appNumberText
+            clientAppNumberTextView.isVisible = appNumberText != null
 
-                // Ustaw zdjęcie
-                if (!client.photoUri.isNullOrBlank()) {
-                    try {
-                        clientPhotoImageView.setImageURI(client.photoUri.toUri())
-                        clientPhotoImageView.visibility = View.VISIBLE
-                    } catch (e: Exception) {
-                        Log.w("AddReceiptToClient", "Błąd ładowania zdjęcia klienta ${client.id}, URI: ${client.photoUri}", e)
-                        clientPhotoImageView.setImageResource(R.drawable.ic_photo_placeholder)
-                        clientPhotoImageView.visibility = View.VISIBLE // Placeholder widoczny
-                    }
-                } else {
-                    clientPhotoImageView.visibility = View.GONE // Ukryj, jeśli nie ma zdjęcia
+            // Ustaw numer Amodit
+            val amoditNumberText = client.amoditNumber?.takeIf { it.isNotBlank() }?.let {
+                getString(R.string.client_item_amodit_number_prefix) + " " + it
+            }
+            clientAmoditNumberTextView.text = amoditNumberText
+            clientAmoditNumberTextView.isVisible = amoditNumberText != null
+
+            // Ustaw zdjęcie (miniaturę)
+            if (!thumbnailUriString.isNullOrBlank()) {
+                try {
+                    clientPhotoImageView.setImageURI(thumbnailUriString.toUri())
+                    clientPhotoImageView.visibility = View.VISIBLE
+                } catch (e: Exception) {
+                    Log.w("AddReceiptToClient", "Błąd ładowania miniatury klienta ${client.id}, URI: $thumbnailUriString", e)
+                    clientPhotoImageView.setImageResource(R.drawable.ic_photo_placeholder)
+                    clientPhotoImageView.visibility = View.VISIBLE // Pokaż placeholder w razie błędu
                 }
+            } else {
+                clientPhotoImageView.visibility = View.GONE // Ukryj, jeśli nie ma miniatury
             }
         }
     }
+
 
     /**
      * Dodaje dynamicznie nowy zestaw pól dla kolejnego paragonu.

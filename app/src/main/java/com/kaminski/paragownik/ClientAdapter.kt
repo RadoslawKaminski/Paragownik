@@ -10,14 +10,15 @@ import android.widget.TextView
 import androidx.core.net.toUri // Potrzebny do konwersji String na Uri
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.RecyclerView
-import com.kaminski.paragownik.data.Client
+import com.kaminski.paragownik.data.Client // Nadal potrzebne dla ClientDao
+import com.kaminski.paragownik.data.ClientWithThumbnail // Dodano import
 
 /**
  * Adapter dla RecyclerView wyświetlającego listę klientów w [ClientListActivity].
  * Pokazuje miniaturę zdjęcia klienta.
  */
 class ClientAdapter(
-    var clientList: List<Client>,
+    var clientList: List<ClientWithThumbnail>, // Zmieniono typ listy
     private val itemClickListener: OnClientClickListener
 ) : RecyclerView.Adapter<ClientAdapter.ClientViewHolder>() {
 
@@ -54,7 +55,10 @@ class ClientAdapter(
      * Łączy dane z widokami w ViewHolderze, w tym ładuje miniaturę zdjęcia.
      */
     override fun onBindViewHolder(holder: ClientViewHolder, position: Int) {
-        val currentClient = clientList[position]
+        val currentClientWithThumbnail = clientList[position] // Zmieniono nazwę i typ
+        val currentClient = currentClientWithThumbnail.client // Pobierz obiekt Client
+        val thumbnailUri = currentClientWithThumbnail.thumbnailUri // Pobierz URI miniatury
+
 
         // Ustawienie danych tekstowych klienta
         holder.descriptionTextView.text =
@@ -77,18 +81,17 @@ class ClientAdapter(
         holder.amoditNumberTextView.isVisible = amoditNumberText != null
 
         // Ładowanie miniatury zdjęcia klienta
-        // UWAGA: Bezpośrednie użycie setImageURI w adapterze może być nieefektywne.
-        if (!currentClient.photoUri.isNullOrBlank()) {
+        if (!thumbnailUri.isNullOrBlank()) { // Użyj thumbnailUri
             try {
-                val photoUri = currentClient.photoUri!!.toUri() // Bezpieczne, bo sprawdziliśmy isNullOrBlank
-                holder.clientPhotoImageView.setImageURI(photoUri)
+                holder.clientPhotoImageView.setImageURI(thumbnailUri.toUri()) // Użyj thumbnailUri
             } catch (e: Exception) {
-                Log.w("ClientAdapter", "Błąd ładowania zdjęcia dla klienta ${currentClient.id}, URI: ${currentClient.photoUri}", e)
+                Log.w("ClientAdapter", "Błąd ładowania miniatury dla klienta ${currentClient.id}, URI: $thumbnailUri", e)
                 holder.clientPhotoImageView.setImageResource(R.drawable.ic_photo_placeholder)
             }
         } else {
             holder.clientPhotoImageView.setImageResource(R.drawable.ic_photo_placeholder)
         }
+
 
         // Ustawienie listenera dla kliknięcia całego elementu listy
         holder.itemView.setOnClickListener {
@@ -101,3 +104,4 @@ class ClientAdapter(
      */
     override fun getItemCount() = clientList.size
 }
+

@@ -7,6 +7,7 @@ import android.text.InputType
 import android.text.TextWatcher
 import android.util.Log
 import android.view.LayoutInflater
+import android.view.View // Dodano import
 import android.widget.Button
 import android.widget.CheckBox
 import android.widget.EditText
@@ -19,6 +20,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.net.toUri // Do konwersji File na Uri
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
+import com.kaminski.paragownik.data.PhotoType // Dodano import
 import com.kaminski.paragownik.viewmodel.AddClientViewModel
 import com.kaminski.paragownik.viewmodel.StoreViewModel
 import kotlinx.coroutines.launch
@@ -32,9 +34,7 @@ import java.util.UUID // Do generowania unikalnych nazw plików
 import java.util.Calendar // Potrzebne dla Calendar.getInstance()
 
 /**
- * Aktywność odpowiedzialna za dodawanie nowego klienta wraz z jednym lub wieloma paragonami.
- * Umożliwia wprowadzenie danych pierwszego paragonu, danych klienta (w tym zdjęcia)
- * oraz dynamiczne dodawanie kolejnych paragonów z innych drogerii.
+ * Aktywność odpowiedzialna za dodawanie nowego klienta wraz z jednym lub wieloma paragonami i zdjęciami.
  */
 class AddClientActivity : AppCompatActivity() {
 
@@ -47,11 +47,17 @@ class AddClientActivity : AppCompatActivity() {
     private lateinit var clientDescriptionEditText: EditText
     private lateinit var clientAppNumberEditText: EditText
     private lateinit var amoditNumberEditText: EditText
-    private lateinit var clientPhotoImageView: ImageView // Widok miniatury zdjęcia
-    private lateinit var addChangePhotoButton: ImageButton // Przycisk dodawania/zmiany zdjęcia
+    // private lateinit var clientPhotoImageView: ImageView // USUNIĘTO
+    // private lateinit var addChangePhotoButton: ImageButton // USUNIĘTO
     private lateinit var addClientButton: Button
     private lateinit var addAdditionalReceiptButton: Button
     private lateinit var receiptsContainer: LinearLayout
+    // Nowe widoki dla zdjęć
+    private lateinit var clientPhotosContainer: LinearLayout
+    private lateinit var transactionPhotosContainer: LinearLayout
+    private lateinit var addClientPhotoButton: Button
+    private lateinit var addTransactionPhotoButton: Button
+
 
     // --- ViewModels ---
     private lateinit var addClientViewModel: AddClientViewModel
@@ -60,8 +66,16 @@ class AddClientActivity : AppCompatActivity() {
     // --- Dane pomocnicze ---
     private val receiptFieldsList = ArrayList<ReceiptFields>()
     private var storeIdFromIntent: Long = -1L
-    // Przechowuje URI skopiowanego zdjęcia w pamięci wewnętrznej.
-    private var selectedPhotoUri: Uri? = null
+    // private var selectedPhotoUri: Uri? = null // USUNIĘTO
+
+    // Nowe listy dla URI zdjęć
+    private val clientPhotoUris = mutableListOf<Uri>()
+    private val transactionPhotoUris = mutableListOf<Uri>()
+    // Mapa do śledzenia widoku miniatury dla danego URI (potrzebne do usuwania)
+    private val photoUriToViewMap = mutableMapOf<Uri, View>()
+    // Zmienna do określenia typu dodawanego zdjęcia
+    private var currentPhotoTypeToAdd: PhotoType? = null
+
 
     /**
      * Struktura pomocnicza do przechowywania referencji do pól EditText
@@ -87,21 +101,46 @@ class AddClientActivity : AppCompatActivity() {
 
     // Launcher do wybierania zdjęcia z galerii
     private val pickImageLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
-        uri?.let { sourceUri -> // Zmieniono nazwę zmiennej dla jasności
+        uri?.let { sourceUri ->
             Log.d("AddClientActivity", "Otrzymano tymczasowe URI: $sourceUri")
-            // Skopiuj obraz do pamięci wewnętrznej i uzyskaj nowe, trwałe URI
             val destinationUri = copyImageToInternalStorage(sourceUri)
-
             destinationUri?.let { finalUri ->
-                selectedPhotoUri = finalUri // Zapisz TRWAŁE URI
-                clientPhotoImageView.setImageURI(finalUri) // Wyświetl miniaturę z trwałego URI
-                Log.d("AddClientActivity", "Ustawiono trwałe URI zdjęcia: $finalUri")
+                // Dodaj URI do odpowiedniej listy i wyświetl miniaturę
+                when (currentPhotoTypeToAdd) {
+                    PhotoType.CLIENT -> {
+                        if (!clientPhotoUris.contains(finalUri)) { // Unikaj duplikatów
+                            clientPhotoUris.add(finalUri)
+                            addPhotoThumbnail(finalUri, clientPhotosContainer, PhotoType.CLIENT)
+                            Log.d("AddClientActivity", "Dodano zdjęcie klienta: $finalUri")
+                        } else {
+                            // Pusty else, aby zadowolić kompilator
+                            Log.d("AddClientActivity", "Zdjęcie klienta $finalUri już istnieje.")
+                            Toast.makeText(this, "To zdjęcie już zostało dodane.", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                    PhotoType.TRANSACTION -> {
+                         if (!transactionPhotoUris.contains(finalUri)) { // Unikaj duplikatów
+                            transactionPhotoUris.add(finalUri)
+                            addPhotoThumbnail(finalUri, transactionPhotosContainer, PhotoType.TRANSACTION)
+                            Log.d("AddClientActivity", "Dodano zdjęcie transakcji: $finalUri")
+                        } else {
+                            // Pusty else, aby zadowolić kompilator
+                            Log.d("AddClientActivity", "Zdjęcie transakcji $finalUri już istnieje.")
+                            Toast.makeText(this, "To zdjęcie już zostało dodane.", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                    null -> {
+                        Log.w("AddClientActivity", "Nieznany typ zdjęcia do dodania (currentPhotoTypeToAdd is null)")
+                    }
+                }
             }
-            // Jeśli kopiowanie się nie powiodło, selectedPhotoUri pozostanie null lub poprzednią wartością
         } ?: run {
             Log.d("AddClientActivity", "Nie wybrano zdjęcia.")
         }
+        // Zresetuj typ po zakończeniu operacji
+        currentPhotoTypeToAdd = null
     }
+
 
     /**
      * Metoda wywoływana przy tworzeniu Aktywności.
@@ -132,11 +171,16 @@ class AddClientActivity : AppCompatActivity() {
         clientDescriptionEditText = findViewById(R.id.clientDescriptionEditText)
         clientAppNumberEditText = findViewById(R.id.clientAppNumberEditText)
         amoditNumberEditText = findViewById(R.id.amoditNumberEditText)
-        clientPhotoImageView = findViewById(R.id.clientPhotoImageView) // Inicjalizacja ImageView
-        addChangePhotoButton = findViewById(R.id.addChangePhotoButton) // Inicjalizacja ImageButton
+        // clientPhotoImageView = findViewById(R.id.clientPhotoImageView) // USUNIĘTO
+        // addChangePhotoButton = findViewById(R.id.addChangePhotoButton) // USUNIĘTO
         addClientButton = findViewById(R.id.addClientButton)
         addAdditionalReceiptButton = findViewById(R.id.addAdditionalReceiptButton)
         receiptsContainer = findViewById(R.id.receiptsContainer)
+        // Inicjalizacja nowych widoków zdjęć
+        clientPhotosContainer = findViewById(R.id.clientPhotosContainer)
+        transactionPhotosContainer = findViewById(R.id.transactionPhotosContainer)
+        addClientPhotoButton = findViewById(R.id.addClientPhotoButton)
+        addTransactionPhotoButton = findViewById(R.id.addTransactionPhotoButton)
     }
 
     /**
@@ -190,12 +234,19 @@ class AddClientActivity : AppCompatActivity() {
             saveClientAndReceipts()
         }
 
-        // Listener dla kliknięcia przycisku dodawania/zmiany zdjęcia
-        addChangePhotoButton.setOnClickListener {
-            // Uruchom systemowy selektor plików/galerii do wyboru obrazu
+        // Listener dla przycisku dodawania zdjęcia KLIENTA
+        addClientPhotoButton.setOnClickListener {
+            currentPhotoTypeToAdd = PhotoType.CLIENT // Ustaw typ przed uruchomieniem launchera
+            pickImageLauncher.launch("image/*")
+        }
+
+        // Listener dla przycisku dodawania zdjęcia TRANSAKCJI
+        addTransactionPhotoButton.setOnClickListener {
+            currentPhotoTypeToAdd = PhotoType.TRANSACTION // Ustaw typ przed uruchomieniem launchera
             pickImageLauncher.launch("image/*")
         }
     }
+
 
     /**
      * Główna funkcja zapisu klienta i paragonów.
@@ -272,8 +323,10 @@ class AddClientActivity : AppCompatActivity() {
                 clientDescription = clientDescription.takeIf { it.isNotEmpty() },
                 clientAppNumber = clientAppNumber.takeIf { it.isNotEmpty() },
                 amoditNumber = amoditNumber.takeIf { it.isNotEmpty() },
-                photoUri = selectedPhotoUri?.toString(),
-                receiptsData = receiptsToAdd // Przekazujemy listę z datami weryfikacji wewnątrz
+                // Przekaż listy URI jako Stringi
+                clientPhotoUris = clientPhotoUris.map { it.toString() },
+                transactionPhotoUris = transactionPhotoUris.map { it.toString() },
+                receiptsData = receiptsToAdd
             )
             handleSaveResult(result)
         }
@@ -420,6 +473,42 @@ class AddClientActivity : AppCompatActivity() {
             }
         })
     }
+
+    /**
+     * Dodaje widok miniatury zdjęcia do określonego kontenera.
+     * @param photoUri URI zdjęcia do wyświetlenia.
+     * @param container LinearLayout, do którego zostanie dodana miniatura.
+     * @param photoType Typ zdjęcia (potrzebny do logiki usuwania).
+     */
+    private fun addPhotoThumbnail(photoUri: Uri, container: LinearLayout, photoType: PhotoType) {
+        val inflater = LayoutInflater.from(this)
+        val thumbnailView = inflater.inflate(R.layout.photo_thumbnail_item, container, false)
+        val imageView = thumbnailView.findViewById<ImageView>(R.id.photoThumbnailImageView)
+        val deleteButton = thumbnailView.findViewById<ImageButton>(R.id.deletePhotoButton)
+
+        imageView.setImageURI(photoUri)
+        deleteButton.visibility = View.VISIBLE // Pokaż przycisk usuwania w AddClientActivity
+
+        deleteButton.setOnClickListener {
+            // Usuń widok z kontenera
+            container.removeView(thumbnailView)
+            // Usuń URI z odpowiedniej listy
+            when (photoType) {
+                PhotoType.CLIENT -> clientPhotoUris.remove(photoUri)
+                PhotoType.TRANSACTION -> transactionPhotoUris.remove(photoUri)
+            }
+            // Usuń z mapy śledzenia
+            photoUriToViewMap.remove(photoUri)
+            Log.d("AddClientActivity", "Usunięto miniaturę i URI: $photoUri")
+            // Uwaga: Plik na dysku nie jest usuwany na tym etapie, bo klient jeszcze nie został zapisany.
+            // Jeśli użytkownik anuluje dodawanie, pliki pozostaną (można dodać logikę czyszczenia).
+        }
+
+        container.addView(thumbnailView)
+        // Zapisz mapowanie URI na widok
+        photoUriToViewMap[photoUri] = thumbnailView
+    }
+
 
     /**
      * Kopiuje obraz z podanego źródłowego URI do wewnętrznego magazynu aplikacji.

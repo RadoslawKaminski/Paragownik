@@ -59,6 +59,10 @@
     <string name="error_invalid_additional_receipt_date_format">Nieprawidłowy format daty w dodatkowym paragonie (DD-MM-YYYY)</string>
     <string name="error_invalid_additional_verification_date_format">Nieprawidłowy format daty weryfikacji w dodatkowym paragonie (DD-MM-YYYY)</string> <!-- Dodano -->
     <string name="cd_remove_receipt_button">Usuń ten paragon</string>
+    <string name="section_title_client_photos">Zdjęcia klienta:</string>
+    <string name="button_add_client_photo">Dodaj zdjęcie klienta</string>
+    <string name="section_title_transaction_photos">Zdjęcia transakcji:</string>
+    <string name="button_add_transaction_photo">Dodaj zdjęcie transakcji</string>
 
     <!-- EditReceiptActivity -->
     <string name="edit_receipt_client_title">Szczegóły Paragonu</string>
@@ -105,6 +109,8 @@
     <string name="cd_receipt_item_client_photo">Miniatura zdjęcia klienta powiązanego z paragonem</string>
     <string name="cd_client_item_client_photo">Miniatura zdjęcia klienta</string>
     <string name="cd_client_large_photo">Zdjęcie klienta (duże)</string>
+    <string name="cd_photo_thumbnail">Miniatura zdjęcia</string>
+    <string name="cd_delete_photo_button">Usuń zdjęcie</string>
 
     <!-- ClientReceiptsActivity -->
     <string name="client_receipts_title">Dane Klienta i Paragony</string>

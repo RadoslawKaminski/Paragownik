@@ -205,40 +205,67 @@
                     android:inputType="number"
                     android:maxLength="8" />
 
-                <!-- Kontener na zdjęcie i przycisk dodawania zdjęcia -->
-                <LinearLayout
-                    android:layout_width="match_parent"
+                <!-- Sekcja Zdjęć Klienta -->
+                <TextView
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="16dp"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal">
+                    android:text="@string/section_title_client_photos"
+                    android:textSize="16sp"/>
 
-                    <!-- Miniatura zdjęcia klienta -->
-                    <ImageView
-                        android:id="@+id/clientPhotoImageView"
-                        android:layout_width="80dp"
-                        android:layout_height="80dp"
-                        android:layout_marginEnd="16dp"
-                        android:background="@drawable/rounded_edittext_background"
-                        android:contentDescription="@string/cd_client_photo_placeholder"
-                        android:padding="4dp"
-                        android:scaleType="centerCrop"
-                        app:srcCompat="@drawable/ic_photo_placeholder" /> <!-- Placeholder -->
-
-                    <!-- Przycisk dodawania/zmiany zdjęcia -->
-                    <ImageButton
-                        android:id="@+id/addChangePhotoButton"
+                <HorizontalScrollView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp">
+                    <LinearLayout
+                        android:id="@+id/clientPhotosContainer"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:background="?attr/selectableItemBackgroundBorderless"
-                        android:contentDescription="@string/cd_add_change_photo_button"
-                        android:minWidth="48dp"
-                        android:minHeight="48dp"
-                        android:padding="8dp"
-                        app:srcCompat="@drawable/ic_add_a_photo"
-                        app:tint="@color/scnd_color_bright" />
+                        android:orientation="horizontal"
+                        android:paddingTop="4dp"
+                        android:paddingBottom="4dp"/>
+                </HorizontalScrollView>
 
-                </LinearLayout>
+                <Button
+                    android:id="@+id/addClientPhotoButton"
+                    style="@style/Widget.MaterialComponents.Button.TextButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/button_add_client_photo"
+                    android:textColor="@color/scnd_color_bright"
+                    app:icon="@drawable/ic_add_a_photo"
+                    app:iconTint="@color/scnd_color_bright"/>
+
+                <!-- Sekcja Zdjęć Transakcji -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:text="@string/section_title_transaction_photos"
+                    android:textSize="16sp"/>
+
+                <HorizontalScrollView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp">
+                    <LinearLayout
+                        android:id="@+id/transactionPhotosContainer"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:paddingTop="4dp"
+                        android:paddingBottom="4dp"/>
+                </HorizontalScrollView>
+
+                <Button
+                    android:id="@+id/addTransactionPhotoButton"
+                    style="@style/Widget.MaterialComponents.Button.TextButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/button_add_transaction_photo"
+                    android:textColor="@color/scnd_color_bright"
+                    app:icon="@drawable/ic_add_a_photo"
+                    app:iconTint="@color/scnd_color_bright"/>
 
             </LinearLayout> <!-- Koniec sekcji danych klienta -->
 
@@ -283,3 +310,4 @@
         app:layout_constraintStart_toStartOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
+

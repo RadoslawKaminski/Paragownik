@@ -2,10 +2,15 @@ package com.kaminski.paragownik
 
 import android.annotation.SuppressLint
 import android.content.Intent
+import android.net.Uri // Dodano import
 import android.os.Bundle
 import android.util.Log
+import android.view.LayoutInflater // Dodano import
 import android.view.View
+import android.widget.HorizontalScrollView // Dodano import
+import android.widget.ImageButton // Dodano import
 import android.widget.ImageView
+import android.widget.LinearLayout // Dodano import
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -15,22 +20,30 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.floatingactionbutton.FloatingActionButton
+import com.kaminski.paragownik.data.PhotoType // Dodano import
 import com.kaminski.paragownik.viewmodel.ClientReceiptsViewModel
 import com.kaminski.paragownik.viewmodel.StoreViewModel // Import StoreViewModel
 
 /**
- * Aktywność wyświetlająca szczegóły klienta i listę jego paragonów.
- * Używa ReceiptAdapter w trybie CLIENT_LIST.
+ * Aktywność wyświetlająca szczegóły klienta, listę jego paragonów oraz listę jego zdjęć.
  */
 class ClientReceiptsActivity : AppCompatActivity(), ReceiptAdapter.OnReceiptClickListener {
 
     // Widoki UI
-    private lateinit var clientPhotoImageView: ImageView
+    private lateinit var clientPhotoImageView: ImageView // Miniatura w nagłówku
     private lateinit var clientDescriptionTextView: TextView
     private lateinit var clientAppNumberTextView: TextView
     private lateinit var clientAmoditNumberTextView: TextView
     private lateinit var clientReceiptsRecyclerView: RecyclerView
     private lateinit var fabAddReceiptToClient: FloatingActionButton
+    // Nowe widoki dla zdjęć
+    private lateinit var clientPhotosTitleDetails: TextView
+    private lateinit var clientPhotosScrollViewDetails: HorizontalScrollView
+    private lateinit var clientPhotosContainerDetails: LinearLayout
+    private lateinit var transactionPhotosTitleDetails: TextView
+    private lateinit var transactionPhotosScrollViewDetails: HorizontalScrollView
+    private lateinit var transactionPhotosContainerDetails: LinearLayout
+
 
     // Adapter i ViewModels
     private lateinit var receiptAdapter: ReceiptAdapter
@@ -79,6 +92,7 @@ class ClientReceiptsActivity : AppCompatActivity(), ReceiptAdapter.OnReceiptClic
 
         // Obserwacja mapy sklepów (potrzebna dla adaptera w trybie CLIENT_LIST)
         observeStoreMap()
+        observeClientPhotos() // <-- Wywołanie obserwacji zdjęć
     }
 
     /**
@@ -91,7 +105,15 @@ class ClientReceiptsActivity : AppCompatActivity(), ReceiptAdapter.OnReceiptClic
         clientAmoditNumberTextView = findViewById(R.id.clientDetailsAmoditNumberTextView)
         clientReceiptsRecyclerView = findViewById(R.id.clientReceiptsRecyclerView)
         fabAddReceiptToClient = findViewById(R.id.fabAddReceiptToClient)
+        // Inicjalizacja widoków zdjęć
+        clientPhotosTitleDetails = findViewById(R.id.clientPhotosTitleDetails)
+        clientPhotosScrollViewDetails = findViewById(R.id.clientPhotosScrollViewDetails)
+        clientPhotosContainerDetails = findViewById(R.id.clientPhotosContainerDetails)
+        transactionPhotosTitleDetails = findViewById(R.id.transactionPhotosTitleDetails)
+        transactionPhotosScrollViewDetails = findViewById(R.id.transactionPhotosScrollViewDetails)
+        transactionPhotosContainerDetails = findViewById(R.id.transactionPhotosContainerDetails)
     }
+
 
     /**
      * Konfiguruje RecyclerView i jego Adapter z trybem CLIENT_LIST.
@@ -101,6 +123,7 @@ class ClientReceiptsActivity : AppCompatActivity(), ReceiptAdapter.OnReceiptClic
         // Używamy ReceiptAdapter w trybie CLIENT_LIST
         receiptAdapter = ReceiptAdapter(emptyList(), this, DisplayMode.CLIENT_LIST)
         clientReceiptsRecyclerView.adapter = receiptAdapter
+        // TODO: Konfiguracja RecyclerView dla zdjęć w Kroku 4 (na razie używamy LinearLayout)
     }
 
     /**
@@ -118,13 +141,18 @@ class ClientReceiptsActivity : AppCompatActivity(), ReceiptAdapter.OnReceiptClic
     }
 
     /**
-     * Obserwuje zmiany w danych klienta i aktualizuje UI.
+     * Obserwuje zmiany w danych klienta i aktualizuje UI (bez zdjęcia).
      */
     private fun observeClientData() {
         viewModel.client.observe(this) { client ->
             if (client == null) {
-                Log.e("ClientReceiptsActivity", "Nie znaleziono klienta o ID: $clientId")
-                Toast.makeText(this, R.string.error_client_not_found, Toast.LENGTH_SHORT).show()
+                // Obsługa sytuacji, gdy klient nie istnieje (np. został usunięty)
+                // Może być już obsłużone przez observeClientPhotos, ale dla pewności
+                if (!isFinishing && !isDestroyed) { // Sprawdź stan aktywności
+                    Log.e("ClientReceiptsActivity", "Klient o ID $clientId nie został znaleziony (być może usunięty).")
+                    Toast.makeText(this, R.string.error_client_not_found, Toast.LENGTH_SHORT).show()
+                    finish() // Zamknij aktywność, jeśli klient nie istnieje
+                }
                 return@observe
             }
 
@@ -149,21 +177,10 @@ class ClientReceiptsActivity : AppCompatActivity(), ReceiptAdapter.OnReceiptClic
             clientAmoditNumberTextView.text = amoditNumberText
             clientAmoditNumberTextView.isVisible = amoditNumberText != null
 
-            // Ustaw zdjęcie
-            if (!client.photoUri.isNullOrBlank()) {
-                try {
-                    clientPhotoImageView.setImageURI(client.photoUri.toUri())
-                    clientPhotoImageView.visibility = View.VISIBLE
-                } catch (e: Exception) {
-                    Log.w("ClientReceiptsActivity", "Błąd ładowania zdjęcia klienta ${client.id}, URI: ${client.photoUri}", e)
-                    clientPhotoImageView.setImageResource(R.drawable.ic_photo_placeholder)
-                    clientPhotoImageView.visibility = View.VISIBLE
-                }
-            } else {
-                clientPhotoImageView.visibility = View.GONE
-            }
+            // Logika ustawiania zdjęcia (miniatury w nagłówku) jest teraz w displayClientPhotos
         }
     }
+
 
     /**
      * Obserwuje zmiany na liście paragonów klienta i aktualizuje adapter.
@@ -173,13 +190,16 @@ class ClientReceiptsActivity : AppCompatActivity(), ReceiptAdapter.OnReceiptClic
     private fun observeReceiptsData() {
         viewModel.receiptsForClient.observe(this) { receipts ->
             receipts?.let {
+                Log.d("ClientReceiptsActivity", "Otrzymano ${it.size} paragonów dla klienta.") // Logowanie
                 receiptAdapter.receiptList = it
-                Log.d("ClientReceiptsActivity", "Otrzymano listę paragonów klienta, liczba: ${it.size}")
                 // Odśwież adapter tylko jeśli mapa sklepów jest już dostępna lub lista paragonów jest pusta
                 if (receiptAdapter.storeMap.isNotEmpty() || it.isEmpty()) {
+                     Log.d("ClientReceiptsActivity", "Odświeżanie adaptera paragonów (po danych paragonów).") // Logowanie
                      receiptAdapter.notifyDataSetChanged()
+                } else {
+                     Log.d("ClientReceiptsActivity", "Nie odświeżono adaptera paragonów - mapa sklepów pusta.") // Logowanie
                 }
-            }
+            } ?: Log.d("ClientReceiptsActivity", "Otrzymano null jako listę paragonów.") // Logowanie
         }
     }
 
@@ -195,9 +215,78 @@ class ClientReceiptsActivity : AppCompatActivity(), ReceiptAdapter.OnReceiptClic
                 receiptAdapter.updateStoreMap(it)
                 // Odśwież adapter, bo mogły już być załadowane paragony
                 if (receiptAdapter.receiptList.isNotEmpty()) {
+                     Log.d("ClientReceiptsActivity", "Odświeżanie adaptera paragonów (po mapie sklepów).") // Logowanie
                      receiptAdapter.notifyDataSetChanged()
                 }
-            }
+            } ?: Log.d("ClientReceiptsActivity", "Otrzymano null jako mapę sklepów.") // Logowanie
+        }
+    }
+
+    /** Obserwuje listę zdjęć klienta i aktualizuje UI. */
+    private fun observeClientPhotos() {
+        viewModel.clientPhotos.observe(this) { photos ->
+            displayClientPhotos(photos ?: emptyList()) // Wywołaj nową metodę
+        }
+    }
+
+    /** Wyświetla zdjęcia klienta w odpowiednich kontenerach. */
+    private fun displayClientPhotos(photos: List<com.kaminski.paragownik.data.Photo>) {
+        // Wyczyść kontenery
+        clientPhotosContainerDetails.removeAllViews()
+        transactionPhotosContainerDetails.removeAllViews()
+
+        val clientPhotos = photos.filter { it.type == PhotoType.CLIENT }
+        val transactionPhotos = photos.filter { it.type == PhotoType.TRANSACTION }
+
+        // Pokaż/ukryj sekcję zdjęć klienta - NA RAZIE UKRYTE
+        clientPhotosTitleDetails.visibility = View.GONE // UKRYTE
+        clientPhotosScrollViewDetails.visibility = View.GONE // UKRYTE
+        // if (clientSectionVisible) {
+        //     clientPhotos.forEach { addPhotoThumbnailToDetailsView(it.uri.toUri(), clientPhotosContainerDetails) }
+        // }
+
+        // Pokaż/ukryj sekcję zdjęć transakcji - NA RAZIE UKRYTE
+        transactionPhotosTitleDetails.visibility = View.GONE // UKRYTE
+        transactionPhotosScrollViewDetails.visibility = View.GONE // UKRYTE
+        // if (transactionSectionVisible) {
+        //     transactionPhotos.forEach { addPhotoThumbnailToDetailsView(it.uri.toUri(), transactionPhotosContainerDetails) }
+        // }
+
+         // Ustaw miniaturę w nagłówku (pierwsze zdjęcie klienta)
+         val firstClientPhotoUri = clientPhotos.firstOrNull()?.uri?.toUri()
+         if (firstClientPhotoUri != null) {
+             try {
+                 clientPhotoImageView.setImageURI(firstClientPhotoUri)
+                 clientPhotoImageView.visibility = View.VISIBLE
+             } catch (e: Exception) {
+                 Log.w("ClientReceiptsActivity", "Błąd ładowania miniatury w nagłówku, URI: $firstClientPhotoUri", e)
+                 clientPhotoImageView.setImageResource(R.drawable.ic_photo_placeholder)
+                 clientPhotoImageView.visibility = View.VISIBLE
+             }
+         } else {
+             clientPhotoImageView.visibility = View.GONE
+         }
+    }
+
+
+    /** Dodaje miniaturę zdjęcia do kontenera w widoku szczegółów (bez usuwania). */
+    private fun addPhotoThumbnailToDetailsView(photoUri: Uri, container: LinearLayout) {
+        val inflater = LayoutInflater.from(this)
+        val thumbnailView = inflater.inflate(R.layout.photo_thumbnail_item, container, false)
+        val imageView = thumbnailView.findViewById<ImageView>(R.id.photoThumbnailImageView)
+        val deleteButton = thumbnailView.findViewById<ImageButton>(R.id.deletePhotoButton)
+
+        try {
+            imageView.setImageURI(photoUri)
+            deleteButton.visibility = View.GONE // Ukryj przycisk usuwania w tym widoku
+
+            // TODO: Dodać listener kliknięcia na imageView w przyszłości, aby otworzyć pełny ekran
+            // imageView.setOnClickListener { /* Otwórz pełny ekran */ }
+
+            container.addView(thumbnailView)
+        } catch (e: Exception) {
+             Log.e("ClientReceiptsActivity", "Błąd ładowania miniatury $photoUri", e)
+             // Można dodać placeholder błędu zamiast nie dodawać widoku
         }
     }
 
