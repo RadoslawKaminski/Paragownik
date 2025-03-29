@@ -11,7 +11,6 @@ import androidx.room.PrimaryKey
  * @property description Krótki opis klienta, np. cechy wyglądu (opcjonalne, może być null).
  * @property clientAppNumber Numer aplikacji klienta (opcjonalne, może być null). Wprowadzony w v3.
  * @property amoditNumber Numer Amodit (opcjonalne, może być null). Wprowadzony w v3.
- * @property photoUri Ścieżka URI do zdjęcia klienta przechowywanego lokalnie (opcjonalne, może być null). Wprowadzony w v3.
  */
 @Entity(tableName = "clients") // Nazwa tabeli w bazie danych SQLite
 data class Client(
@@ -22,8 +21,8 @@ data class Client(
 
     // --- NOWE POLA (dodane w wersji 3 bazy danych) ---
     val clientAppNumber: String? = null, // Kolumna na numer aplikacji (TEXT, nullable)
-    val amoditNumber: String? = null,    // Kolumna na numer Amodit (TEXT, nullable)
-    val photoUri: String? = null         // Kolumna na URI zdjęcia (TEXT, nullable)
+    val amoditNumber: String? = null    // Kolumna na numer Amodit (TEXT, nullable)
+    // Pole photoUri zostało usunięte w wersji 5
     // --- KONIEC NOWYCH PÓL ---
 )
 

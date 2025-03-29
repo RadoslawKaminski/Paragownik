@@ -8,6 +8,8 @@ import com.kaminski.paragownik.AddClientActivity.ReceiptData // Zmieniono import
 import com.kaminski.paragownik.R // Potrzebne dla zasobów string
 import com.kaminski.paragownik.data.AppDatabase
 import com.kaminski.paragownik.data.Client
+import com.kaminski.paragownik.data.Photo // Dodano import Photo
+import com.kaminski.paragownik.data.PhotoType // Dodano import PhotoType
 import com.kaminski.paragownik.data.Receipt
 import com.kaminski.paragownik.data.Store
 import com.kaminski.paragownik.data.daos.ClientDao
@@ -23,7 +25,7 @@ import java.util.Locale
 /**
  * ViewModel dla AddClientActivity.
  * Odpowiada za logikę biznesową związaną z dodawaniem nowego klienta
- * wraz z jednym lub wieloma paragonami do bazy danych, w tym URI zdjęcia i daty weryfikacji.
+ * wraz z jednym lub wieloma paragonami i zdjęciami do bazy danych.
  */
 class AddClientViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -32,6 +34,7 @@ class AddClientViewModel(application: Application) : AndroidViewModel(applicatio
     private val receiptDao: ReceiptDao = database.receiptDao()
     private val clientDao: ClientDao = database.clientDao()
     private val storeDao: StoreDao = database.storeDao()
+    // Nie potrzebujemy photoDao bezpośrednio tutaj, bo używamy database.photoDao() w transakcji
 
     /**
      * Enum reprezentujący możliwy wynik operacji dodawania klienta i paragonów.
@@ -47,13 +50,13 @@ class AddClientViewModel(application: Application) : AndroidViewModel(applicatio
     }
 
     /**
-     * Dodaje nowego klienta wraz z listą powiązanych paragonów w jednej transakcji bazodanowej.
-     * Zapisuje również przekazane URI zdjęcia klienta i daty weryfikacji.
+     * Dodaje nowego klienta wraz z listą powiązanych paragonów i zdjęć w jednej transakcji bazodanowej.
      *
      * @param clientDescription Opis klienta.
      * @param clientAppNumber Numer aplikacji klienta.
      * @param amoditNumber Numer Amodit klienta.
-     * @param photoUri URI zdjęcia klienta jako String (może być null).
+     * @param clientPhotoUris Lista URI zdjęć klienta do dodania.
+     * @param transactionPhotoUris Lista URI zdjęć transakcji do dodania.
      * @param receiptsData Lista danych paragonów do dodania (zawiera opcjonalną datę weryfikacji).
      * @return [AddResult] Enum wskazujący wynik operacji.
      */
@@ -61,30 +64,44 @@ class AddClientViewModel(application: Application) : AndroidViewModel(applicatio
         clientDescription: String?,
         clientAppNumber: String?,
         amoditNumber: String?,
-        photoUri: String?, // Akceptuje URI zdjęcia
-        receiptsData: List<ReceiptData> // Lista zawiera teraz datę weryfikacji
+        clientPhotoUris: List<String>, // Nowa lista URI zdjęć klienta
+        transactionPhotoUris: List<String>, // Nowa lista URI zdjęć transakcji
+        receiptsData: List<ReceiptData>
     ): AddResult = withContext(Dispatchers.IO) {
         val dateFormat = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault())
         dateFormat.isLenient = false
 
         try {
             database.withTransaction {
-                // Krok 1: Dodanie Klienta (w tym photoUri)
+                // Krok 1: Dodanie Klienta (już bez photoUri)
                 val client = Client(
                     description = clientDescription?.takeIf { it.isNotBlank() },
                     clientAppNumber = clientAppNumber?.takeIf { it.isNotBlank() },
-                    amoditNumber = amoditNumber?.takeIf { it.isNotBlank() },
-                    photoUri = photoUri?.takeIf { it.isNotBlank() } // Zapisz URI zdjęcia
+                    amoditNumber = amoditNumber?.takeIf { it.isNotBlank() }
                 )
                 val clientId = clientDao.insertClient(client)
-                Log.d("AddClientViewModel", "Transakcja: Dodano klienta ID: $clientId z photoUri: $photoUri")
+                Log.d("AddClientViewModel", "Transakcja: Dodano klienta ID: $clientId")
 
                 if (clientId == -1L) {
                     throw DatabaseException(getApplication<Application>().getString(R.string.error_inserting_client))
                 }
 
-                // Krok 2: Przetwarzanie i dodawanie Paragonów
-                for (receiptData in receiptsData) { // Używamy bezpośrednio receiptData z listy
+                // Krok 2a: Dodanie zdjęć klienta
+                for (uri in clientPhotoUris) {
+                    val photo = Photo(clientId = clientId, uri = uri, type = PhotoType.CLIENT)
+                    database.photoDao().insertPhoto(photo) // Używamy photoDao() z instancji bazy
+                    Log.d("AddClientViewModel", "Transakcja: Dodano zdjęcie klienta: $uri dla klienta ID: $clientId")
+                }
+
+                // Krok 2b: Dodanie zdjęć transakcji
+                for (uri in transactionPhotoUris) {
+                    val photo = Photo(clientId = clientId, uri = uri, type = PhotoType.TRANSACTION)
+                    database.photoDao().insertPhoto(photo)
+                    Log.d("AddClientViewModel", "Transakcja: Dodano zdjęcie transakcji: $uri dla klienta ID: $clientId")
+                }
+
+                // Krok 3: Przetwarzanie i dodawanie Paragonów (istniejący kod)
+                for (receiptData in receiptsData) {
                     val verificationDateStringFromData = receiptData.verificationDateString // Pobierz z ReceiptData
 
                     if (receiptData.storeNumber.isBlank()) {
@@ -144,7 +161,6 @@ class AddClientViewModel(application: Application) : AndroidViewModel(applicatio
                         clientId = clientId
                     )
                     receiptDao.insertReceipt(receipt)
-                    // Log.d("AddClientViewModel", "Transakcja: Dodano paragon ID: $receiptId dla klienta ID: $clientId") // receiptId nie jest tu zwracane
                 }
             }
             AddResult.SUCCESS

@@ -33,5 +33,30 @@ class Converters {
         // Jeśli obiekt Date nie jest null, pobierz jego czas (timestamp), w przeciwnym razie zwróć null.
         return date?.time
     }
+
+    /**
+     * Konwertuje obiekt [PhotoType] na String do zapisu w bazie.
+     * @param type Typ zdjęcia lub null.
+     * @return Nazwa enuma jako String (np. "CLIENT") lub null.
+     */
+    @TypeConverter
+    fun fromPhotoType(type: PhotoType?): String? {
+        return type?.name // Zapisuje nazwę enuma jako String (np. "CLIENT")
+    }
+
+    /**
+     * Konwertuje String z bazy danych na obiekt [PhotoType].
+     * @param value Wartość String z bazy (np. "CLIENT") lub null.
+     * @return Obiekt [PhotoType] lub null.
+     */
+    @TypeConverter
+    fun toPhotoType(value: String?): PhotoType? {
+        // Używamy bezpiecznego wywołania valueOf, zwracając null w razie błędu
+        return try {
+            value?.let { PhotoType.valueOf(it) }
+        } catch (e: IllegalArgumentException) {
+            null // Zwróć null, jeśli string nie pasuje do żadnej wartości enuma
+        }
+    }
 }
 

@@ -6,6 +6,8 @@ import androidx.room.Query
 import androidx.room.Update
 import androidx.room.Delete
 import com.kaminski.paragownik.data.Client // Import encji Client
+import com.kaminski.paragownik.data.ClientWithThumbnail // Import klasy pomocniczej
+import com.kaminski.paragownik.data.PhotoType // Import enuma
 import kotlinx.coroutines.flow.Flow // Import Flow do obserwacji zmian
 
 /**
@@ -35,7 +37,7 @@ interface ClientDao {
     /**
      * Usuwa klienta z bazy danych.
      * Dopasowanie odbywa się na podstawie klucza głównego obiektu [client].
-     * UWAGA: Usunięcie klienta spowoduje kaskadowe usunięcie powiązanych paragonów (zdefiniowane w encji Receipt).
+     * UWAGA: Usunięcie klienta spowoduje kaskadowe usunięcie powiązanych paragonów i zdjęć (zdefiniowane w encjach Receipt i Photo).
      * @param client Obiekt [Client] do usunięcia.
      */
     @Delete
@@ -67,4 +69,26 @@ interface ClientDao {
     @Query("SELECT * FROM clients WHERE id = :clientId")
     fun getClientByIdFlow(clientId: Long): Flow<Client?> // Dodano Flow
 
+    /**
+     * Pobiera wszystkich klientów wraz z URI ich pierwszego zdjęcia typu CLIENT jako miniaturę.
+     * Używa LEFT JOIN, aby uwzględnić klientów bez zdjęć.
+     * Wyniki są sortowane numerycznie rosnąco według ID klienta (można zmienić w przyszłości).
+     * @return Flow emitujący listę obiektów [ClientWithThumbnail].
+     */
+    @Query("""
+        SELECT c.*, p.uri as thumbnailUri
+        FROM clients c
+        LEFT JOIN (
+            SELECT clientId, uri, MIN(addedTimestamp) as minTimestamp
+            FROM photos
+            WHERE type = :clientPhotoType
+            GROUP BY clientId
+        ) p ON c.id = p.clientId
+        ORDER BY c.id ASC
+    """)
+    // Uwaga: Sortowanie po ID klienta, a nie opisie czy numerach. Można dostosować.
+    // Używamy podzapytania z MIN(addedTimestamp) i GROUP BY, aby wybrać tylko jedno (najstarsze) zdjęcie dla każdego klienta.
+    fun getAllClientsWithThumbnails(clientPhotoType: PhotoType = PhotoType.CLIENT): Flow<List<ClientWithThumbnail>>
+
 }
+
