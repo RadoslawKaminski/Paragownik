@@ -1,0 +1,331 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Layout dla aktywności przeglądania/edycji danych klienta (EditClientActivity). -->
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/main_color_dark"
+    tools:context=".EditClientActivity">
+
+    <!-- Tytuł ekranu. -->
+    <TextView
+        android:id="@+id/editClientTitleTextView"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="8dp"
+        android:gravity="center"
+        android:text="@string/edit_client_title"
+        android:textSize="24sp"
+        app:layout_constraintEnd_toStartOf="@+id/editModeClientButton"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <!-- Ikona Edycji (zastępuje przycisk). -->
+    <ImageButton
+        android:id="@+id/editModeClientButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="8dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="@string/edit_button_text"
+        android:minWidth="48dp"
+        android:minHeight="48dp"
+        android:padding="8dp"
+        app:layout_constraintBottom_toBottomOf="@+id/editClientTitleTextView"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/editClientTitleTextView"
+        app:srcCompat="@drawable/ic_edit_icon"
+        app:tint="@color/scnd_color_bright" />
+
+    <!-- ScrollView z zawartością formularza. -->
+    <ScrollView
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:padding="16dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/editClientTitleTextView">
+
+        <!-- Główny kontener LinearLayout (pionowy) wewnątrz ScrollView. -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingBottom="16dp">
+
+            <!-- Sekcja danych klienta -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:orientation="vertical">
+                <!-- Etykieta sekcji (tryb edycji). -->
+                <TextView
+                    android:id="@+id/clientDataSectionTitleEdit"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="8dp"
+                    android:text="@string/client_data_section_title"
+                    android:textSize="18sp" />
+                <!-- Etykieta sekcji (tryb widoku). -->
+                <TextView
+                    android:id="@+id/clientDataSectionTitleView"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="8dp"
+                    android:text="@string/client_data_section_title_view"
+                    android:textSize="18sp"
+                    android:visibility="gone"/>
+
+                <!-- Opis klienta -->
+                <LinearLayout
+                    android:id="@+id/editDescriptionLayout"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:visibility="gone"
+                    tools:visibility="visible">
+                    <EditText
+                        android:id="@+id/editClientDescriptionEditText"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:enabled="false"
+                        android:autofillHints="text"
+                        android:gravity="top"
+                        android:hint="@string/client_description_hint"
+                        android:inputType="textMultiLine"
+                        android:lines="2" />
+                </LinearLayout>
+
+                <!-- Numer aplikacji -->
+                <LinearLayout
+                    android:id="@+id/editAppNumberLayout"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_marginTop="8dp"
+                    android:visibility="gone"
+                    tools:visibility="visible">
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical">
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/label_client_app_number"
+                            android:paddingEnd="8dp"
+                            android:textSize="16sp"/>
+                        <EditText
+                            android:id="@+id/editClientAppNumberEditText"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:enabled="false"
+                            android:autofillHints="number"
+                            android:hint="@string/client_app_number_hint"
+                            android:inputType="number"
+                            android:maxLength="14"
+                            android:layout_marginBottom="0dp"/>
+                    </LinearLayout>
+                </LinearLayout>
+
+                <!-- Numer Amodit -->
+                <LinearLayout
+                    android:id="@+id/editAmoditNumberLayout"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_marginTop="8dp"
+                    android:visibility="gone"
+                    tools:visibility="visible">
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical">
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/label_amodit_number"
+                            android:paddingEnd="8dp"
+                            android:textSize="16sp"/>
+                        <EditText
+                            android:id="@+id/editAmoditNumberEditText"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:enabled="false"
+                            android:autofillHints="number"
+                            android:hint="@string/amodit_number_hint"
+                            android:inputType="number"
+                            android:maxLength="8"
+                            android:layout_marginBottom="0dp"/>
+                    </LinearLayout>
+                </LinearLayout>
+
+                <!-- Sekcja Zdjęć Klienta -->
+                <TextView
+                    android:id="@+id/clientPhotosTitleEdit"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:text="@string/section_title_client_photos"
+                    android:textSize="16sp"
+                    android:visibility="gone"
+                    tools:visibility="visible"/>
+                 <TextView
+                    android:id="@+id/clientPhotosTitleView"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:text="@string/section_title_client_photos"
+                    android:textSize="16sp"
+                    android:visibility="gone"
+                    tools:visibility="visible"/>
+
+                <!-- Kontener dla miniatur w trybie edycji -->
+                <HorizontalScrollView
+                    android:id="@+id/clientPhotosScrollViewEdit"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:visibility="gone"
+                    tools:visibility="visible">
+                    <LinearLayout
+                        android:id="@+id/clientPhotosContainerEdit"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:paddingTop="4dp"
+                        android:paddingBottom="4dp"/>
+                </HorizontalScrollView>
+
+                 <!-- RecyclerView dla dużych zdjęć klienta w trybie widoku -->
+                 <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/clientPhotosRecyclerViewView"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:orientation="horizontal"
+                    android:visibility="gone"
+                    app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+                    tools:visibility="visible"
+                    tools:listitem="@layout/large_photo_item"
+                    tools:itemCount="3"/>
+
+                <!-- Przycisk dodawania zdjęcia klienta (tylko tryb edycji) -->
+                <Button
+                    android:id="@+id/addClientPhotoButtonEdit"
+                    style="@style/Widget.MaterialComponents.Button.TextButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/button_add_client_photo"
+                    android:textColor="@color/scnd_color_bright"
+                    android:visibility="gone"
+                    tools:visibility="visible"
+                    app:icon="@drawable/ic_add_a_photo"
+                    app:iconTint="@color/scnd_color_bright"/>
+
+                <!-- Sekcja Zdjęć Transakcji -->
+                 <TextView
+                    android:id="@+id/transactionPhotosTitleEdit"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:text="@string/section_title_transaction_photos"
+                    android:textSize="16sp"
+                    android:visibility="gone"
+                    tools:visibility="visible"/>
+                 <TextView
+                    android:id="@+id/transactionPhotosTitleView"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:text="@string/section_title_transaction_photos"
+                    android:textSize="16sp"
+                    android:visibility="gone"
+                    tools:visibility="visible"/>
+
+                 <!-- Kontener dla miniatur w trybie edycji -->
+                <HorizontalScrollView
+                    android:id="@+id/transactionPhotosScrollViewEdit"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:visibility="gone"
+                    tools:visibility="visible">
+                    <LinearLayout
+                        android:id="@+id/transactionPhotosContainerEdit"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:paddingTop="4dp"
+                        android:paddingBottom="4dp"/>
+                </HorizontalScrollView>
+
+                 <!-- RecyclerView dla dużych zdjęć transakcji w trybie widoku -->
+                 <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/transactionPhotosRecyclerViewView"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:orientation="horizontal"
+                    android:visibility="gone"
+                    app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+                    tools:visibility="visible"
+                    tools:listitem="@layout/large_photo_item"
+                    tools:itemCount="2"/>
+
+                <!-- Przycisk dodawania zdjęcia transakcji (tylko tryb edycji) -->
+                <Button
+                    android:id="@+id/addTransactionPhotoButtonEdit"
+                    style="@style/Widget.MaterialComponents.Button.TextButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/button_add_transaction_photo"
+                    android:textColor="@color/scnd_color_bright"
+                    android:visibility="gone"
+                    tools:visibility="visible"
+                    app:icon="@drawable/ic_add_a_photo"
+                    app:iconTint="@color/scnd_color_bright"/>
+
+            </LinearLayout> <!-- Koniec sekcji danych klienta -->
+
+            <!-- Przyciski akcji (Zapisz, Usuń) -->
+            <Button
+                android:id="@+id/saveClientButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:layout_marginBottom="16dp"
+                android:backgroundTint="@color/green_save"
+                android:paddingVertical="16dp"
+                android:text="@string/save_changes_button_text"
+                android:textColor="@color/white_text"
+                android:textSize="18sp"
+                android:visibility="gone"
+                tools:visibility="visible"/>
+
+            <Button
+                android:id="@+id/deleteClientButton"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/delete_client_button_text_short"
+                android:textColor="@android:color/holo_red_dark"
+                android:visibility="gone"
+                tools:visibility="visible"
+                app:strokeColor="@android:color/holo_red_dark" />
+
+        </LinearLayout>
+    </ScrollView>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
+

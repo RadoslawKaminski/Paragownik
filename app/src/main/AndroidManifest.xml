@@ -55,6 +55,10 @@
         <!-- Deklaracja aktywności EditReceiptActivity. -->
         <activity android:name=".EditReceiptActivity" />
 
+        <!-- Deklaracja NOWEJ aktywności EditClientActivity. -->
+        <activity android:name=".EditClientActivity" />
+
     </application>
 
 </manifest>
+

@@ -26,6 +26,7 @@ import com.kaminski.paragownik.viewmodel.StoreViewModel // Import StoreViewModel
 
 /**
  * Aktywność wyświetlająca szczegóły klienta, listę jego paragonów oraz listę jego zdjęć.
+ * Umożliwia dodawanie paragonów oraz edycję/usuwanie klienta.
  */
 class ClientReceiptsActivity : AppCompatActivity(), ReceiptAdapter.OnReceiptClickListener {
 
@@ -36,6 +37,7 @@ class ClientReceiptsActivity : AppCompatActivity(), ReceiptAdapter.OnReceiptClic
     private lateinit var clientAmoditNumberTextView: TextView
     private lateinit var clientReceiptsRecyclerView: RecyclerView
     private lateinit var fabAddReceiptToClient: FloatingActionButton
+    private lateinit var editClientButton: ImageButton // <-- NOWY Przycisk edycji klienta
     // Nowe widoki dla zdjęć
     private lateinit var clientPhotosTitleDetails: TextView
     private lateinit var clientPhotosScrollViewDetails: HorizontalScrollView
@@ -78,8 +80,8 @@ class ClientReceiptsActivity : AppCompatActivity(), ReceiptAdapter.OnReceiptClic
         // Inicjalizacja RecyclerView i Adaptera (z trybem CLIENT_LIST)
         setupRecyclerView()
 
-        // Ustawienie listenera dla FAB
-        setupFabListener()
+        // Ustawienie listenerów dla przycisków
+        setupListeners() // <-- Zmieniono nazwę metody
 
         // Rozpoczęcie ładowania danych w ViewModelu
         viewModel.loadClientData(clientId)
@@ -105,6 +107,7 @@ class ClientReceiptsActivity : AppCompatActivity(), ReceiptAdapter.OnReceiptClic
         clientAmoditNumberTextView = findViewById(R.id.clientDetailsAmoditNumberTextView)
         clientReceiptsRecyclerView = findViewById(R.id.clientReceiptsRecyclerView)
         fabAddReceiptToClient = findViewById(R.id.fabAddReceiptToClient)
+        editClientButton = findViewById(R.id.editClientButton) // <-- NOWE
         // Inicjalizacja widoków zdjęć
         clientPhotosTitleDetails = findViewById(R.id.clientPhotosTitleDetails)
         clientPhotosScrollViewDetails = findViewById(R.id.clientPhotosScrollViewDetails)
@@ -127,14 +130,21 @@ class ClientReceiptsActivity : AppCompatActivity(), ReceiptAdapter.OnReceiptClic
     }
 
     /**
-     * Ustawia listener dla FloatingActionButton, uruchamiając AddReceiptToClientActivity.
+     * Ustawia listenery dla interaktywnych elementów UI (FAB, ikona edycji).
      */
-    private fun setupFabListener() {
+    private fun setupListeners() {
+        // Listener dla FAB dodawania paragonu
         fabAddReceiptToClient.setOnClickListener {
             Log.d("ClientReceiptsActivity", "Kliknięto FAB - uruchamianie AddReceiptToClientActivity dla klienta ID: $clientId")
-            // Utwórz Intent do uruchomienia AddReceiptToClientActivity
             val intent = Intent(this, AddReceiptToClientActivity::class.java)
-            // Przekaż ID istniejącego klienta
+            intent.putExtra("CLIENT_ID", clientId)
+            startActivity(intent)
+        }
+
+        // Listener dla ikony edycji klienta <-- NOWE
+        editClientButton.setOnClickListener {
+            Log.d("ClientReceiptsActivity", "Kliknięto Edytuj Klienta - uruchamianie EditClientActivity dla klienta ID: $clientId")
+            val intent = Intent(this, EditClientActivity::class.java)
             intent.putExtra("CLIENT_ID", clientId)
             startActivity(intent)
         }
@@ -147,7 +157,6 @@ class ClientReceiptsActivity : AppCompatActivity(), ReceiptAdapter.OnReceiptClic
         viewModel.client.observe(this) { client ->
             if (client == null) {
                 // Obsługa sytuacji, gdy klient nie istnieje (np. został usunięty)
-                // Może być już obsłużone przez observeClientPhotos, ale dla pewności
                 if (!isFinishing && !isDestroyed) { // Sprawdź stan aktywności
                     Log.e("ClientReceiptsActivity", "Klient o ID $clientId nie został znaleziony (być może usunięty).")
                     Toast.makeText(this, R.string.error_client_not_found, Toast.LENGTH_SHORT).show()
@@ -303,3 +312,4 @@ class ClientReceiptsActivity : AppCompatActivity(), ReceiptAdapter.OnReceiptClic
         startActivity(intent)
     }
 }
+
