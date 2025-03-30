@@ -12,6 +12,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.floatingactionbutton.FloatingActionButton
+import com.kaminski.paragownik.data.ReceiptWithClient // Dodano import
 import com.kaminski.paragownik.viewmodel.ReceiptViewModel
 import com.kaminski.paragownik.viewmodel.StoreViewModel
 import kotlinx.coroutines.launch
@@ -36,10 +37,15 @@ class ReceiptListActivity : AppCompatActivity(), ReceiptAdapter.OnReceiptClickLi
     // ID sklepu
     private var storeId: Long = -1L
 
+    // Dane potrzebne do aktualizacji adaptera
+    private var currentReceipts: List<ReceiptWithClient>? = null
+    private var currentStoreMap: Map<Long, String>? = null
+    private var currentThumbnailsMap: Map<Long, String?>? = null
+
     /**
      * Metoda onCreate.
      */
-    @SuppressLint("NotifyDataSetChanged") // TODO: Rozważyć DiffUtil
+    // Usunięto @SuppressLint, bo aktualizacja jest teraz w dedykowanej metodzie
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_receipt_list)
@@ -51,7 +57,7 @@ class ReceiptListActivity : AppCompatActivity(), ReceiptAdapter.OnReceiptClickLi
         fabAddClient = findViewById(R.id.fabAddClient)
 
         // Inicjalizacja Adaptera (przekazujemy 'this' jako listener i tryb STORE_LIST)
-        receiptAdapter = ReceiptAdapter(emptyList(), this, DisplayMode.STORE_LIST) // Ustawiono tryb
+        receiptAdapter = ReceiptAdapter(this, DisplayMode.STORE_LIST) // Poprawiona inicjalizacja
         receiptRecyclerView.adapter = receiptAdapter
 
         // Inicjalizacja ViewModeli
@@ -81,28 +87,11 @@ class ReceiptListActivity : AppCompatActivity(), ReceiptAdapter.OnReceiptClickLi
             }
         }
 
-        // Ładowanie i obserwacja paragonów
+        // Ładowanie paragonów dla sklepu
         receiptViewModel.loadReceiptsForStore(storeId)
-        receiptViewModel.receiptsForStore.observe(this) { receiptsWithClients ->
-            receiptsWithClients?.let {
-                receiptAdapter.receiptList = it
-                // Odświeżamy adapter dopiero po aktualizacji mapy miniatur
-                // receiptAdapter.notifyDataSetChanged()
-            }
-        }
 
-        // Obserwacja mapy miniatur klientów
-        storeViewModel.clientThumbnailsMap.observe(this) { thumbnailsMap ->
-            thumbnailsMap?.let {
-                Log.d("ReceiptListActivity", "Otrzymano mapę miniatur klientów, rozmiar: ${it.size}")
-                receiptAdapter.updateClientThumbnailsMap(it)
-                // Odśwież adapter, bo mogły już być załadowane paragony
-                if (receiptAdapter.receiptList.isNotEmpty()) {
-                    receiptAdapter.notifyDataSetChanged() // TODO: DiffUtil
-                }
-            }
-        }
-
+        // Obserwacja danych i aktualizacja adaptera
+        observeDataAndUpdateAdapter()
 
         // Listener dla FAB
         fabAddClient.setOnClickListener {
@@ -112,6 +101,55 @@ class ReceiptListActivity : AppCompatActivity(), ReceiptAdapter.OnReceiptClickLi
             startActivity(intent)
         }
     }
+
+    /**
+     * Obserwuje wszystkie potrzebne LiveData i wywołuje aktualizację adaptera,
+     * gdy wszystkie dane są dostępne.
+     */
+    private fun observeDataAndUpdateAdapter() {
+        // Obserwacja paragonów dla sklepu
+        receiptViewModel.receiptsForStore.observe(this) { receipts ->
+            Log.d("ReceiptListActivity", "Otrzymano ${receipts?.size ?: 0} paragonów dla sklepu $storeId.")
+            currentReceipts = receipts
+            tryUpdateAdapter()
+        }
+
+        // Obserwacja mapy sklepów (potrzebna do nagłówków)
+        storeViewModel.allStoresMap.observe(this) { storeMap ->
+            Log.d("ReceiptListActivity", "Otrzymano mapę sklepów, rozmiar: ${storeMap?.size ?: 0}")
+            currentStoreMap = storeMap
+            tryUpdateAdapter()
+        }
+
+        // Obserwacja mapy miniatur klientów
+        storeViewModel.clientThumbnailsMap.observe(this) { thumbnailsMap ->
+            Log.d("ReceiptListActivity", "Otrzymano mapę miniatur klientów, rozmiar: ${thumbnailsMap?.size ?: 0}")
+            currentThumbnailsMap = thumbnailsMap
+            tryUpdateAdapter()
+        }
+    }
+
+    /**
+     * Sprawdza, czy wszystkie potrzebne dane (paragony, mapa sklepów, mapa miniatur) są dostępne.
+     * Jeśli tak, wywołuje metodę `updateReceipts` w adapterze.
+     */
+    @SuppressLint("NotifyDataSetChanged") // TODO: Rozważyć DiffUtil w ReceiptAdapter.updateReceipts
+    private fun tryUpdateAdapter() {
+        val receipts = currentReceipts
+        val storeMap = currentStoreMap
+        val thumbnailsMap = currentThumbnailsMap
+
+        // Sprawdź, czy wszystkie dane zostały już załadowane
+        if (receipts != null && storeMap != null && thumbnailsMap != null) {
+            Log.d("ReceiptListActivity", "Wszystkie dane dostępne. Aktualizowanie adaptera...")
+            // Wywołaj nową metodę adaptera, przekazując wszystkie potrzebne dane, w tym kontekst
+            // Ustaw showStoreHeaders na false dla tego widoku
+            receiptAdapter.updateReceipts(this, receipts, storeMap, thumbnailsMap, false)
+        } else {
+            Log.d("ReceiptListActivity", "Nie wszystkie dane są jeszcze dostępne do aktualizacji adaptera.")
+        }
+    }
+
 
     /**
      * Metoda wywoływana po kliknięciu elementu na liście paragonów.

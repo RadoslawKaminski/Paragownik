@@ -89,10 +89,10 @@
 
     <!-- Receipt Item -->
     <string name="verification_label">Weryfikacja:</string>
-    <string name="no_verification_date">Brak</string>
-    <string name="no_client_description">Brak opisu klienta</string>
+    <string name="no_verification_date">Brak daty</string> <!-- Zmieniono tekst -->
+    <string name="no_client_description">Brak opisu klienta</string> <!-- Dodano -->
     <string name="cd_edit_receipt_icon">Edytuj paragon</string>
-    <string name="store_number_prefix">Drogeria: </string>
+    <string name="store_number_prefix">Drogeria:</string> <!-- Zmieniono na dwukropek -->
     <string name="cd_receipt_item_store_number">Numer drogerii dla paragonu</string>
 
 

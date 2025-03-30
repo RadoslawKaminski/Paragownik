@@ -24,13 +24,12 @@
         tools:text="Wszystkie Paragony" /> <!-- Tekst ustawiany programowo -->
 
     <!-- RecyclerView do wyświetlania listy wszystkich paragonów. -->
+    <!-- Usunięto paddingStart/End, bo elementy (nagłówki/paragony) mają własny padding. -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/allReceiptsRecyclerView"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:layout_marginTop="16dp"
-        android:paddingStart="16dp"
-        android:paddingEnd="16dp"
         android:paddingBottom="16dp"
         android:clipToPadding="false"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -42,4 +41,3 @@
     <!-- Można dodać FAB do filtrowania/sortowania w przyszłości -->
 
 </androidx.constraintlayout.widget.ConstraintLayout>
-
