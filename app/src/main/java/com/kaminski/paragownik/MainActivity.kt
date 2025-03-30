@@ -15,8 +15,8 @@ import com.kaminski.paragownik.viewmodel.StoreViewModel
 /**
  * Główna aktywność aplikacji. Wyświetla listę dostępnych drogerii (sklepów).
  * Umożliwia przejście do listy paragonów dla wybranej drogerii,
- * przejście do dodawania nowego klienta (bez kontekstu sklepu)
- * oraz przejście do listy wszystkich klientów.
+ * przejście do dodawania nowego klienta (bez kontekstu sklepu),
+ * przejście do listy wszystkich klientów oraz do listy wszystkich paragonów.
  */
 class MainActivity : AppCompatActivity(), StoreAdapter.OnItemClickListener {
 
@@ -27,12 +27,14 @@ class MainActivity : AppCompatActivity(), StoreAdapter.OnItemClickListener {
     // Przycisk FAB do dodawania nowego klienta
     private lateinit var fabAddClientMain: FloatingActionButton
     // Przycisk do przejścia do listy klientów
-    private lateinit var viewClientsButton: Button // Dodano
+    private lateinit var viewClientsButton: Button
+    // Przycisk do przejścia do listy wszystkich paragonów (NOWY)
+    private lateinit var viewAllReceiptsButton: Button
 
     /**
      * Metoda wywoływana przy tworzeniu Aktywności.
      * Inicjalizuje RecyclerView, Adapter, ViewModel, obserwuje dane sklepów
-     * i ustawia listenery dla FAB i przycisku listy klientów.
+     * i ustawia listenery dla FAB i przycisków nawigacyjnych.
      */
     @SuppressLint("NotifyDataSetChanged")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -69,11 +71,9 @@ class MainActivity : AppCompatActivity(), StoreAdapter.OnItemClickListener {
             // Utwórz Intent do uruchomienia AddClientActivity
             val intent = Intent(this, AddClientActivity::class.java)
             // Uruchom AddClientActivity bez przekazywania STORE_ID
-            // (użytkownik będzie musiał wpisać numer sklepu dla pierwszego paragonu)
             startActivity(intent)
         }
 
-        // --- DODANY KOD ---
         // Inicjalizacja przycisku "Pokaż Klientów"
         viewClientsButton = findViewById(R.id.viewClientsButton)
         // Ustawienie listenera kliknięcia dla przycisku
@@ -83,10 +83,17 @@ class MainActivity : AppCompatActivity(), StoreAdapter.OnItemClickListener {
             // Uruchom ClientListActivity
             startActivity(intent)
         }
-        // --- KONIEC DODANEGO KODU ---
-    }
 
-    // Funkcja insertSampleStores została usunięta jako nieużywana
+        // Inicjalizacja przycisku "Pokaż Wszystkie Paragony" (NOWY)
+        viewAllReceiptsButton = findViewById(R.id.viewAllReceiptsButton)
+        // Ustawienie listenera kliknięcia dla przycisku
+        viewAllReceiptsButton.setOnClickListener {
+            // Utwórz Intent do uruchomienia AllReceiptsActivity
+            val intent = Intent(this, AllReceiptsActivity::class.java)
+            // Uruchom AllReceiptsActivity
+            startActivity(intent)
+        }
+    }
 
     /**
      * Metoda wywoływana, gdy użytkownik kliknie element na liście sklepów.
@@ -102,3 +109,4 @@ class MainActivity : AppCompatActivity(), StoreAdapter.OnItemClickListener {
         startActivity(intent)
     }
 }
+

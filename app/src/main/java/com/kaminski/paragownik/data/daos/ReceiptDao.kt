@@ -138,4 +138,20 @@ interface ReceiptDao {
     @Transaction
     @Query("SELECT receipts.* FROM receipts INNER JOIN stores ON receipts.storeId = stores.id WHERE receipts.clientId = :clientId ORDER BY CAST(stores.storeNumber AS INTEGER) ASC")
     fun getReceiptsWithClientForClient(clientId: Long): Flow<List<ReceiptWithClient>>
+
+    /**
+     * Pobiera listę WSZYSTKICH paragonów (wraz z danymi klienta) jako [Flow].
+     * Używa relacji [ReceiptWithClient]. Wyniki są sortowane według:
+     * 1. Numeru sklepu (numerycznie rosnąco).
+     * 2. Daty weryfikacji (NULLe na górze, potem rosnąco).
+     * @return [Flow] emitujący listę wszystkich obiektów [ReceiptWithClient].
+     */
+    @Transaction
+    @Query("""
+        SELECT receipts.* FROM receipts
+        INNER JOIN stores ON receipts.storeId = stores.id
+        ORDER BY CAST(stores.storeNumber AS INTEGER) ASC, receipts.verificationDate IS NULL DESC, receipts.verificationDate ASC
+    """)
+    fun getAllReceiptsSorted(): Flow<List<ReceiptWithClient>> // NOWE ZAPYTANIE
 }
+

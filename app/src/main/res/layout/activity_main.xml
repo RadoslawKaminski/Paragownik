@@ -24,30 +24,48 @@
         app:layout_constraintTop_toTopOf="parent" />
 
     <!-- RecyclerView do wyświetlania listy sklepów. -->
-    <!-- Zajmuje przestrzeń między tytułem a dołem. -->
+    <!-- Zajmuje przestrzeń między tytułem a przyciskami na dole. -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/storeRecyclerView"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:paddingTop="16dp"
         android:paddingBottom="16dp"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBottom_toTopOf="@+id/viewClientsButton"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/mainActivityTitleTextView"
         tools:listitem="@layout/store_item" />
 
+    <!-- Przycisk do przejścia do listy wszystkich paragonów (NOWY) -->
+    <Button
+        android:id="@+id/viewAllReceiptsButton"
+        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="8dp"
+        android:text="@string/view_all_receipts_button"
+        android:textColor="@color/scnd_color_bright"
+        app:layout_constraintBottom_toTopOf="@+id/viewClientsButton"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:strokeColor="@color/scnd_color_bright" />
+
     <!-- Przycisk do przejścia do listy klientów -->
     <Button
         android:id="@+id/viewClientsButton"
         style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
         android:layout_marginBottom="16dp"
         android:text="@string/view_clients_button"
         android:textColor="@color/scnd_color_bright"
         app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/fabAddClientMain"
         app:layout_constraintStart_toStartOf="parent"
         app:strokeColor="@color/scnd_color_bright" />
 
@@ -68,3 +86,4 @@
         app:srcCompat="@android:drawable/ic_input_add" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
+

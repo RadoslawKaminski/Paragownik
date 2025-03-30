@@ -36,6 +36,7 @@
     <string name="cd_add_client_fab">Dodaj nowego klienta</string>
     <string name="view_clients_button">Pokaż Klientów</string>
     <string name="main_activity_title">Lista Drogerii</string>
+    <string name="view_all_receipts_button">Pokaż Wszystkie Paragony</string> <!-- NOWE -->
 
     <!-- ReceiptListActivity -->
     <string name="cd_add_receipt_fab">Dodaj nowy paragon dla tego sklepu</string>
@@ -129,10 +130,13 @@
     <string name="hint_receipt_number_required">Numer paragonu</string> <!-- Usunięto * -->
     <string name="hint_receipt_date_required">Data paragonu (DD-MM-YYYY)</string> <!-- Usunięto * -->
 
-    <!-- EditClientActivity --> <!-- NOWE STRINGI -->
+    <!-- EditClientActivity -->
     <string name="edit_client_title">Edytuj Dane Klienta</string>
     <string name="delete_client_button_text_short">Usuń klienta</string>
     <string name="delete_client_confirmation_title_short">Potwierdzenie usunięcia klienta</string>
     <string name="delete_client_confirmation_message_short">Czy na pewno chcesz usunąć tego klienta?\n\nUWAGA: Usunięcie klienta spowoduje USUNIĘCIE WSZYSTKICH jego paragonów! Drogerie, które staną się puste, również zostaną usunięte.</string>
+
+    <!-- AllReceiptsActivity --> <!-- NOWE -->
+    <string name="all_receipts_activity_title">Wszystkie Paragony</string>
 
 </resources>
