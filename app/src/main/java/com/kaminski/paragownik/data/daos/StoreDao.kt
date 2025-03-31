@@ -38,7 +38,6 @@ interface StoreDao {
      * Wyniki są sortowane numerycznie rosnąco według numeru sklepu.
      * @return [Flow] emitujący listę obiektów [Store].
      */
-    // Zapytanie pobierające wszystkie sklepy, posortowane numerycznie rosnąco według numeru sklepu.
     @Query("SELECT * FROM stores ORDER BY CAST(storeNumber AS INTEGER) ASC")
     fun getAllStores(): Flow<List<Store>>
 
@@ -54,11 +53,11 @@ interface StoreDao {
     /**
      * Pobiera pojedynczy sklep na podstawie jego numeru identyfikacyjnego.
      * Operacja jednorazowa (suspend).
-     * Zakłada, że numer sklepu jest unikalny (choć baza tego nie wymusza).
+     * Zakłada, że numer sklepu jest unikalny (choć baza tego nie wymusza). Używa LIMIT 1.
      * @param storeNumber Numer sklepu do znalezienia.
      * @return Obiekt [Store] lub `null`, jeśli sklep o podanym numerze nie został znaleziony.
      */
-    @Query("SELECT * FROM stores WHERE storeNumber = :storeNumber LIMIT 1") // Dodano LIMIT 1 dla pewności
+    @Query("SELECT * FROM stores WHERE storeNumber = :storeNumber LIMIT 1")
     suspend fun getStoreByNumber(storeNumber: String): Store?
 
     /**
@@ -70,4 +69,3 @@ interface StoreDao {
     @Query("SELECT * FROM stores WHERE id = :storeId")
     fun getStoreByIdFlow(storeId: Long): Flow<Store?>
 }
-

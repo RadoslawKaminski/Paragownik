@@ -4,17 +4,16 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.asLiveData
-import androidx.lifecycle.map // Importuj map dla LiveData
+import androidx.lifecycle.map
 import com.kaminski.paragownik.data.AppDatabase
 import com.kaminski.paragownik.data.Store
+import com.kaminski.paragownik.data.daos.ClientDao
+import com.kaminski.paragownik.data.daos.PhotoDao
 import com.kaminski.paragownik.data.daos.StoreDao
-import com.kaminski.paragownik.data.daos.ClientDao // Dodano import
-import com.kaminski.paragownik.data.daos.PhotoDao // Dodano import
-import kotlinx.coroutines.flow.Flow // Dodano import
-import kotlinx.coroutines.flow.flatMapLatest // Dodano import
-import kotlinx.coroutines.flow.map // Dodano import (już był, ale dla pewności)
-import kotlinx.coroutines.flow.combine // Dodano import
-import com.kaminski.paragownik.data.PhotoType // Dodano import
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
 
 /**
  * ViewModel dla MainActivity i innych miejsc potrzebujących danych o sklepach i miniaturach klientów.
@@ -23,21 +22,20 @@ import com.kaminski.paragownik.data.PhotoType // Dodano import
 class StoreViewModel(application: Application) : AndroidViewModel(application) {
 
     private val storeDao: StoreDao
-    private val clientDao: ClientDao // Dodajmy też ClientDao
-    private val photoDao: PhotoDao // <-- DODAJ
+    private val clientDao: ClientDao
+    private val photoDao: PhotoDao
     // LiveData z listą wszystkich sklepów.
     val allStores: LiveData<List<Store>>
     // LiveData z mapą [Store.id] -> [Store.storeNumber].
     val allStoresMap: LiveData<Map<Long, String>>
     // LiveData z mapą [Client.id] -> [thumbnailUri?].
-    val clientThumbnailsMap: LiveData<Map<Long, String?>> // <-- DODAJ
+    val clientThumbnailsMap: LiveData<Map<Long, String?>>
 
     init {
         val database = AppDatabase.getDatabase(application)
         storeDao = database.storeDao()
-        clientDao = database.clientDao() // <-- DODAJ
-        photoDao = database.photoDao() // <-- DODAJ
-        // Pobierz Flow i przekonwertuj na LiveData
+        clientDao = database.clientDao()
+        photoDao = database.photoDao()
         allStores = storeDao.getAllStores().asLiveData()
 
         // Utwórz mapę z listy sklepów za pomocą transformacji LiveData.map
@@ -50,7 +48,7 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
         // Pobieramy wszystkich klientów, a następnie dla każdego znajdujemy pierwsze zdjęcie
         // To może być nieoptymalne dla bardzo dużej liczby klientów.
         // Alternatywą byłoby dedykowane zapytanie SQL zwracające od razu mapę.
-        clientThumbnailsMap = clientDao.getAllClients() // Pobierz Flow<List<Client>>
+        clientThumbnailsMap = clientDao.getAllClients()
             .flatMapLatest { clients ->
                 // Dla każdego klienta pobierz jego pierwsze zdjęcie
                 val flows: List<Flow<Pair<Long, String?>>> = clients.map { client ->
@@ -65,7 +63,7 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
                         results.toMap() // Konwertuj tablicę Pair na Map
                     }
                 }
-            }.asLiveData() // Konwertuj wynikowy Flow<Map> na LiveData
+            }.asLiveData()
     }
 
     /**
@@ -77,4 +75,3 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
         return storeDao.getStoreById(storeId)
     }
 }
-

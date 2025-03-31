@@ -12,7 +12,6 @@
     android:background="@drawable/rounded_edittext_background"
     android:contentDescription="@string/cd_client_list_item">
 
-    <!-- Miniatura zdjęcia klienta -->
     <ImageView
         android:id="@+id/clientItemPhotoImageView"
         android:layout_width="60dp"
@@ -68,3 +67,5 @@
     </LinearLayout>
 
 </LinearLayout>
+
+

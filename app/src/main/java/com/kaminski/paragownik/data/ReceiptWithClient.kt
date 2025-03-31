@@ -27,4 +27,3 @@ data class ReceiptWithClient(
     // na wypadek gdyby (teoretycznie) nie udało się znaleźć pasującego klienta.
     val client: Client?
 )
-

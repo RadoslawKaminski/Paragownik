@@ -25,7 +25,6 @@
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
-            <!-- Tytuł ekranu. -->
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -47,7 +46,6 @@
                     android:baselineAligned="false"
                     android:orientation="horizontal">
 
-                    <!-- Kontener dla numeru drogerii. -->
                     <LinearLayout
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
@@ -55,7 +53,6 @@
                         android:layout_weight="4"
                         android:orientation="vertical">
 
-                        <!-- Pole edycji numeru drogerii. -->
                         <EditText
                             android:id="@+id/receiptStoreNumberEditText"
                             android:layout_width="match_parent"
@@ -66,7 +63,6 @@
                             android:maxLength="4" />
                     </LinearLayout>
 
-                    <!-- Kontener dla numeru paragonu. -->
                     <LinearLayout
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
@@ -74,7 +70,6 @@
                         android:layout_weight="5"
                         android:orientation="vertical">
 
-                        <!-- Pole edycji numeru paragonu. -->
                         <EditText
                             android:id="@+id/receiptNumberEditText"
                             android:layout_width="match_parent"
@@ -86,7 +81,6 @@
                     </LinearLayout>
                 </LinearLayout>
 
-                <!-- Pole edycji daty paragonu. -->
                 <EditText
                     android:id="@+id/receiptDateEditText"
                     android:layout_width="match_parent"
@@ -103,7 +97,6 @@
                     android:layout_marginTop="16dp"
                     android:orientation="vertical">
 
-                    <!-- Etykieta sekcji. -->
                     <TextView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -118,14 +111,12 @@
                         android:baselineAligned="false"
                         android:orientation="horizontal">
 
-                        <!-- Kontener dla pola daty weryfikacji. -->
                         <LinearLayout
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="5"
                             android:orientation="vertical">
 
-                            <!-- Pole edycji daty weryfikacji. -->
                             <EditText
                                 android:id="@+id/verificationDateEditText"
                                 android:layout_width="match_parent"
@@ -135,7 +126,6 @@
                                 android:inputType="date" /> <!-- inputType modyfikowany przez TextWatcher na number -->
                         </LinearLayout>
 
-                        <!-- Kontener dla checkboxa "Dzisiaj". -->
                         <LinearLayout
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
@@ -144,7 +134,6 @@
                             android:gravity="center_vertical"
                             android:orientation="vertical">
 
-                            <!-- Checkbox "Dzisiaj". -->
                             <CheckBox
                                 android:id="@+id/verificationDateTodayCheckBox"
                                 android:layout_width="wrap_content"
@@ -153,9 +142,9 @@
                                 android:textColor="@color/white_text" />
                         </LinearLayout>
                     </LinearLayout>
-                </LinearLayout> <!-- Koniec sekcji daty weryfikacji -->
+                </LinearLayout>
 
-            </LinearLayout> <!-- Koniec sekcji pierwszego paragonu -->
+            </LinearLayout>
 
             <!-- Sekcja danych klienta (opcjonalna). -->
             <LinearLayout
@@ -164,7 +153,6 @@
                 android:layout_marginTop="24dp"
                 android:orientation="vertical">
 
-                <!-- Etykieta sekcji. -->
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -172,7 +160,6 @@
                     android:text="@string/client_data_section_title"
                     android:textSize="18sp" />
 
-                <!-- Pole edycji opisu klienta (wieloliniowe). -->
                 <EditText
                     android:id="@+id/clientDescriptionEditText"
                     android:layout_width="match_parent"
@@ -183,7 +170,6 @@
                     android:inputType="textMultiLine"
                     android:lines="2" />
 
-                <!-- Pole edycji numeru aplikacji klienta. -->
                 <EditText
                     android:id="@+id/clientAppNumberEditText"
                     android:layout_width="match_parent"
@@ -194,7 +180,6 @@
                     android:inputType="number"
                     android:maxLength="14" />
 
-                <!-- Pole edycji numeru Amodit. -->
                 <EditText
                     android:id="@+id/amoditNumberEditText"
                     android:layout_width="match_parent"
@@ -267,7 +252,7 @@
                     app:icon="@drawable/ic_add_a_photo"
                     app:iconTint="@color/scnd_color_bright"/>
 
-            </LinearLayout> <!-- Koniec sekcji danych klienta -->
+            </LinearLayout>
 
 
             <!-- Kontener na dynamicznie dodawane pola dodatkowych paragonów. -->
@@ -310,4 +295,6 @@
         app:layout_constraintStart_toStartOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
+
+
 

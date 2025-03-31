@@ -8,7 +8,6 @@
     android:background="@color/main_color_dark"
     tools:context=".ClientListActivity">
 
-    <!-- Tytuł ekranu -->
     <TextView
         android:id="@+id/clientListTitleTextView"
         android:layout_width="0dp"
@@ -41,3 +40,5 @@
     <!-- TODO: W przyszłości można dodać FAB do filtrowania lub innych akcji -->
 
 </androidx.constraintlayout.widget.ConstraintLayout>
+
+

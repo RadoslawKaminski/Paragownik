@@ -8,7 +8,6 @@
     android:background="@color/main_color_dark"
     tools:context=".ClientReceiptsActivity">
 
-    <!-- Tytuł ekranu -->
     <TextView
         android:id="@+id/clientReceiptsTitleTextView"
         android:layout_width="0dp"
@@ -51,7 +50,7 @@
             app:srcCompat="@drawable/ic_photo_placeholder"
             tools:visibility="visible"/>
 
-        <!-- NOWY LinearLayout dla danych tekstowych klienta -->
+        <!-- LinearLayout dla danych tekstowych klienta -->
         <LinearLayout
             android:id="@+id/clientTextDetailsLayout"
             android:layout_width="0dp"
@@ -63,7 +62,6 @@
             app:layout_constraintEnd_toStartOf="@+id/moreOptionsClientButton"
             app:layout_constraintTop_toTopOf="@+id/clientDetailsPhotoImageView">
 
-            <!-- Opis klienta -->
             <TextView
                 android:id="@+id/clientDetailsDescriptionTextView"
                 android:layout_width="match_parent"
@@ -73,7 +71,6 @@
                 android:textStyle="bold"
                 tools:text="Wysoki blondyn w czerwonej kurtce" />
 
-            <!-- Numer aplikacji klienta -->
             <TextView
                 android:id="@+id/clientDetailsAppNumberTextView"
                 android:layout_width="match_parent"
@@ -85,7 +82,6 @@
                 tools:text="Nr app: 12345678901234"
                 tools:visibility="visible" />
 
-            <!-- Numer Amodit -->
             <TextView
                 android:id="@+id/clientDetailsAmoditNumberTextView"
                 android:layout_width="match_parent"
@@ -97,7 +93,7 @@
                 tools:text="Amodit: 12345678"
                 tools:visibility="visible" />
 
-        </LinearLayout> <!-- Koniec LinearLayout dla tekstu -->
+        </LinearLayout>
 
         <!-- Ikona "Więcej" (trzykropek) -->
         <ImageButton
@@ -117,7 +113,6 @@
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-    <!-- Separator -->
     <View
         android:id="@+id/clientDetailsSeparator"
         android:layout_width="0dp"
@@ -239,3 +234,4 @@
         app:srcCompat="@android:drawable/ic_input_add" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
+

@@ -36,7 +36,6 @@
                 android:layout_height="wrap_content"
                 android:gravity="center_vertical"
                 android:orientation="horizontal">
-                <!-- Numer paragonu. -->
                 <TextView
                     android:id="@+id/receiptNumberTextView"
                     android:layout_width="wrap_content"
@@ -46,14 +45,12 @@
                     android:textSize="24sp"
                     android:textStyle="bold"
                     tools:text="1234" />
-                <!-- Separator. -->
                 <View
                     android:layout_width="1dp"
                     android:layout_height="match_parent"
                     android:layout_marginStart="8dp"
                     android:layout_marginEnd="8dp"
                     android:background="@color/sub_white_text" />
-                <!-- Data paragonu. -->
                 <TextView
                     android:id="@+id/receiptDateTextView"
                     android:layout_width="wrap_content"
@@ -90,14 +87,12 @@
                 android:orientation="horizontal"
                 android:visibility="gone"
                 tools:visibility="visible">
-                <!-- Etykieta "Weryfikacja:". -->
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:paddingEnd="4dp"
                     android:text="@string/verification_label"
                     android:textSize="16sp" />
-                <!-- Wartość daty weryfikacji. -->
                 <TextView
                     android:id="@+id/verificationDateTextView"
                     android:layout_width="0dp"
@@ -142,7 +137,7 @@
                 tools:text="Amodit: 12345678"
                 tools:visibility="visible" />
 
-        </LinearLayout> <!-- Koniec bloku z tekstem -->
+        </LinearLayout>
 
         <!-- Miniatura zdjęcia klienta (layout do ukrywania) -->
         <ImageView
@@ -170,3 +165,5 @@
         android:background="@color/sub_white_text" />
 
 </LinearLayout>
+
+

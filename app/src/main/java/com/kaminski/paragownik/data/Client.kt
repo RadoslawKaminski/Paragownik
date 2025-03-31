@@ -9,20 +9,19 @@ import androidx.room.PrimaryKey
  *
  * @property id Unikalny identyfikator klienta (klucz główny, generowany automatycznie).
  * @property description Krótki opis klienta, np. cechy wyglądu (opcjonalne, może być null).
- * @property clientAppNumber Numer aplikacji klienta (opcjonalne, może być null). Wprowadzony w v3.
- * @property amoditNumber Numer Amodit (opcjonalne, może być null). Wprowadzony w v3.
+ * @property clientAppNumber Numer aplikacji klienta (opcjonalne, może być null).
+ * @property amoditNumber Numer Amodit (opcjonalne, może być null).
  */
-@Entity(tableName = "clients") // Nazwa tabeli w bazie danych SQLite
+@Entity(tableName = "clients")
 data class Client(
-    @PrimaryKey(autoGenerate = true) // Klucz główny, którego wartość jest generowana automatycznie
+    @PrimaryKey(autoGenerate = true)
     val id: Long = 0,
 
-    val description: String?, // Kolumna na opis (TEXT, nullable)
+    val description: String?,
 
-    // --- NOWE POLA (dodane w wersji 3 bazy danych) ---
-    val clientAppNumber: String? = null, // Kolumna na numer aplikacji (TEXT, nullable)
-    val amoditNumber: String? = null    // Kolumna na numer Amodit (TEXT, nullable)
-    // Pole photoUri zostało usunięte w wersji 5
-    // --- KONIEC NOWYCH PÓL ---
+    val clientAppNumber: String? = null,
+    val amoditNumber: String? = null
 )
+
+
 

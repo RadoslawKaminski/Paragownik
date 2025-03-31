@@ -12,7 +12,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.floatingactionbutton.FloatingActionButton
-import com.kaminski.paragownik.data.ReceiptWithClient // Dodano import
+import com.kaminski.paragownik.data.ReceiptWithClient
 import com.kaminski.paragownik.viewmodel.ReceiptViewModel
 import com.kaminski.paragownik.viewmodel.StoreViewModel
 import kotlinx.coroutines.launch
@@ -24,20 +24,16 @@ import kotlinx.coroutines.launch
  */
 class ReceiptListActivity : AppCompatActivity(), ReceiptAdapter.OnReceiptClickListener {
 
-    // Widoki UI
     private lateinit var receiptRecyclerView: RecyclerView
     private lateinit var fabAddClient: FloatingActionButton
     private lateinit var titleTextView: TextView
 
-    // Adapter i ViewModels
     private lateinit var receiptAdapter: ReceiptAdapter
     private lateinit var receiptViewModel: ReceiptViewModel
     private lateinit var storeViewModel: StoreViewModel
 
-    // ID sklepu
     private var storeId: Long = -1L
 
-    // Dane potrzebne do aktualizacji adaptera
     private var currentReceipts: List<ReceiptWithClient>? = null
     private var currentStoreMap: Map<Long, String>? = null
     private var currentThumbnailsMap: Map<Long, String?>? = null
@@ -45,26 +41,21 @@ class ReceiptListActivity : AppCompatActivity(), ReceiptAdapter.OnReceiptClickLi
     /**
      * Metoda onCreate.
      */
-    // Usunięto @SuppressLint, bo aktualizacja jest teraz w dedykowanej metodzie
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_receipt_list)
 
-        // Inicjalizacja widoków
         receiptRecyclerView = findViewById(R.id.receiptRecyclerView)
         receiptRecyclerView.layoutManager = LinearLayoutManager(this)
         titleTextView = findViewById(R.id.receiptListTitleTextView)
         fabAddClient = findViewById(R.id.fabAddClient)
 
-        // Inicjalizacja Adaptera (przekazujemy 'this' jako listener i tryb STORE_LIST)
-        receiptAdapter = ReceiptAdapter(this, DisplayMode.STORE_LIST) // Poprawiona inicjalizacja
+        receiptAdapter = ReceiptAdapter(this, DisplayMode.STORE_LIST)
         receiptRecyclerView.adapter = receiptAdapter
 
-        // Inicjalizacja ViewModeli
         receiptViewModel = ViewModelProvider(this).get(ReceiptViewModel::class.java)
         storeViewModel = ViewModelProvider(this).get(StoreViewModel::class.java)
 
-        // Pobranie i walidacja ID sklepu
         storeId = intent.getLongExtra("STORE_ID", -1L)
         Log.d("ReceiptListActivity", "Otrzymano STORE_ID: $storeId")
         if (storeId == -1L) {
@@ -75,7 +66,6 @@ class ReceiptListActivity : AppCompatActivity(), ReceiptAdapter.OnReceiptClickLi
             return
         }
 
-        // Ustawienie dynamicznego tytułu
         lifecycleScope.launch {
             val store = storeViewModel.getStoreById(storeId)
             val titlePrefix = getString(R.string.receipt_list_activity_title_prefix)
@@ -87,13 +77,10 @@ class ReceiptListActivity : AppCompatActivity(), ReceiptAdapter.OnReceiptClickLi
             }
         }
 
-        // Ładowanie paragonów dla sklepu
         receiptViewModel.loadReceiptsForStore(storeId)
 
-        // Obserwacja danych i aktualizacja adaptera
         observeDataAndUpdateAdapter()
 
-        // Listener dla FAB
         fabAddClient.setOnClickListener {
             val intent = Intent(this, AddClientActivity::class.java)
             intent.putExtra("STORE_ID", storeId)
@@ -107,21 +94,18 @@ class ReceiptListActivity : AppCompatActivity(), ReceiptAdapter.OnReceiptClickLi
      * gdy wszystkie dane są dostępne.
      */
     private fun observeDataAndUpdateAdapter() {
-        // Obserwacja paragonów dla sklepu
         receiptViewModel.receiptsForStore.observe(this) { receipts ->
             Log.d("ReceiptListActivity", "Otrzymano ${receipts?.size ?: 0} paragonów dla sklepu $storeId.")
             currentReceipts = receipts
             tryUpdateAdapter()
         }
 
-        // Obserwacja mapy sklepów (potrzebna do nagłówków)
         storeViewModel.allStoresMap.observe(this) { storeMap ->
             Log.d("ReceiptListActivity", "Otrzymano mapę sklepów, rozmiar: ${storeMap?.size ?: 0}")
             currentStoreMap = storeMap
             tryUpdateAdapter()
         }
 
-        // Obserwacja mapy miniatur klientów
         storeViewModel.clientThumbnailsMap.observe(this) { thumbnailsMap ->
             Log.d("ReceiptListActivity", "Otrzymano mapę miniatur klientów, rozmiar: ${thumbnailsMap?.size ?: 0}")
             currentThumbnailsMap = thumbnailsMap
@@ -139,11 +123,8 @@ class ReceiptListActivity : AppCompatActivity(), ReceiptAdapter.OnReceiptClickLi
         val storeMap = currentStoreMap
         val thumbnailsMap = currentThumbnailsMap
 
-        // Sprawdź, czy wszystkie dane zostały już załadowane
         if (receipts != null && storeMap != null && thumbnailsMap != null) {
             Log.d("ReceiptListActivity", "Wszystkie dane dostępne. Aktualizowanie adaptera...")
-            // Wywołaj nową metodę adaptera, przekazując wszystkie potrzebne dane, w tym kontekst
-            // Ustaw showStoreHeaders na false dla tego widoku
             receiptAdapter.updateReceipts(this, receipts, storeMap, thumbnailsMap, false)
         } else {
             Log.d("ReceiptListActivity", "Nie wszystkie dane są jeszcze dostępne do aktualizacji adaptera.")
@@ -159,8 +140,9 @@ class ReceiptListActivity : AppCompatActivity(), ReceiptAdapter.OnReceiptClickLi
     override fun onReceiptClick(receiptId: Long) {
         val intent = Intent(this, EditReceiptActivity::class.java)
         intent.putExtra("RECEIPT_ID", receiptId)
-        // Dodaj informację o kontekście
-        intent.putExtra("CONTEXT", "STORE_LIST") // Kontekst: lista sklepu
+        intent.putExtra("CONTEXT", "STORE_LIST")
         startActivity(intent)
     }
 }
+
+

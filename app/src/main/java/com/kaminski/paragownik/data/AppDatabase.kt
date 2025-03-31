@@ -1,9 +1,7 @@
-@file:Suppress("KDocUnresolvedReference")
-
 package com.kaminski.paragownik.data
 
 import android.content.Context
-import android.util.Log // Dodano import dla Log
+import android.util.Log
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
@@ -11,7 +9,7 @@ import androidx.room.TypeConverters
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 import com.kaminski.paragownik.data.daos.ClientDao
-import com.kaminski.paragownik.data.daos.PhotoDao // Dodano import PhotoDao
+import com.kaminski.paragownik.data.daos.PhotoDao
 import com.kaminski.paragownik.data.daos.ReceiptDao
 import com.kaminski.paragownik.data.daos.StoreDao
 
@@ -24,17 +22,15 @@ import com.kaminski.paragownik.data.daos.StoreDao
  * @property version Numer wersji schematu bazy danych. Należy go zwiększać przy każdej zmianie schematu.
  * @property exportSchema Czy eksportować schemat bazy do pliku JSON (przydatne do testów i dokumentacji).
  */
-// Zwiększona wersja bazy danych do 5 po dodaniu tabeli Photo i usunięciu photoUri z Client
 @Database(entities = [Store::class, Receipt::class, Client::class, Photo::class], version = 5, exportSchema = false)
-@TypeConverters(Converters::class) // Rejestracja konwerterów typów (Date, PhotoType)
+@TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
 
     // Abstrakcyjne metody dostarczające instancje DAO dla każdej encji.
-    // Room automatycznie wygeneruje implementacje tych metod.
     abstract fun storeDao(): StoreDao
     abstract fun receiptDao(): ReceiptDao
     abstract fun clientDao(): ClientDao
-    abstract fun photoDao(): PhotoDao // <-- DODANO DAO DLA ZDJĘĆ
+    abstract fun photoDao(): PhotoDao
 
     // Obiekt towarzyszący (companion object) do implementacji wzorca Singleton
     // oraz przechowywania definicji migracji.
@@ -43,7 +39,6 @@ abstract class AppDatabase : RoomDatabase() {
         @Volatile
         private var INSTANCE: AppDatabase? = null
 
-        // --- DEFINICJA MIGRACJI Z WERSJI 2 DO 3 ---
         /**
          * Obiekt migracji z wersji 2 do 3 schematu bazy danych.
          * Dodaje nowe kolumny (`clientAppNumber`, `amoditNumber`, `photoUri`) do tabeli `clients`.
@@ -55,9 +50,7 @@ abstract class AppDatabase : RoomDatabase() {
                 db.execSQL("ALTER TABLE clients ADD COLUMN photoUri TEXT")
             }
         }
-        // --- KONIEC DEFINICJI MIGRACJI 2 -> 3 ---
 
-        // --- DEFINICJA MIGRACJI Z WERSJI 3 DO 4 ---
         /**
          * Migracja z wersji 3 do 4.
          * Dodaje indeks do kolumny 'storeId' w tabeli 'receipts'.
@@ -68,24 +61,17 @@ abstract class AppDatabase : RoomDatabase() {
                 Log.i("AppDatabaseMigration", "Migracja 3->4: Dodano indeks index_receipts_storeId.")
             }
         }
-        // --- KONIEC DEFINICJI MIGRACJI 3 -> 4 ---
 
-        // --- DEFINICJA MIGRACJI Z WERSJI 4 DO 5 (Z PRZENOSZENIEM DANYCH) ---
         /**
          * Migracja z wersji 4 do 5.
-         * 1. Tworzy nową tabelę 'photos'.
-         * 2. Odczytuje 'id' i 'photoUri' ze starej tabeli 'clients'.
-         * 3. Dla każdego klienta z niepustym 'photoUri', wstawia wpis do tabeli 'photos'.
-         * 4. Tworzy tymczasową tabelę 'clients_new' bez kolumny 'photoUri'.
-         * 5. Kopiuje dane z 'clients' do 'clients_new'.
-         * 6. Usuwa starą tabelę 'clients'.
-         * 7. Zmienia nazwę 'clients_new' na 'clients'.
+         * Tworzy tabelę 'photos', przenosi dane 'photoUri' z 'clients' do 'photos',
+         * a następnie usuwa kolumnę 'photoUri' z tabeli 'clients'.
          */
         val MIGRATION_4_5 = object : Migration(4, 5) {
             override fun migrate(db: SupportSQLiteDatabase) {
                 Log.i("AppDatabaseMigration", "Rozpoczęcie migracji 4->5")
 
-                // 1. Utwórz nową tabelę 'photos'
+                // Utwórz nową tabelę 'photos'
                 db.execSQL("""
                     CREATE TABLE IF NOT EXISTS `photos` (
                         `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
@@ -101,20 +87,18 @@ abstract class AppDatabase : RoomDatabase() {
                 db.execSQL("CREATE INDEX IF NOT EXISTS `index_photos_type` ON `photos` (`type`)")
                 Log.i("AppDatabaseMigration", "Migracja 4->5: Dodano indeksy do tabeli 'photos'.")
 
-                // 2. Odczytaj 'id' i 'photoUri' ze starej tabeli 'clients' i wstaw do 'photos'
+                // Odczytaj 'id' i 'photoUri' ze starej tabeli 'clients' i wstaw do 'photos'
                 Log.i("AppDatabaseMigration", "Migracja 4->5: Rozpoczęcie przenoszenia photoUri do tabeli photos.")
                 val cursor = db.query("SELECT id, photoUri FROM clients WHERE photoUri IS NOT NULL AND photoUri != ''")
                 if (cursor.moveToFirst()) {
                     val idIndex = cursor.getColumnIndex("id")
                     val uriIndex = cursor.getColumnIndex("photoUri")
-                    val currentTime = System.currentTimeMillis() // Użyjemy tego samego timestampu dla wszystkich migrowanych zdjęć
+                    val currentTime = System.currentTimeMillis()
 
-                    // Sprawdź, czy kolumny istnieją (zabezpieczenie)
                     if (idIndex >= 0 && uriIndex >= 0) {
                         do {
                             val clientId = cursor.getLong(idIndex)
                             val photoUri = cursor.getString(uriIndex)
-                            // Wstawiamy do nowej tabeli photos
                             db.execSQL("""
                                 INSERT INTO photos (clientId, uri, type, addedTimestamp)
                                 VALUES (?, ?, ?, ?)
@@ -128,7 +112,7 @@ abstract class AppDatabase : RoomDatabase() {
                 cursor.close()
                 Log.i("AppDatabaseMigration", "Migracja 4->5: Zakończono przenoszenie photoUri.")
 
-                // 4. Utwórz tymczasową tabelę 'clients_new' bez kolumny 'photoUri'
+                // Utwórz tymczasową tabelę 'clients_new' bez kolumny 'photoUri'
                 db.execSQL("""
                     CREATE TABLE IF NOT EXISTS `clients_new` (
                         `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
@@ -139,25 +123,24 @@ abstract class AppDatabase : RoomDatabase() {
                 """.trimIndent())
                 Log.i("AppDatabaseMigration", "Migracja 4->5: Utworzono tabelę tymczasową 'clients_new'.")
 
-                // 5. Skopiuj dane z 'clients' do 'clients_new' (pomijając 'photoUri')
+                // Skopiuj dane z 'clients' do 'clients_new' (pomijając 'photoUri')
                 db.execSQL("""
                     INSERT INTO `clients_new` (`id`, `description`, `clientAppNumber`, `amoditNumber`)
                     SELECT `id`, `description`, `clientAppNumber`, `amoditNumber` FROM `clients`
                 """.trimIndent())
                 Log.i("AppDatabaseMigration", "Migracja 4->5: Skopiowano dane do 'clients_new'.")
 
-                // 6. Usuń starą tabelę 'clients'
+                // Usuń starą tabelę 'clients'
                 db.execSQL("DROP TABLE `clients`")
                 Log.i("AppDatabaseMigration", "Migracja 4->5: Usunięto starą tabelę 'clients'.")
 
-                // 7. Zmień nazwę 'clients_new' na 'clients'
+                // Zmień nazwę 'clients_new' na 'clients'
                 db.execSQL("ALTER TABLE `clients_new` RENAME TO `clients`")
                 Log.i("AppDatabaseMigration", "Migracja 4->5: Zmieniono nazwę 'clients_new' na 'clients'.")
 
                 Log.i("AppDatabaseMigration", "Zakończono migrację 4->5")
             }
         }
-        // --- KONIEC DEFINICJI MIGRACJI 4 -> 5 ---
 
         /**
          * Zwraca instancję Singleton bazy danych [AppDatabase].
@@ -167,24 +150,18 @@ abstract class AppDatabase : RoomDatabase() {
          * @return Instancja [AppDatabase].
          */
         fun getDatabase(context: Context): AppDatabase {
-            // Zwróć istniejącą instancję, jeśli już istnieje.
             return INSTANCE ?: synchronized(this) {
-                // Jeśli instancja nie istnieje, wejdź do bloku synchronizowanego,
-                // aby tylko jeden wątek mógł ją utworzyć.
                 val instance = Room.databaseBuilder(
-                    context.applicationContext, // Użyj ApplicationContext
-                    AppDatabase::class.java,    // Klasa bazy danych
-                    "app_database"              // Nazwa pliku bazy danych SQLite
+                    context.applicationContext,
+                    AppDatabase::class.java,
+                    "app_database"
                 )
-                    // Dodaj zdefiniowane migracje do budowniczego.
-                    .addMigrations(MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5) // Dodano MIGRATION_4_5
-                    // Zbuduj instancję bazy danych.
+                    .addMigrations(MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5)
                     .build()
-                // Przypisz nowo utworzoną instancję do INSTANCE.
                 INSTANCE = instance
-                // Zwróć instancję.
                 instance
             }
         }
     }
 }
+

@@ -8,7 +8,6 @@
     android:background="@color/main_color_dark"
     tools:context=".EditReceiptActivity">
 
-    <!-- Tytuł ekranu. -->
     <TextView
         android:id="@+id/editTitleTextView"
         android:layout_width="0dp"
@@ -70,7 +69,6 @@
                     android:layout_height="wrap_content"
                     android:baselineAligned="false"
                     android:orientation="horizontal">
-                    <!-- Numer drogerii -->
                     <LinearLayout
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
@@ -87,7 +85,6 @@
                             android:inputType="number"
                             android:maxLength="4" />
                     </LinearLayout>
-                    <!-- Numer paragonu -->
                     <LinearLayout
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
@@ -106,7 +103,6 @@
                     </LinearLayout>
                 </LinearLayout>
 
-                <!-- Data paragonu -->
                 <EditText
                     android:id="@+id/editReceiptDateEditText"
                     android:layout_width="match_parent"
@@ -149,7 +145,6 @@
                         android:layout_height="wrap_content"
                         android:baselineAligned="false"
                         android:orientation="horizontal">
-                        <!-- Data -->
                         <LinearLayout
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
@@ -164,7 +159,6 @@
                                 android:hint="@string/verification_date_hint"
                                 android:inputType="date" />
                         </LinearLayout>
-                        <!-- Checkbox -->
                         <LinearLayout
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
@@ -181,9 +175,9 @@
                                 android:textColor="@color/white_text" />
                         </LinearLayout>
                     </LinearLayout>
-                </LinearLayout> <!-- Koniec sekcji daty weryfikacji -->
+                </LinearLayout>
 
-            </LinearLayout> <!-- Koniec sekcji danych paragonu -->
+            </LinearLayout>
 
             <!-- Sekcja danych klienta -->
             <LinearLayout
@@ -209,7 +203,6 @@
                     android:textSize="18sp"
                     android:visibility="gone"/>
 
-                <!-- Opis klienta -->
                 <LinearLayout
                     android:id="@+id/editDescriptionLayout"
                     android:layout_width="match_parent"
@@ -229,7 +222,6 @@
                         android:lines="2" />
                 </LinearLayout>
 
-                <!-- Numer aplikacji -->
                 <LinearLayout
                     android:id="@+id/editAppNumberLayout"
                     android:layout_width="match_parent"
@@ -263,7 +255,6 @@
                     </LinearLayout>
                 </LinearLayout>
 
-                <!-- Numer Amodit -->
                 <LinearLayout
                     android:id="@+id/editAmoditNumberLayout"
                     android:layout_width="match_parent"
@@ -423,7 +414,7 @@
                     app:icon="@drawable/ic_add_a_photo"
                     app:iconTint="@color/scnd_color_bright"/>
 
-            </LinearLayout> <!-- Koniec sekcji danych klienta -->
+            </LinearLayout>
 
             <!-- Przyciski akcji (Zapisz, Usuń) -->
             <Button
@@ -489,4 +480,6 @@
     </ScrollView>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
+
+
 

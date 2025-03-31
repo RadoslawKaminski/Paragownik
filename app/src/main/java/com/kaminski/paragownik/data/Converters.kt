@@ -6,7 +6,7 @@ import java.util.Date
 /**
  * Klasa zawierająca konwertery typów dla bazy danych Room.
  * Room potrafi przechowywać tylko proste typy danych (jak Long, String, Int).
- * Konwertery pozwalają na zapis i odczyt bardziej złożonych typów, jak np. [Date].
+ * Konwertery pozwalają na zapis i odczyt bardziej złożonych typów, jak np. [Date] i [PhotoType].
  */
 class Converters {
 
@@ -18,7 +18,6 @@ class Converters {
      */
     @TypeConverter
     fun fromTimestamp(value: Long?): Date? {
-        // Jeśli wartość nie jest null, utwórz obiekt Date z timestampu, w przeciwnym razie zwróć null.
         return value?.let { Date(it) }
     }
 
@@ -30,7 +29,6 @@ class Converters {
      */
     @TypeConverter
     fun dateToTimestamp(date: Date?): Long? {
-        // Jeśli obiekt Date nie jest null, pobierz jego czas (timestamp), w przeciwnym razie zwróć null.
         return date?.time
     }
 
@@ -41,7 +39,7 @@ class Converters {
      */
     @TypeConverter
     fun fromPhotoType(type: PhotoType?): String? {
-        return type?.name // Zapisuje nazwę enuma jako String (np. "CLIENT")
+        return type?.name
     }
 
     /**
@@ -51,12 +49,13 @@ class Converters {
      */
     @TypeConverter
     fun toPhotoType(value: String?): PhotoType? {
-        // Używamy bezpiecznego wywołania valueOf, zwracając null w razie błędu
         return try {
             value?.let { PhotoType.valueOf(it) }
         } catch (e: IllegalArgumentException) {
-            null // Zwróć null, jeśli string nie pasuje do żadnej wartości enuma
+            null
         }
     }
 }
+
+
 

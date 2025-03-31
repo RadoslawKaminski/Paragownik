@@ -4,7 +4,7 @@ import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
-import java.util.Date // Import klasy Date
+import java.util.Date
 
 /**
  * Encja (tabela) reprezentująca pojedynczy paragon w bazie danych Room.
@@ -18,30 +18,24 @@ import java.util.Date // Import klasy Date
  * @property clientId Klucz obcy wskazujący na klienta ([Client]), do którego przypisany jest paragon.
  */
 @Entity(
-    tableName = "receipts", // Nazwa tabeli w bazie SQLite
-    // Definicja indeksu na kolumnie clientId dla szybszego wyszukiwania paragonów klienta.
-    indices = [Index("clientId"), Index("storeId")], // Dodano indeks dla storeId
-    // Definicja klucza obcego do tabeli 'clients'.
+    tableName = "receipts",
+    indices = [Index("clientId"), Index("storeId")],
     foreignKeys = [
         ForeignKey(
-            entity = Client::class,         // Encja nadrzędna (tabela 'clients')
-            parentColumns = ["id"],         // Kolumna klucza głównego w tabeli nadrzędnej ('clients')
-            childColumns = ["clientId"],    // Kolumna klucza obcego w tej tabeli ('receipts')
-            onDelete = ForeignKey.CASCADE   // Akcja przy usunięciu klienta: KASKADOWO usuń powiązane paragony.
+            entity = Client::class,
+            parentColumns = ["id"],
+            childColumns = ["clientId"],
+            onDelete = ForeignKey.CASCADE // Kaskadowe usuwanie paragonów przy usunięciu klienta
         )
-        // Można by dodać klucz obcy do Store, ale logika usuwania pustych sklepów jest
-        // realizowana ręcznie w ViewModelu, więc CASCADE nie jest tu konieczne.
-        // ForeignKey(entity = Store::class, parentColumns = ["id"], childColumns = ["storeId"], onDelete = ForeignKey.RESTRICT)
     ]
 )
 data class Receipt(
-    @PrimaryKey(autoGenerate = true) // Klucz główny, auto-inkrementowany
+    @PrimaryKey(autoGenerate = true)
     val id: Long = 0,
 
-    val receiptNumber: String, // Numer paragonu (TEXT)
-    val receiptDate: Date,     // Data paragonu (INTEGER - przechowywany jako timestamp dzięki konwerterowi)
-    val storeId: Long,         // Klucz obcy do tabeli 'stores' (INTEGER)
-    val verificationDate: Date? = null, // Data weryfikacji (INTEGER/NULL - timestamp)
-    val clientId: Long         // Klucz obcy do tabeli 'clients' (INTEGER)
+    val receiptNumber: String,
+    val receiptDate: Date,
+    val storeId: Long,
+    val verificationDate: Date? = null,
+    val clientId: Long
 )
-

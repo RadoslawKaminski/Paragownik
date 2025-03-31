@@ -1,7 +1,7 @@
 package com.kaminski.paragownik
 
 import android.annotation.SuppressLint
-import android.content.Intent // Import potrzebny dla nawigacji
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
@@ -9,7 +9,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.kaminski.paragownik.data.ClientWithThumbnail // Dodano import
+import com.kaminski.paragownik.data.ClientWithThumbnail
 import com.kaminski.paragownik.viewmodel.ClientListViewModel
 
 /**
@@ -18,40 +18,31 @@ import com.kaminski.paragownik.viewmodel.ClientListViewModel
  */
 class ClientListActivity : AppCompatActivity(), ClientAdapter.OnClientClickListener {
 
-    // Widoki UI
     private lateinit var clientRecyclerView: RecyclerView
 
-    // Adapter i ViewModel
     private lateinit var clientAdapter: ClientAdapter
     private lateinit var clientListViewModel: ClientListViewModel
 
     /**
-     * Metoda wywoływana przy tworzeniu Aktywności.
+     * Metoda cyklu życia Aktywności, wywoływana przy jej tworzeniu.
      */
-    @SuppressLint("NotifyDataSetChanged") // Używane dla uproszczenia, rozważ DiffUtil w przyszłości
+    @SuppressLint("NotifyDataSetChanged") // TODO: Rozważyć DiffUtil
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_client_list) // Ustawienie layoutu
+        setContentView(R.layout.activity_client_list)
 
-        // Inicjalizacja RecyclerView
         clientRecyclerView = findViewById(R.id.clientRecyclerView)
         clientRecyclerView.layoutManager = LinearLayoutManager(this)
 
-        // Inicjalizacja Adaptera z pustą listą ClientWithThumbnail
-        clientAdapter = ClientAdapter(emptyList<ClientWithThumbnail>(), this) // Zmieniono typ
+        clientAdapter = ClientAdapter(emptyList<ClientWithThumbnail>(), this)
         clientRecyclerView.adapter = clientAdapter
 
-        // Inicjalizacja ViewModelu
         clientListViewModel = ViewModelProvider(this).get(ClientListViewModel::class.java)
 
-        // Obserwuj LiveData `allClients` z ViewModelu
-        clientListViewModel.allClients.observe(this) { clients -> // clients jest teraz List<ClientWithThumbnail>
-            // Gdy lista klientów się zmieni:
-            clients?.let { // Sprawdź null
-                // Zaktualizuj dane w adapterze
-                clientAdapter.clientList = it // Przypisanie List<ClientWithThumbnail> do pola adaptera
-                // Powiadom adapter o zmianie danych
-                clientAdapter.notifyDataSetChanged() // TODO: Rozważyć DiffUtil
+        clientListViewModel.allClients.observe(this) { clients ->
+            clients?.let {
+                clientAdapter.clientList = it
+                clientAdapter.notifyDataSetChanged()
                 Log.d("ClientListActivity", "Zaktualizowano listę klientów, liczba: ${it.size}")
             }
         }
@@ -64,12 +55,13 @@ class ClientListActivity : AppCompatActivity(), ClientAdapter.OnClientClickListe
      */
     override fun onClientClick(clientId: Long) {
         Log.d("ClientListActivity", "Kliknięto klienta o ID: $clientId - uruchamianie ClientReceiptsActivity")
-        // Utwórz Intent do uruchomienia ClientReceiptsActivity
         val intent = Intent(this, ClientReceiptsActivity::class.java)
-        // Dodaj ID klikniętego klienta jako dodatkową informację
         intent.putExtra("CLIENT_ID", clientId)
-        // Uruchom ClientReceiptsActivity
         startActivity(intent)
     }
 }
+
+
+
+
 

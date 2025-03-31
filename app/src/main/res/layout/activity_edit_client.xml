@@ -8,7 +8,6 @@
     android:background="@color/main_color_dark"
     tools:context=".EditClientActivity">
 
-    <!-- Tytuł ekranu. -->
     <TextView
         android:id="@+id/editClientTitleTextView"
         android:layout_width="0dp"
@@ -72,7 +71,7 @@
                     android:layout_marginBottom="8dp"
                     android:text="@string/client_data_section_title"
                     android:textSize="18sp" />
-                <!-- Etykieta sekcji (tryb widoku) - USUNIĘTA WIDOCZNOŚĆ. -->
+                <!-- Etykieta sekcji (tryb widoku). -->
                 <TextView
                     android:id="@+id/clientDataSectionTitleView"
                     android:layout_width="match_parent"
@@ -80,9 +79,8 @@
                     android:layout_marginBottom="8dp"
                     android:text="@string/client_data_section_title_view"
                     android:textSize="18sp"
-                    android:visibility="gone"/> <!-- Ustawiono visibility na gone -->
+                    android:visibility="gone"/>
 
-                <!-- Opis klienta -->
                 <LinearLayout
                     android:id="@+id/editDescriptionLayout"
                     android:layout_width="match_parent"
@@ -102,7 +100,6 @@
                         android:lines="2" />
                 </LinearLayout>
 
-                <!-- Numer aplikacji -->
                 <LinearLayout
                     android:id="@+id/editAppNumberLayout"
                     android:layout_width="match_parent"
@@ -136,7 +133,6 @@
                     </LinearLayout>
                 </LinearLayout>
 
-                <!-- Numer Amodit -->
                 <LinearLayout
                     android:id="@+id/editAmoditNumberLayout"
                     android:layout_width="match_parent"
@@ -296,7 +292,7 @@
                     app:icon="@drawable/ic_add_a_photo"
                     app:iconTint="@color/scnd_color_bright"/>
 
-            </LinearLayout> <!-- Koniec sekcji danych klienta -->
+            </LinearLayout>
 
             <!-- Przyciski akcji (Zapisz, Usuń) -->
             <Button
@@ -328,3 +324,5 @@
     </ScrollView>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
+
+

@@ -7,7 +7,6 @@
     android:layout_height="wrap_content"
     android:layout_marginEnd="8dp"> <!-- Margines między miniaturami -->
 
-    <!-- Miniatura zdjęcia -->
     <ImageView
         android:id="@+id/photoThumbnailImageView"
         android:layout_width="80dp"
@@ -33,4 +32,6 @@
         tools:visibility="visible"/>
 
 </FrameLayout>
+
+
 

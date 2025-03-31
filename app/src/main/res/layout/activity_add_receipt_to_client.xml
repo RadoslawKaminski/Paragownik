@@ -1,4 +1,5 @@
-<?xml version="1.0" encoding="utf-8"?><!-- Layout dodawania paragonów do istniejącego klienta -->
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Layout dodawania paragonów do istniejącego klienta -->
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
@@ -7,7 +8,6 @@
     android:background="@color/main_color_dark"
     tools:context=".AddReceiptToClientActivity">
 
-    <!-- Tytuł ekranu -->
     <TextView
         android:id="@+id/addReceiptToClientTitleTextView"
         android:layout_width="0dp"
@@ -35,7 +35,6 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/addReceiptToClientTitleTextView">
 
-        <!-- Miniatura zdjęcia klienta -->
         <ImageView
             android:id="@+id/addReceiptClientPhotoImageView"
             android:layout_width="80dp"
@@ -48,7 +47,6 @@
             app:layout_constraintTop_toTopOf="parent"
             app:srcCompat="@drawable/ic_photo_placeholder" />
 
-        <!-- Opis klienta -->
         <TextView
             android:id="@+id/addReceiptClientDescriptionTextView"
             android:layout_width="0dp"
@@ -62,7 +60,6 @@
             app:layout_constraintTop_toTopOf="@+id/addReceiptClientPhotoImageView"
             tools:text="Wysoki blondyn w czerwonej kurtce" />
 
-        <!-- Numer aplikacji klienta -->
         <TextView
             android:id="@+id/addReceiptClientAppNumberTextView"
             android:layout_width="0dp"
@@ -77,7 +74,6 @@
             tools:text="Nr app: 12345678901234"
             tools:visibility="visible" />
 
-        <!-- Numer Amodit -->
         <TextView
             android:id="@+id/addReceiptClientAmoditNumberTextView"
             android:layout_width="0dp"
@@ -94,7 +90,6 @@
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-    <!-- Separator -->
     <View
         android:id="@+id/addReceiptClientDetailsSeparator"
         android:layout_width="0dp"
@@ -138,7 +133,6 @@
                     android:layout_height="wrap_content"
                     android:baselineAligned="false"
                     android:orientation="horizontal">
-                    <!-- Kontener dla numeru drogerii. -->
                     <LinearLayout
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
@@ -155,7 +149,6 @@
                             android:inputType="number"
                             android:maxLength="4" />
                     </LinearLayout>
-                    <!-- Kontener dla numeru paragonu. -->
                     <LinearLayout
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
@@ -174,7 +167,6 @@
                     </LinearLayout>
                 </LinearLayout>
 
-                <!-- Pole edycji daty paragonu. -->
                 <EditText
                     android:id="@+id/firstReceiptDateEditText"
                     android:layout_width="match_parent"
@@ -192,14 +184,12 @@
                     android:baselineAligned="false"
                     android:orientation="horizontal">
 
-                    <!-- Kontener dla pola daty weryfikacji. -->
                     <LinearLayout
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="5"
                         android:orientation="vertical">
 
-                        <!-- Pole edycji daty weryfikacji. -->
                         <EditText
                             android:id="@+id/firstVerificationDateEditText"
                             android:layout_width="match_parent"
@@ -209,7 +199,6 @@
                             android:inputType="date" /> <!-- inputType modyfikowany przez TextWatcher na number -->
                     </LinearLayout>
 
-                    <!-- Kontener dla checkboxa "Dzisiaj". -->
                     <LinearLayout
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
@@ -218,7 +207,6 @@
                         android:gravity="center_vertical"
                         android:orientation="vertical">
 
-                        <!-- Checkbox "Dzisiaj". -->
                         <CheckBox
                             android:id="@+id/firstVerificationDateTodayCheckBox"
                             android:layout_width="wrap_content"
@@ -226,9 +214,9 @@
                             android:text="@string/today"
                             android:textColor="@color/white_text" />
                     </LinearLayout>
-                </LinearLayout> <!-- Koniec sekcji daty weryfikacji -->
+                </LinearLayout>
 
-            </LinearLayout> <!-- Koniec pierwszego zestawu pól -->
+            </LinearLayout>
 
 
             <!-- Kontener na dynamicznie dodawane pola dodatkowych paragonów. -->
@@ -267,4 +255,6 @@
         app:layout_constraintStart_toStartOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
+
+
 

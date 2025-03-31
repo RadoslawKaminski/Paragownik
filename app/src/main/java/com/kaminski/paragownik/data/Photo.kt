@@ -16,13 +16,13 @@ import androidx.room.PrimaryKey
  */
 @Entity(
     tableName = "photos",
-    indices = [Index("clientId"), Index("type")], // Indeksy dla szybszego wyszukiwania
+    indices = [Index("clientId"), Index("type")],
     foreignKeys = [
         ForeignKey(
             entity = Client::class,
             parentColumns = ["id"],
             childColumns = ["clientId"],
-            onDelete = ForeignKey.CASCADE // Usuń zdjęcia, gdy klient jest usuwany
+            onDelete = ForeignKey.CASCADE // Kaskadowe usuwanie zdjęć przy usunięciu klienta
         )
     ]
 )
@@ -32,8 +32,8 @@ data class Photo(
     val clientId: Long,
     val uri: String,
     val type: PhotoType,
-    val addedTimestamp: Long = System.currentTimeMillis() // Domyślnie czas dodania
-    // W przyszłości można dodać:
-    // val isPrimary: Boolean = false
+    val addedTimestamp: Long = System.currentTimeMillis()
 )
+
+
 

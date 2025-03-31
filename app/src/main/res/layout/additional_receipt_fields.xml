@@ -41,7 +41,6 @@
         android:baselineAligned="false"
         android:orientation="horizontal">
 
-        <!-- Kontener dla numeru drogerii. -->
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -49,7 +48,6 @@
             android:layout_weight="4"
             android:orientation="vertical">
 
-            <!-- Pole edycji numeru drogerii. -->
             <EditText
                 android:id="@+id/additionalStoreNumberEditText"
                 android:layout_width="match_parent"
@@ -60,7 +58,6 @@
                 android:maxLength="4" />
         </LinearLayout>
 
-        <!-- Kontener dla numeru paragonu. -->
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -68,7 +65,6 @@
             android:layout_weight="5"
             android:orientation="vertical">
 
-            <!-- Pole edycji numeru paragonu. -->
             <EditText
                 android:id="@+id/additionalReceiptNumberEditText"
                 android:layout_width="match_parent"
@@ -81,7 +77,6 @@
 
     </LinearLayout>
 
-    <!-- Pole edycji daty paragonu. -->
     <EditText
         android:id="@+id/additionalReceiptDateEditText"
         android:layout_width="match_parent"
@@ -99,14 +94,12 @@
         android:baselineAligned="false"
         android:orientation="horizontal">
 
-        <!-- Kontener dla pola daty weryfikacji. -->
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="5"
             android:orientation="vertical">
 
-            <!-- Pole edycji daty weryfikacji. -->
             <EditText
                 android:id="@+id/additionalVerificationDateEditText"
                 android:layout_width="match_parent"
@@ -116,7 +109,6 @@
                 android:inputType="date" /> <!-- inputType modyfikowany przez TextWatcher na number -->
         </LinearLayout>
 
-        <!-- Kontener dla checkboxa "Dzisiaj". -->
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -125,7 +117,6 @@
             android:gravity="center_vertical"
             android:orientation="vertical">
 
-            <!-- Checkbox "Dzisiaj". -->
             <CheckBox
                 android:id="@+id/additionalVerificationDateTodayCheckBox"
                 android:layout_width="wrap_content"
@@ -133,7 +124,9 @@
                 android:text="@string/today"
                 android:textColor="@color/white_text" />
         </LinearLayout>
-    </LinearLayout> <!-- Koniec sekcji daty weryfikacji -->
+    </LinearLayout>
 
 </LinearLayout>
+
+
 

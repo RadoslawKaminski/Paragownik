@@ -16,32 +16,32 @@
         android:theme="@style/Theme.Paragownik"
         tools:targetApi="31">
 
-        <!-- Deklaracja aktywności AddClientActivity. -->
+        <!-- Aktywność do dodawania nowego klienta z paragonami. -->
         <activity
             android:name=".AddClientActivity"
             android:exported="false" />
 
-        <!-- Deklaracja aktywności AddReceiptToClientActivity. -->
+        <!-- Aktywność do dodawania paragonów do istniejącego klienta. -->
         <activity
             android:name=".AddReceiptToClientActivity"
             android:exported="false" />
 
-        <!-- Deklaracja aktywności ClientListActivity. -->
+        <!-- Aktywność wyświetlająca listę wszystkich klientów. -->
         <activity
             android:name=".ClientListActivity"
             android:exported="false" />
 
-        <!-- Deklaracja aktywności ClientReceiptsActivity. -->
+        <!-- Aktywność wyświetlająca szczegóły klienta i jego paragony. -->
         <activity
             android:name=".ClientReceiptsActivity"
             android:exported="false" />
 
-        <!-- Deklaracja aktywności ReceiptListActivity. -->
+        <!-- Aktywność wyświetlająca listę paragonów dla wybranej drogerii. -->
         <activity
             android:name=".ReceiptListActivity"
             android:exported="false" />
 
-        <!-- Deklaracja głównej aktywności MainActivity. -->
+        <!-- Główna aktywność aplikacji (ekran startowy). -->
         <activity
             android:name=".MainActivity"
             android:exported="true">
@@ -52,17 +52,16 @@
             </intent-filter>
         </activity>
 
-        <!-- Deklaracja aktywności EditReceiptActivity. -->
+        <!-- Aktywność do edycji paragonu i danych klienta. -->
         <activity android:name=".EditReceiptActivity" />
 
-        <!-- Deklaracja aktywności EditClientActivity. -->
+        <!-- Aktywność do edycji danych klienta. -->
         <activity android:name=".EditClientActivity" />
 
-        <!-- Deklaracja aktywności AllReceiptsActivity. -->
+        <!-- Aktywność wyświetlająca listę wszystkich paragonów. -->
         <activity android:name=".AllReceiptsActivity" />
 
-        <!-- Deklaracja NOWEJ aktywności FullScreenImageActivity. -->
-        <!-- Dodano motyw, aby ukryć pasek akcji i potencjalnie paski systemowe -->
+        <!-- Aktywność do wyświetlania zdjęcia na pełnym ekranie z zoomem. -->
         <activity
             android:name=".FullScreenImageActivity"
             android:theme="@style/Theme.Paragownik.FullScreen"/>
@@ -70,6 +69,8 @@
     </application>
 
 </manifest>
+
+
 
 
 

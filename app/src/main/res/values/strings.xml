@@ -21,8 +21,8 @@
     <string name="save_success_message">Zmiany zapisane pomyślnie</string>
     <string name="delete_success_message">Element usunięty pomyślnie</string>
     <string name="error_not_found">Błąd: Nie znaleziono elementu.</string>
-    <string name="error_invalid_date_format">Błąd: Nieprawidłowy format daty (DD-MM-YYYY).</string> <!-- Zaktualizowano opis -->
-    <string name="error_invalid_verification_date_format">Błąd: Nieprawidłowy format daty weryfikacji (DD-MM-YYYY).</string> <!-- Dodano -->
+    <string name="error_invalid_date_format">Błąd: Nieprawidłowy format daty (DD-MM-YYYY).</string>
+    <string name="error_invalid_verification_date_format">Błąd: Nieprawidłowy format daty weryfikacji (DD-MM-YYYY).</string>
     <string name="error_duplicate_receipt">Błąd: Paragon o podanym numerze, dacie i sklepie już istnieje.</string>
     <string name="error_store_number_missing">Błąd: Numer drogerii nie może być pusty.</string>
     <string name="error_database">Błąd: Wystąpił problem z bazą danych.</string>
@@ -36,7 +36,7 @@
     <string name="cd_add_client_fab">Dodaj nowego klienta</string>
     <string name="view_clients_button">Pokaż Klientów</string>
     <string name="main_activity_title">Lista Drogerii</string>
-    <string name="view_all_receipts_button">Pokaż Wszystkie Paragony</string> <!-- NOWE -->
+    <string name="view_all_receipts_button">Pokaż Wszystkie Paragony</string>
 
     <!-- ReceiptListActivity -->
     <string name="cd_add_receipt_fab">Dodaj nowy paragon dla tego sklepu</string>
@@ -58,7 +58,7 @@
     <string name="error_add_at_least_one_receipt">Dodaj przynajmniej jeden paragon</string>
     <string name="error_invalid_receipt_date_format">Nieprawidłowy format daty paragonu (DD-MM-YYYY)</string>
     <string name="error_invalid_additional_receipt_date_format">Nieprawidłowy format daty w dodatkowym paragonie (DD-MM-YYYY)</string>
-    <string name="error_invalid_additional_verification_date_format">Nieprawidłowy format daty weryfikacji w dodatkowym paragonie (DD-MM-YYYY)</string> <!-- Dodano -->
+    <string name="error_invalid_additional_verification_date_format">Nieprawidłowy format daty weryfikacji w dodatkowym paragonie (DD-MM-YYYY)</string>
     <string name="cd_remove_receipt_button">Usuń ten paragon</string>
     <string name="section_title_client_photos">Zdjęcia klienta:</string>
     <string name="button_add_client_photo">Dodaj zdjęcie klienta</string>
@@ -83,16 +83,16 @@
     <string name="button_show_client_receipts">Pokaż wszystkie paragony klienta</string>
     <string name="button_show_store_receipts">Pokaż wszystkie paragony drogerii</string>
     <!-- Etykiety sekcji w trybie widoku -->
-    <string name="verification_section_title_view">Weryfikacja:</string> <!-- Dodano -->
-    <string name="client_data_section_title_view">Dane klienta:</string> <!-- Dodano -->
+    <string name="verification_section_title_view">Weryfikacja:</string>
+    <string name="client_data_section_title_view">Dane klienta:</string>
 
 
     <!-- Receipt Item -->
     <string name="verification_label">Weryfikacja:</string>
-    <string name="no_verification_date">Brak daty</string> <!-- Zmieniono tekst -->
-    <string name="no_client_description">Brak opisu klienta</string> <!-- Dodano -->
+    <string name="no_verification_date">Brak daty</string>
+    <string name="no_client_description">Brak opisu klienta</string>
     <string name="cd_edit_receipt_icon">Edytuj paragon</string>
-    <string name="store_number_prefix">Drogeria:</string> <!-- Zmieniono na dwukropek -->
+    <string name="store_number_prefix">Drogeria:</string>
     <string name="cd_receipt_item_store_number">Numer drogerii dla paragonu</string>
 
 
@@ -114,35 +114,37 @@
     <string name="cd_delete_photo_button">Usuń zdjęcie</string>
     <string name="photo_already_added">To zdjęcie już zostało dodane.</string>
     <string name="error_permission_read_photo">Brak uprawnień do odczytu zdjęcia.</string>
-    <string name="error_loading_image">Błąd podczas ładowania obrazu.</string> <!-- NOWE -->
-    <string name="cd_full_screen_image">Zdjęcie na pełnym ekranie</string> <!-- NOWE -->
+    <string name="error_loading_image">Błąd podczas ładowania obrazu.</string>
+    <string name="cd_full_screen_image">Zdjęcie na pełnym ekranie</string>
 
     <!-- ClientReceiptsActivity -->
     <string name="client_receipts_title">Paragony Klienta</string>
     <string name="error_invalid_client_id">Błąd: Nieprawidłowy identyfikator klienta.</string>
     <string name="error_client_not_found">Błąd: Nie znaleziono klienta.</string>
     <string name="cd_add_receipt_to_client_fab">Dodaj nowy paragon dla tego klienta</string>
-    <string name="more_options_button_text">Więcej opcji dla klienta</string> <!-- Zmieniono tekst -->
+    <string name="more_options_button_text">Więcej opcji dla klienta</string>
 
     <!-- AddReceiptToClientActivity -->
     <string name="add_receipt_to_client_title">Dodaj Paragony dla Klienta</string>
     <string name="add_receipt_button">Dodaj kolejny paragon</string>
     <string name="save_receipts_button">Zapisz paragony</string>
-    <string name="hint_store_number_required">Drogeria</string> <!-- Usunięto * -->
-    <string name="hint_receipt_number_required">Numer paragonu</string> <!-- Usunięto * -->
-    <string name="hint_receipt_date_required">Data paragonu (DD-MM-YYYY)</string> <!-- Usunięto * -->
+    <string name="hint_store_number_required">Drogeria</string>
+    <string name="hint_receipt_number_required">Numer paragonu</string>
+    <string name="hint_receipt_date_required">Data paragonu (DD-MM-YYYY)</string>
 
     <!-- EditClientActivity -->
-    <string name="view_client_title">Dane Klienta</string> <!-- NOWY tytuł dla trybu widoku -->
-    <string name="edit_client_title">Edytuj Dane Klienta</string> <!-- Zmieniono tekst -->
+    <string name="view_client_title">Dane Klienta</string>
+    <string name="edit_client_title">Edytuj Dane Klienta</string>
     <string name="delete_client_button_text_short">Usuń klienta</string>
     <string name="delete_client_confirmation_title_short">Potwierdzenie usunięcia klienta</string>
     <string name="delete_client_confirmation_message_short">Czy na pewno chcesz usunąć tego klienta?\n\nUWAGA: Usunięcie klienta spowoduje USUNIĘCIE WSZYSTKICH jego paragonów! Drogerie, które staną się puste, również zostaną usunięte.</string>
 
-    <!-- AllReceiptsActivity --> <!-- NOWE -->
+    <!-- AllReceiptsActivity -->
     <string name="all_receipts_activity_title">Wszystkie Paragony</string>
 
 </resources>
+
+
 
 
 

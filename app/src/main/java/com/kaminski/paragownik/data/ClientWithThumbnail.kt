@@ -10,9 +10,10 @@ import androidx.room.Embedded
  * @property thumbnailUri URI pierwszego zdjęcia typu CLIENT lub null, jeśli klient nie ma zdjęć tego typu.
  */
 data class ClientWithThumbnail(
-    @Embedded // Osadza wszystkie pola z Client
+    @Embedded
     val client: Client,
-    // Kolumna z zapytania JOIN, przechowująca URI miniatury
     val thumbnailUri: String?
 )
+
+
 

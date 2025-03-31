@@ -2,30 +2,30 @@ package com.kaminski.paragownik.viewmodel
 
 import android.app.Application
 import android.util.Log
-import androidx.core.net.toUri // Potrzebny do parsowania URI
+import androidx.core.net.toUri
 import androidx.lifecycle.AndroidViewModel
 import androidx.room.withTransaction
 import com.kaminski.paragownik.R
 import com.kaminski.paragownik.data.AppDatabase
 import com.kaminski.paragownik.data.Client
-import com.kaminski.paragownik.data.Photo // Dodano import
-import com.kaminski.paragownik.data.PhotoType // Dodano import
+import com.kaminski.paragownik.data.Photo
+import com.kaminski.paragownik.data.PhotoType
 import com.kaminski.paragownik.data.Receipt
 import com.kaminski.paragownik.data.ReceiptWithClient
 import com.kaminski.paragownik.data.Store
 import com.kaminski.paragownik.data.daos.ClientDao
-import com.kaminski.paragownik.data.daos.PhotoDao // Dodano import
+import com.kaminski.paragownik.data.daos.PhotoDao
 import com.kaminski.paragownik.data.daos.ReceiptDao
 import com.kaminski.paragownik.data.daos.StoreDao
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.combine // Dodano import
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
-import java.io.File // Potrzebny do operacji na plikach
+import java.io.File
 import java.text.ParseException
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -43,7 +43,7 @@ class EditReceiptViewModel(application: Application) : AndroidViewModel(applicat
     private val receiptDao: ReceiptDao = database.receiptDao()
     private val storeDao: StoreDao = database.storeDao()
     private val clientDao: ClientDao = database.clientDao()
-    private val photoDao: PhotoDao = database.photoDao() // DAO dla zdjęć
+    private val photoDao: PhotoDao = database.photoDao()
 
     /**
      * Enum reprezentujący możliwy wynik operacji edycji lub usuwania.
@@ -110,7 +110,6 @@ class EditReceiptViewModel(application: Application) : AndroidViewModel(applicat
         clientDescription: String?,
         clientAppNumber: String?,
         amoditNumber: String?,
-        // Nowe parametry dla zdjęć
         clientPhotoUrisToAdd: List<String>,
         transactionPhotoUrisToAdd: List<String>,
         photoUrisToRemove: List<String>
@@ -238,7 +237,6 @@ class EditReceiptViewModel(application: Application) : AndroidViewModel(applicat
                         }
                     }
                 }
-                // --- Koniec kroku 8 ---
 
             } // Koniec bloku withTransaction
 
@@ -259,8 +257,8 @@ class EditReceiptViewModel(application: Application) : AndroidViewModel(applicat
         } catch (e: DuplicateReceiptException) {
             EditResult.ERROR_DUPLICATE_RECEIPT
         } catch (e: DatabaseException) {
-             Log.e("EditReceiptViewModel", "Błąd bazy danych podczas aktualizacji.", e)
-             EditResult.ERROR_DATABASE
+            Log.e("EditReceiptViewModel", "Błąd bazy danych podczas aktualizacji.", e)
+            EditResult.ERROR_DATABASE
         } catch (e: Exception) {
             Log.e("EditReceiptViewModel", "Nieznany błąd podczas aktualizacji.", e)
             EditResult.ERROR_UNKNOWN

@@ -1,38 +1,38 @@
 package com.kaminski.paragownik
 
-import android.net.Uri // Potrzebne dla URI zdjęcia
+import android.net.Uri
 import android.os.Bundle
 import android.text.Editable
 import android.text.InputType
 import android.text.TextWatcher
 import android.util.Log
 import android.view.LayoutInflater
-import android.view.View // Dodano import
+import android.view.View
 import android.widget.Button
 import android.widget.CheckBox
 import android.widget.EditText
-import android.widget.ImageButton // Potrzebne dla ImageButton
-import android.widget.ImageView // Potrzebne dla ImageView
+import android.widget.ImageButton
+import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.Toast
-import androidx.activity.result.contract.ActivityResultContracts // Potrzebne dla launchera
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.net.toUri // Do konwersji File na Uri
+import androidx.core.net.toUri
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
-import com.bumptech.glide.Glide // Import Glide
-import com.kaminski.paragownik.data.PhotoType // Dodano import
+import com.bumptech.glide.Glide
+import com.kaminski.paragownik.data.PhotoType
 import com.kaminski.paragownik.viewmodel.AddClientViewModel
 import com.kaminski.paragownik.viewmodel.StoreViewModel
 import kotlinx.coroutines.launch
-import java.io.File // Potrzebne do operacji na plikach
-import java.io.FileOutputStream // Potrzebne do zapisu pliku
-import java.io.IOException // Potrzebne do obsługi błędów IO
+import java.io.File
+import java.io.FileOutputStream
+import java.io.IOException
 import java.text.ParseException
 import java.text.SimpleDateFormat
 import java.util.Locale
-import java.util.UUID // Do generowania unikalnych nazw plików
-import java.util.Calendar // Potrzebne dla Calendar.getInstance()
+import java.util.UUID
+import java.util.Calendar
 
 /**
  * Aktywność odpowiedzialna za dodawanie nowego klienta wraz z jednym lub wieloma paragonami i zdjęciami.
@@ -52,7 +52,6 @@ class AddClientActivity : AppCompatActivity() {
     private lateinit var addClientButton: Button
     private lateinit var addAdditionalReceiptButton: Button
     private lateinit var receiptsContainer: LinearLayout
-    // Nowe widoki dla zdjęć
     private lateinit var clientPhotosContainer: LinearLayout
     private lateinit var transactionPhotosContainer: LinearLayout
     private lateinit var addClientPhotoButton: Button
@@ -66,12 +65,9 @@ class AddClientActivity : AppCompatActivity() {
     // --- Dane pomocnicze ---
     private val receiptFieldsList = ArrayList<ReceiptFields>()
     private var storeIdFromIntent: Long = -1L
-    // Nowe listy dla URI zdjęć
     private val clientPhotoUris = mutableListOf<Uri>()
     private val transactionPhotoUris = mutableListOf<Uri>()
-    // Mapa do śledzenia widoku miniatury dla danego URI (potrzebne do usuwania)
     private val photoUriToViewMap = mutableMapOf<Uri, View>()
-    // Zmienna do określenia typu dodawanego zdjęcia
     private var currentPhotoTypeToAdd: PhotoType? = null
 
 
@@ -80,11 +76,11 @@ class AddClientActivity : AppCompatActivity() {
      * dla dynamicznie dodawanych sekcji paragonów.
      */
     private data class ReceiptFields(
-        val storeNumberEditText: EditText?, // Null dla pierwszego paragonu w liście
+        val storeNumberEditText: EditText?,
         val receiptNumberEditText: EditText,
         val receiptDateEditText: EditText,
-        val verificationDateEditText: EditText?, // Null dla pierwszego paragonu w liście
-        val verificationDateTodayCheckBox: CheckBox? // Null dla pierwszego paragonu w liście
+        val verificationDateEditText: EditText?,
+        val verificationDateTodayCheckBox: CheckBox?
     )
 
     /**
@@ -94,16 +90,17 @@ class AddClientActivity : AppCompatActivity() {
         val storeNumber: String,
         val receiptNumber: String,
         val receiptDate: String,
-        val verificationDateString: String? // Dodane opcjonalne pole
+        val verificationDateString: String? // Opcjonalna data weryfikacji jako String
     )
 
-    // Launcher do wybierania zdjęcia z galerii
+    // Launcher ActivityResult do wybierania obrazu z galerii
     private val pickImageLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
         uri?.let { sourceUri ->
             Log.d("AddClientActivity", "Otrzymano tymczasowe URI: $sourceUri")
+            // Kopiuje wybrany obraz do pamięci wewnętrznej aplikacji
             val destinationUri = copyImageToInternalStorage(sourceUri)
             destinationUri?.let { finalUri ->
-                // Dodaj URI do odpowiedniej listy i wyświetl miniaturę
+                // Dodaje URI do odpowiedniej listy i wyświetla miniaturę
                 when (currentPhotoTypeToAdd) {
                     PhotoType.CLIENT -> {
                         if (!clientPhotoUris.contains(finalUri)) { // Unikaj duplikatów
@@ -133,13 +130,13 @@ class AddClientActivity : AppCompatActivity() {
         } ?: run {
             Log.d("AddClientActivity", "Nie wybrano zdjęcia.")
         }
-        // Zresetuj typ po zakończeniu operacji
+        // Resetuje typ po zakończeniu operacji
         currentPhotoTypeToAdd = null
     }
 
 
     /**
-     * Metoda wywoływana przy tworzeniu Aktywności.
+     * Metoda cyklu życia Aktywności, wywoływana przy jej tworzeniu.
      */
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -149,28 +146,26 @@ class AddClientActivity : AppCompatActivity() {
         initializeViewModels()
         handleIntentExtras()
         setupDateEditText(receiptDateEditText)
-        setupDateEditText(verificationDateEditText) // Formatowanie dla daty weryfikacji pierwszego paragonu
-        // Dodajemy pierwszy paragon do listy, pola weryfikacji są obsługiwane oddzielnie
+        setupDateEditText(verificationDateEditText)
         receiptFieldsList.add(ReceiptFields(null, receiptNumberEditText, receiptDateEditText, null, null))
         setupListeners()
     }
 
     /**
-     * Inicjalizuje wszystkie referencje do widoków UI.
+     * Inicjalizuje wszystkie referencje do widoków UI z layoutu.
      */
     private fun initializeViews() {
         storeNumberEditTextFirstReceipt = findViewById(R.id.receiptStoreNumberEditText)
         receiptNumberEditText = findViewById(R.id.receiptNumberEditText)
         receiptDateEditText = findViewById(R.id.receiptDateEditText)
-        verificationDateEditText = findViewById(R.id.verificationDateEditText) // Pierwszy paragon
-        verificationDateTodayCheckBox = findViewById(R.id.verificationDateTodayCheckBox) // Pierwszy paragon
+        verificationDateEditText = findViewById(R.id.verificationDateEditText)
+        verificationDateTodayCheckBox = findViewById(R.id.verificationDateTodayCheckBox)
         clientDescriptionEditText = findViewById(R.id.clientDescriptionEditText)
         clientAppNumberEditText = findViewById(R.id.clientAppNumberEditText)
         amoditNumberEditText = findViewById(R.id.amoditNumberEditText)
         addClientButton = findViewById(R.id.addClientButton)
         addAdditionalReceiptButton = findViewById(R.id.addAdditionalReceiptButton)
         receiptsContainer = findViewById(R.id.receiptsContainer)
-        // Inicjalizacja nowych widoków zdjęć
         clientPhotosContainer = findViewById(R.id.clientPhotosContainer)
         transactionPhotosContainer = findViewById(R.id.transactionPhotosContainer)
         addClientPhotoButton = findViewById(R.id.addClientPhotoButton)
@@ -178,7 +173,7 @@ class AddClientActivity : AppCompatActivity() {
     }
 
     /**
-     * Inicjalizuje ViewModels.
+     * Inicjalizuje ViewModels używane w tej aktywności.
      */
     private fun initializeViewModels() {
         addClientViewModel = ViewModelProvider(this).get(AddClientViewModel::class.java)
@@ -186,7 +181,7 @@ class AddClientActivity : AppCompatActivity() {
     }
 
     /**
-     * Sprawdza i obsługuje ID sklepu przekazane w Intencie.
+     * Sprawdza, czy w Intencie przekazano ID sklepu i odpowiednio konfiguruje pole numeru sklepu.
      */
     private fun handleIntentExtras() {
         if (intent.hasExtra("STORE_ID")) {
@@ -204,10 +199,9 @@ class AddClientActivity : AppCompatActivity() {
     }
 
     /**
-     * Ustawia listenery dla interaktywnych elementów UI.
+     * Ustawia listenery dla interaktywnych elementów UI (przyciski, checkbox).
      */
     private fun setupListeners() {
-        // Listener dla checkboxa "Dzisiaj" PIERWSZEGO paragonu
         verificationDateTodayCheckBox.setOnCheckedChangeListener { _, isChecked ->
             if (isChecked) {
                 val currentDate = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault()).format(Calendar.getInstance().time)
@@ -218,43 +212,38 @@ class AddClientActivity : AppCompatActivity() {
             }
         }
 
-        // Listener dla przycisku dodawania kolejnego paragonu
         addAdditionalReceiptButton.setOnClickListener {
             addNewReceiptFields()
         }
 
-        // Listener dla głównego przycisku zapisu
         addClientButton.setOnClickListener {
             saveClientAndReceipts()
         }
 
-        // Listener dla przycisku dodawania zdjęcia KLIENTA
         addClientPhotoButton.setOnClickListener {
-            currentPhotoTypeToAdd = PhotoType.CLIENT // Ustaw typ przed uruchomieniem launchera
+            currentPhotoTypeToAdd = PhotoType.CLIENT
             pickImageLauncher.launch("image/*")
         }
 
-        // Listener dla przycisku dodawania zdjęcia TRANSAKCJI
         addTransactionPhotoButton.setOnClickListener {
-            currentPhotoTypeToAdd = PhotoType.TRANSACTION // Ustaw typ przed uruchomieniem launchera
+            currentPhotoTypeToAdd = PhotoType.TRANSACTION
             pickImageLauncher.launch("image/*")
         }
     }
 
 
     /**
-     * Główna funkcja zapisu klienta i paragonów.
+     * Główna funkcja zbierająca dane z formularza, walidująca je i wywołująca zapis w ViewModelu.
      */
     private fun saveClientAndReceipts() {
         val clientDescription = clientDescriptionEditText.text.toString().trim()
         val clientAppNumber = clientAppNumberEditText.text.toString().trim()
         val amoditNumber = amoditNumberEditText.text.toString().trim()
-        val firstVerificationDateString = verificationDateEditText.text.toString().trim() // Pobierz datę weryfikacji dla pierwszego paragonu
+        val firstVerificationDateString = verificationDateEditText.text.toString().trim()
 
         val receiptsToAdd = mutableListOf<ReceiptData>()
         var hasEmptyFields = false
 
-        // Przetwarzanie pierwszego paragonu
         val firstStoreNumber = storeNumberEditTextFirstReceipt.text.toString().trim()
         val firstReceiptNumber = receiptNumberEditText.text.toString().trim()
         val firstReceiptDate = receiptDateEditText.text.toString().trim()
@@ -264,16 +253,15 @@ class AddClientActivity : AppCompatActivity() {
         } else if (!isValidDate(firstReceiptDate)) {
             Toast.makeText(this, R.string.error_invalid_receipt_date_format, Toast.LENGTH_LONG).show()
             return
-        } else if (firstVerificationDateString.isNotEmpty() && !isValidDate(firstVerificationDateString)) { // Walidacja daty weryfikacji pierwszego paragonu
+        } else if (firstVerificationDateString.isNotEmpty() && !isValidDate(firstVerificationDateString)) {
             Toast.makeText(this, R.string.error_invalid_verification_date_format, Toast.LENGTH_LONG).show()
             return
         } else {
-            receiptsToAdd.add(ReceiptData(firstStoreNumber, firstReceiptNumber, firstReceiptDate, firstVerificationDateString.takeIf { it.isNotEmpty() })) // Dodano datę weryfikacji
+            receiptsToAdd.add(ReceiptData(firstStoreNumber, firstReceiptNumber, firstReceiptDate, firstVerificationDateString.takeIf { it.isNotEmpty() }))
         }
 
-        // Przetwarzanie dodatkowych paragonów
         if (!hasEmptyFields) {
-            for (receiptFields in receiptFieldsList.drop(1)) { // Pomiń pierwszy paragon, bo już przetworzony
+            for (receiptFields in receiptFieldsList.drop(1)) {
                 val storeNumberEditText = receiptFields.storeNumberEditText
                 if (storeNumberEditText == null) {
                     Log.e("AddClientActivity", "Błąd krytyczny: storeNumberEditText jest null w pętli dodatkowych paragonów!")
@@ -283,8 +271,8 @@ class AddClientActivity : AppCompatActivity() {
                 val storeNumber = storeNumberEditText.text.toString().trim()
                 val receiptNumber = receiptFields.receiptNumberEditText.text.toString().trim()
                 val receiptDate = receiptFields.receiptDateEditText.text.toString().trim()
-                val verificationDateEditText = receiptFields.verificationDateEditText // Pobierz pole daty weryfikacji
-                val verificationDateString = verificationDateEditText?.text?.toString()?.trim() ?: "" // Pobierz datę weryfikacji
+                val verificationDateEditText = receiptFields.verificationDateEditText
+                val verificationDateString = verificationDateEditText?.text?.toString()?.trim() ?: ""
 
                 if (storeNumber.isEmpty() || receiptNumber.isEmpty() || receiptDate.isEmpty()) {
                     hasEmptyFields = true
@@ -292,16 +280,15 @@ class AddClientActivity : AppCompatActivity() {
                 } else if (!isValidDate(receiptDate)) {
                     Toast.makeText(this, R.string.error_invalid_additional_receipt_date_format, Toast.LENGTH_LONG).show()
                     return
-                } else if (verificationDateString.isNotEmpty() && !isValidDate(verificationDateString)) { // Walidacja daty weryfikacji dodatkowego paragonu
+                } else if (verificationDateString.isNotEmpty() && !isValidDate(verificationDateString)) {
                     Toast.makeText(this, R.string.error_invalid_additional_verification_date_format, Toast.LENGTH_LONG).show()
                     return
                 } else {
-                    receiptsToAdd.add(ReceiptData(storeNumber, receiptNumber, receiptDate, verificationDateString.takeIf { it.isNotEmpty() })) // Dodano datę weryfikacji
+                    receiptsToAdd.add(ReceiptData(storeNumber, receiptNumber, receiptDate, verificationDateString.takeIf { it.isNotEmpty() }))
                 }
             }
         }
 
-        // Końcowa walidacja
         if (hasEmptyFields) {
             Toast.makeText(this, R.string.error_fill_required_receipt_fields, Toast.LENGTH_LONG).show()
             return
@@ -311,13 +298,11 @@ class AddClientActivity : AppCompatActivity() {
             return
         }
 
-        // Wywołanie metody ViewModelu
         lifecycleScope.launch {
             val result = addClientViewModel.addClientWithReceiptsTransactionally(
                 clientDescription = clientDescription.takeIf { it.isNotEmpty() },
                 clientAppNumber = clientAppNumber.takeIf { it.isNotEmpty() },
                 amoditNumber = amoditNumber.takeIf { it.isNotEmpty() },
-                // Przekaż listy URI jako Stringi
                 clientPhotoUris = clientPhotoUris.map { it.toString() },
                 transactionPhotoUris = transactionPhotoUris.map { it.toString() },
                 receiptsData = receiptsToAdd
@@ -327,7 +312,7 @@ class AddClientActivity : AppCompatActivity() {
     }
 
     /**
-     * Sprawdza poprawność formatu daty (DD-MM-YYYY).
+     * Sprawdza, czy podany ciąg znaków reprezentuje poprawną datę w formacie DD-MM-YYYY.
      */
     private fun isValidDate(dateStr: String): Boolean {
         if (dateStr.length != 10) return false
@@ -342,13 +327,14 @@ class AddClientActivity : AppCompatActivity() {
     }
 
     /**
-     * Obsługuje wynik operacji zapisu zwrócony przez ViewModel.
+     * Obsługuje wynik operacji zapisu zwrócony przez ViewModel, wyświetlając odpowiedni komunikat Toast.
+     * W przypadku sukcesu zamyka aktywność.
      */
     private fun handleSaveResult(result: AddClientViewModel.AddResult) {
         val messageResId = when (result) {
             AddClientViewModel.AddResult.SUCCESS -> R.string.save_success_message
-            AddClientViewModel.AddResult.ERROR_DATE_FORMAT -> R.string.error_invalid_date_format // Ogólny błąd formatu daty
-            AddClientViewModel.AddResult.ERROR_VERIFICATION_DATE_FORMAT -> R.string.error_invalid_verification_date_format // Błąd formatu daty weryfikacji
+            AddClientViewModel.AddResult.ERROR_DATE_FORMAT -> R.string.error_invalid_date_format
+            AddClientViewModel.AddResult.ERROR_VERIFICATION_DATE_FORMAT -> R.string.error_invalid_verification_date_format
             AddClientViewModel.AddResult.ERROR_DUPLICATE_RECEIPT -> R.string.error_duplicate_receipt
             AddClientViewModel.AddResult.ERROR_STORE_NUMBER_MISSING -> R.string.error_store_number_missing
             AddClientViewModel.AddResult.ERROR_DATABASE -> R.string.error_database
@@ -359,13 +345,13 @@ class AddClientActivity : AppCompatActivity() {
         Toast.makeText(this@AddClientActivity, message, if (result == AddClientViewModel.AddResult.SUCCESS) Toast.LENGTH_SHORT else Toast.LENGTH_LONG).show()
 
         if (result == AddClientViewModel.AddResult.SUCCESS) {
-            finish() // Zamknij aktywność po sukcesie
+            finish()
         }
     }
 
 
     /**
-     * Dodaje dynamicznie nowy zestaw pól dla kolejnego paragonu.
+     * Dodaje dynamicznie nowy zestaw pól dla kolejnego paragonu do layoutu.
      */
     private fun addNewReceiptFields() {
         val inflater = LayoutInflater.from(this)
@@ -375,13 +361,12 @@ class AddClientActivity : AppCompatActivity() {
         val receiptNumberEditText = receiptFieldsView.findViewById<EditText>(R.id.additionalReceiptNumberEditText)
         val receiptDateEditText = receiptFieldsView.findViewById<EditText>(R.id.additionalReceiptDateEditText)
         val removeReceiptButton = receiptFieldsView.findViewById<ImageButton>(R.id.removeReceiptButton)
-        val verificationDateEditText = receiptFieldsView.findViewById<EditText>(R.id.additionalVerificationDateEditText) // Nowe pole
-        val verificationDateTodayCheckBox = receiptFieldsView.findViewById<CheckBox>(R.id.additionalVerificationDateTodayCheckBox) // Nowy checkbox
+        val verificationDateEditText = receiptFieldsView.findViewById<EditText>(R.id.additionalVerificationDateEditText)
+        val verificationDateTodayCheckBox = receiptFieldsView.findViewById<CheckBox>(R.id.additionalVerificationDateTodayCheckBox)
 
         setupDateEditText(receiptDateEditText)
-        setupDateEditText(verificationDateEditText) // Ustaw formatowanie dla daty weryfikacji
+        setupDateEditText(verificationDateEditText)
 
-        // Listener dla checkboxa "Dzisiaj" w dodatkowych polach
         verificationDateTodayCheckBox.setOnCheckedChangeListener { _, isChecked ->
             if (isChecked) {
                 val currentDate = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault()).format(Calendar.getInstance().time)
@@ -396,8 +381,8 @@ class AddClientActivity : AppCompatActivity() {
             storeNumberEditText,
             receiptNumberEditText,
             receiptDateEditText,
-            verificationDateEditText, // Dodano
-            verificationDateTodayCheckBox // Dodano
+            verificationDateEditText,
+            verificationDateTodayCheckBox
         )
         receiptFieldsList.add(newReceiptFields)
         receiptsContainer.addView(receiptFieldsView)
@@ -409,7 +394,7 @@ class AddClientActivity : AppCompatActivity() {
     }
 
     /**
-     * Konfiguruje formatowanie daty w [EditText] (DD-MM-YYYY).
+     * Konfiguruje [EditText] do automatycznego formatowania wprowadzanej daty do formatu DD-MM-YYYY.
      */
     private fun setupDateEditText(editText: EditText) {
         editText.inputType = InputType.TYPE_CLASS_NUMBER
@@ -469,10 +454,10 @@ class AddClientActivity : AppCompatActivity() {
     }
 
     /**
-     * Dodaje widok miniatury zdjęcia do określonego kontenera, używając Glide.
+     * Dodaje widok miniatury zdjęcia do określonego kontenera [LinearLayout], używając Glide.
      * @param photoUri URI zdjęcia do wyświetlenia.
      * @param container LinearLayout, do którego zostanie dodana miniatura.
-     * @param photoType Typ zdjęcia (potrzebny do logiki usuwania).
+     * @param photoType Typ zdjęcia (potrzebny do logiki usuwania z listy).
      */
     private fun addPhotoThumbnail(photoUri: Uri, container: LinearLayout, photoType: PhotoType) {
         val inflater = LayoutInflater.from(this)
@@ -480,39 +465,34 @@ class AddClientActivity : AppCompatActivity() {
         val imageView = thumbnailView.findViewById<ImageView>(R.id.photoThumbnailImageView)
         val deleteButton = thumbnailView.findViewById<ImageButton>(R.id.deletePhotoButton)
 
-        // Użycie Glide do załadowania miniatury
-        Glide.with(this) // Kontekst aktywności
+        Glide.with(this)
             .load(photoUri)
-            .placeholder(R.drawable.ic_photo_placeholder) // Placeholder
-            .error(R.drawable.ic_photo_placeholder) // Obrazek błędu
-            .centerCrop() // Skalowanie miniatury
-            .into(imageView) // Docelowy ImageView
+            .placeholder(R.drawable.ic_photo_placeholder)
+            .error(R.drawable.ic_photo_placeholder)
+            .centerCrop()
+            .into(imageView)
 
-        deleteButton.visibility = View.VISIBLE // Pokaż przycisk usuwania w AddClientActivity
+        deleteButton.visibility = View.VISIBLE
 
         deleteButton.setOnClickListener {
-            // Usuń widok z kontenera
             container.removeView(thumbnailView)
-            // Usuń URI z odpowiedniej listy
             when (photoType) {
                 PhotoType.CLIENT -> clientPhotoUris.remove(photoUri)
                 PhotoType.TRANSACTION -> transactionPhotoUris.remove(photoUri)
             }
-            // Usuń z mapy śledzenia
             photoUriToViewMap.remove(photoUri)
             Log.d("AddClientActivity", "Usunięto miniaturę i URI: $photoUri")
-            // Plik na dysku nie jest usuwany, bo klient nie został zapisany.
         }
 
         container.addView(thumbnailView)
-        // Zapisz mapowanie URI na widok
         photoUriToViewMap[photoUri] = thumbnailView
     }
 
 
     /**
-     * Kopiuje obraz z podanego źródłowego URI do wewnętrznego magazynu aplikacji.
-     * @param sourceUri URI obrazu źródłowego (np. z galerii).
+     * Kopiuje obraz z podanego źródłowego URI (np. z galerii) do wewnętrznego magazynu aplikacji.
+     * Zwraca URI skopiowanego pliku lub null w przypadku błędu.
+     * @param sourceUri URI obrazu źródłowego.
      * @return URI skopiowanego pliku w magazynie wewnętrznym lub null w przypadku błędu.
      */
     private fun copyImageToInternalStorage(sourceUri: Uri): Uri? {
@@ -546,6 +526,10 @@ class AddClientActivity : AppCompatActivity() {
         }
     }
 }
+
+
+
+
 
 
 
