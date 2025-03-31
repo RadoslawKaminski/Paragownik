@@ -8,50 +8,55 @@
     android:background="@color/main_color_dark"
     tools:context=".MainActivity">
 
+    <!-- Tytuł aktywności.
+         Przypięty do lewej i prawej krawędzi rodzica, aby umożliwić centrowanie tekstu za pomocą gravity.
+         Wysokość dopasowuje się do zawartości. -->
     <TextView
         android:id="@+id/mainActivityTitleTextView"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
         android:layout_marginTop="16dp"
-        android:layout_marginEnd="8dp"
+        android:layout_marginEnd="16dp"
         android:gravity="center"
         android:text="@string/main_activity_title"
         android:textSize="24sp"
-        app:layout_constraintBottom_toBottomOf="@+id/infoButton"
-        app:layout_constraintEnd_toStartOf="@+id/infoButton"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/infoButton" />
+        app:layout_constraintTop_toTopOf="parent" />
 
-    <!-- Przycisk "i" (Info) w prawym górnym rogu. -->
+    <!-- Przycisk "i" (Info).
+         Przypięty do prawej krawędzi rodzica.
+         Wyrównany pionowo do tytułu (góra i dół przypięte do góry i dołu tytułu).
+         Ustawiono stały rozmiar 48dp x 48dp. -->
     <ImageButton
         android:id="@+id/infoButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:layout_marginEnd="8dp"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_marginEnd="16dp"
         android:background="?attr/selectableItemBackgroundBorderless"
         android:contentDescription="@string/info_button_description"
-        android:minWidth="48dp"
-        android:minHeight="48dp"
         android:padding="8dp"
+        android:scaleType="fitCenter"
+        app:layout_constraintBottom_toBottomOf="@+id/mainActivityTitleTextView"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/mainActivityTitleTextView"
         app:srcCompat="@drawable/ic_info_outline"
         app:tint="@color/scnd_color_bright" />
 
-    <!-- RecyclerView do wyświetlania listy sklepów. -->
-    <!-- Zajmuje przestrzeń między tytułem/ikoną a przyciskami na dole. -->
+    <!-- RecyclerView do wyświetlania listy sklepów.
+         Zajmuje przestrzeń między tytułem/ikoną (ponieważ tytuł jest pod ikoną w pionie)
+         a przyciskami na dole. -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/storeRecyclerView"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:paddingTop="16dp"
         android:paddingBottom="16dp"
-        app:layout_constraintBottom_toTopOf="@+id/viewClientsButton"
+        app:layout_constraintBottom_toTopOf="@+id/viewAllReceiptsButton"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/infoButton"
+        app:layout_constraintTop_toBottomOf="@+id/mainActivityTitleTextView"
         tools:listitem="@layout/store_item" />
 
     <!-- Przycisk do przejścia do listy wszystkich paragonów -->
