@@ -47,6 +47,7 @@
     <string name="store_number_hint">Drogeria</string>
     <string name="receipt_number_hint">Numer paragonu</string>
     <string name="receipt_date_hint">Data paragonu (DD-MM-YYYY)</string>
+    <string name="cash_register_number_hint">Nr kasy (opcjonalnie)</string> <!-- Dodano hint dla numeru kasy -->
     <string name="verification_section_title">Weryfikacja (opcjonalne):</string>
     <string name="verification_date_hint">DD-MM-YYYY</string>
     <string name="client_data_section_title">Dane klienta (opcjonalne):</string>
@@ -79,6 +80,7 @@
     <!-- Etykiety dla trybu widoku w EditReceiptActivity -->
     <string name="label_client_app_number">Nr app:</string>
     <string name="label_amodit_number">Amodit:</string>
+    <string name="label_cash_register_number">Nr kasy:</string> <!-- Dodano etykietę dla numeru kasy -->
     <!-- Przyciski nawigacyjne w EditReceiptActivity -->
     <string name="button_show_client_receipts">Pokaż wszystkie paragony klienta</string>
     <string name="button_show_store_receipts">Pokaż wszystkie paragony drogerii</string>
@@ -143,8 +145,3 @@
     <string name="all_receipts_activity_title">Wszystkie Paragony</string>
 
 </resources>
-
-
-
-
-

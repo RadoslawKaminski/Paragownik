@@ -57,6 +57,7 @@ class EditReceiptActivity : AppCompatActivity() {
     private lateinit var editReceiptStoreNumberEditText: EditText
     private lateinit var editReceiptNumberEditText: EditText
     private lateinit var editReceiptDateEditText: EditText
+    private lateinit var editCashRegisterNumberEditText: EditText // Pole numeru kasy
     private lateinit var editVerificationDateEditText: EditText
     private lateinit var editVerificationDateTodayCheckBox: CheckBox
     private lateinit var editClientDescriptionEditText: EditText
@@ -68,6 +69,7 @@ class EditReceiptActivity : AppCompatActivity() {
     private lateinit var editModeImageButton: ImageButton
     private lateinit var showClientReceiptsButton: Button
     private lateinit var showStoreReceiptsButton: Button
+    private lateinit var editCashRegisterNumberLayout: LinearLayout // Layout dla numeru kasy
     private lateinit var editVerificationSectionLayout: LinearLayout
     private lateinit var verificationSectionTitleEdit: TextView
     private lateinit var verificationSectionTitleView: TextView
@@ -203,6 +205,7 @@ class EditReceiptActivity : AppCompatActivity() {
         editReceiptStoreNumberEditText = findViewById(R.id.editReceiptStoreNumberEditText)
         editReceiptNumberEditText = findViewById(R.id.editReceiptNumberEditText)
         editReceiptDateEditText = findViewById(R.id.editReceiptDateEditText)
+        editCashRegisterNumberEditText = findViewById(R.id.editCashRegisterNumberEditText) // Inicjalizacja pola numeru kasy
         editVerificationDateEditText = findViewById(R.id.editVerificationDateEditText)
         editVerificationDateTodayCheckBox = findViewById(R.id.editVerificationDateTodayCheckBox)
         editClientDescriptionEditText = findViewById(R.id.editClientDescriptionEditText)
@@ -214,6 +217,7 @@ class EditReceiptActivity : AppCompatActivity() {
         editModeImageButton = findViewById(R.id.editModeImageButton)
         showClientReceiptsButton = findViewById(R.id.showClientReceiptsButton)
         showStoreReceiptsButton = findViewById(R.id.showStoreReceiptsButton)
+        editCashRegisterNumberLayout = findViewById(R.id.editCashRegisterNumberLayout) // Inicjalizacja layoutu numeru kasy
         editVerificationSectionLayout = findViewById(R.id.editVerificationSectionLayout)
         verificationSectionTitleEdit = findViewById(R.id.verificationSectionTitleEdit)
         verificationSectionTitleView = findViewById(R.id.verificationSectionTitleView)
@@ -321,6 +325,7 @@ class EditReceiptActivity : AppCompatActivity() {
                         editReceiptNumberEditText.setText(receipt.receiptNumber)
                         val dateFormat = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault())
                         editReceiptDateEditText.setText(dateFormat.format(receipt.receiptDate))
+                        editCashRegisterNumberEditText.setText(receipt.cashRegisterNumber ?: "") // Wypełnienie pola numeru kasy
 
                         receipt.verificationDate?.let { verificationDate ->
                             val formattedVerificationDate = dateFormat.format(verificationDate)
@@ -351,6 +356,9 @@ class EditReceiptActivity : AppCompatActivity() {
                     } else {
                          if (isActive) {
                              Log.e("EditReceiptActivity", "Nie znaleziono danych dla receiptId: $receiptId (prawdopodobnie usunięto)")
+                             // Dodano Toast i finish() w przypadku braku danych
+                             Toast.makeText(this@EditReceiptActivity, R.string.error_receipt_not_found, Toast.LENGTH_SHORT).show()
+                             finish()
                          }
                          clearPhotoData()
                          updateUiMode(isEditMode)
@@ -501,6 +509,7 @@ class EditReceiptActivity : AppCompatActivity() {
         editReceiptStoreNumberEditText.isEnabled = isEditing
         editReceiptNumberEditText.isEnabled = isEditing
         editReceiptDateEditText.isEnabled = isEditing
+        editCashRegisterNumberEditText.isEnabled = isEditing // Włączenie/wyłączenie pola numeru kasy
         editVerificationDateEditText.isEnabled = isEditing && !editVerificationDateTodayCheckBox.isChecked
         editVerificationDateTodayCheckBox.isEnabled = isEditing
         editVerificationDateTodayCheckBox.visibility = if (isEditing) View.VISIBLE else View.GONE
@@ -512,6 +521,9 @@ class EditReceiptActivity : AppCompatActivity() {
         deleteReceiptButton.visibility = if (isEditing) View.VISIBLE else View.GONE
         deleteClientButton.visibility = if (isEditing) View.VISIBLE else View.GONE
         editModeImageButton.visibility = if (isEditing) View.GONE else View.VISIBLE
+
+        val hasCashRegisterNumber = !editCashRegisterNumberEditText.text.isNullOrBlank()
+        editCashRegisterNumberLayout.visibility = if (isEditing || hasCashRegisterNumber) View.VISIBLE else View.GONE // Widoczność layoutu numeru kasy
 
         val hasVerificationDate = !editVerificationDateEditText.text.isNullOrBlank()
         editVerificationSectionLayout.visibility = if (isEditing || hasVerificationDate) View.VISIBLE else View.GONE
@@ -550,6 +562,7 @@ class EditReceiptActivity : AppCompatActivity() {
         val storeNumberString = editReceiptStoreNumberEditText.text.toString().trim()
         val receiptNumber = editReceiptNumberEditText.text.toString().trim()
         val receiptDateString = editReceiptDateEditText.text.toString().trim()
+        val cashRegisterNumber = editCashRegisterNumberEditText.text.toString().trim() // Pobranie numeru kasy
         val verificationDateString = editVerificationDateEditText.text.toString().trim()
         val clientDescription = editClientDescriptionEditText.text.toString().trim()
         val clientAppNumber = editClientAppNumberEditText.text.toString().trim()
@@ -566,6 +579,7 @@ class EditReceiptActivity : AppCompatActivity() {
                 storeNumberString = storeNumberString,
                 receiptNumber = receiptNumber,
                 receiptDateString = receiptDateString,
+                cashRegisterNumber = cashRegisterNumber.takeIf { it.isNotEmpty() }, // Przekazanie numeru kasy
                 verificationDateString = verificationDateString.takeIf { it.isNotEmpty() },
                 clientDescription = clientDescription.takeIf { it.isNotEmpty() },
                 clientAppNumber = clientAppNumber.takeIf { it.isNotEmpty() },
@@ -795,10 +809,4 @@ class EditReceiptActivity : AppCompatActivity() {
         startActivity(intent)
     }
 }
-
-
-
-
-
-
 

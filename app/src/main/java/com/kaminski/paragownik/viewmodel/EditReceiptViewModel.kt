@@ -92,6 +92,7 @@ class EditReceiptViewModel(application: Application) : AndroidViewModel(applicat
      * @param storeNumberString Nowy numer sklepu (jako String).
      * @param receiptNumber Nowy numer paragonu.
      * @param receiptDateString Nowa data paragonu (jako String "dd-MM-yyyy").
+     * @param cashRegisterNumber Nowy numer kasy (opcjonalny).
      * @param verificationDateString Nowa data weryfikacji (opcjonalna, jako String "dd-MM-yyyy").
      * @param clientDescription Nowy opis klienta (opcjonalny).
      * @param clientAppNumber Nowy numer aplikacji klienta (opcjonalny).
@@ -106,6 +107,7 @@ class EditReceiptViewModel(application: Application) : AndroidViewModel(applicat
         storeNumberString: String,
         receiptNumber: String,
         receiptDateString: String,
+        cashRegisterNumber: String?, // Dodano parametr numeru kasy
         verificationDateString: String?,
         clientDescription: String?,
         clientAppNumber: String?,
@@ -186,6 +188,7 @@ class EditReceiptViewModel(application: Application) : AndroidViewModel(applicat
                     receiptNumber = receiptNumber,
                     receiptDate = receiptDate,
                     storeId = newStoreId, // Użyj nowego ID sklepu
+                    cashRegisterNumber = cashRegisterNumber?.takeIf { it.isNotBlank() }, // Zapis numeru kasy
                     verificationDate = verificationDate
                 )
                 receiptDao.updateReceipt(updatedReceipt)
@@ -439,3 +442,4 @@ class EditReceiptViewModel(application: Application) : AndroidViewModel(applicat
     private class DuplicateReceiptException : Exception()
     private class DatabaseException(message: String) : Exception(message)
 }
+

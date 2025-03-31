@@ -113,6 +113,40 @@
                     android:hint="@string/receipt_date_hint"
                     android:inputType="date" />
 
+                <!-- Sekcja numeru kasy -->
+                <LinearLayout
+                    android:id="@+id/editCashRegisterNumberLayout"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_marginTop="8dp"
+                    android:visibility="gone"
+                    tools:visibility="visible">
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical">
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/label_cash_register_number"
+                            android:paddingEnd="8dp"
+                            android:textSize="16sp"/>
+                        <EditText
+                            android:id="@+id/editCashRegisterNumberEditText"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:enabled="false"
+                            android:autofillHints="number"
+                            android:hint="@string/cash_register_number_hint"
+                            android:inputType="number"
+                            android:maxLength="2"
+                            android:layout_marginBottom="0dp"/>
+                    </LinearLayout>
+                </LinearLayout>
+
                 <!-- Sekcja daty weryfikacji -->
                 <LinearLayout
                     android:id="@+id/editVerificationSectionLayout"
@@ -480,6 +514,4 @@
     </ScrollView>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
-
-
 

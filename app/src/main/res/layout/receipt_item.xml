@@ -77,6 +77,20 @@
                 tools:text="Drogeria: 9999"
                 tools:visibility="visible"/>
 
+            <!-- Numer kasy (widoczny, jeśli istnieje) -->
+            <TextView
+                android:id="@+id/cashRegisterNumberTextView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:layout_marginStart="8dp"
+                android:layout_marginEnd="8dp"
+                android:textColor="@color/sub_white_text"
+                android:textSize="16sp"
+                android:visibility="gone"
+                tools:text="Nr kasy: 5"
+                tools:visibility="visible"/>
+
             <!-- Data weryfikacji (layout do ukrywania). -->
             <LinearLayout
                 android:id="@+id/verificationDateLayout"
@@ -165,5 +179,4 @@
         android:background="@color/sub_white_text" />
 
 </LinearLayout>
-
 

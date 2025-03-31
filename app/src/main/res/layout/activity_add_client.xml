@@ -90,6 +90,17 @@
                     android:hint="@string/receipt_date_hint"
                     android:inputType="date" /> <!-- inputType modyfikowany przez TextWatcher na number -->
 
+                <!-- Dodane pole numeru kasy -->
+                <EditText
+                    android:id="@+id/cashRegisterNumberEditText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:autofillHints="number"
+                    android:hint="@string/cash_register_number_hint"
+                    android:inputType="number"
+                    android:maxLength="2" />
+
                 <!-- Sekcja daty weryfikacji (opcjonalna). -->
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -295,6 +306,4 @@
         app:layout_constraintStart_toStartOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
-
-
 

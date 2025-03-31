@@ -45,6 +45,7 @@ class AddReceiptToClientActivity : AppCompatActivity() {
     private lateinit var firstStoreNumberEditText: EditText
     private lateinit var firstReceiptNumberEditText: EditText
     private lateinit var firstReceiptDateEditText: EditText
+    private lateinit var firstCashRegisterNumberEditText: EditText // Pole na numer kasy
     private lateinit var firstVerificationDateEditText: EditText
     private lateinit var firstVerificationDateTodayCheckBox: CheckBox
     private lateinit var newReceiptsContainer: LinearLayout
@@ -66,6 +67,7 @@ class AddReceiptToClientActivity : AppCompatActivity() {
         val storeNumberEditText: EditText,
         val receiptNumberEditText: EditText,
         val receiptDateEditText: EditText,
+        val cashRegisterNumberEditText: EditText, // Dodano pole numeru kasy
         val verificationDateEditText: EditText,
         val verificationDateTodayCheckBox: CheckBox
     )
@@ -96,7 +98,15 @@ class AddReceiptToClientActivity : AppCompatActivity() {
         setupDateEditText(firstReceiptDateEditText)
         setupDateEditText(firstVerificationDateEditText)
 
-        receiptFieldsList.add(ReceiptFields(firstStoreNumberEditText, firstReceiptNumberEditText, firstReceiptDateEditText, firstVerificationDateEditText, firstVerificationDateTodayCheckBox))
+        // Dodajemy pola pierwszego paragonu do listy
+        receiptFieldsList.add(ReceiptFields(
+            firstStoreNumberEditText,
+            firstReceiptNumberEditText,
+            firstReceiptDateEditText,
+            firstCashRegisterNumberEditText, // Dodano pole numeru kasy
+            firstVerificationDateEditText,
+            firstVerificationDateTodayCheckBox
+        ))
 
         observeClientData()
     }
@@ -113,6 +123,7 @@ class AddReceiptToClientActivity : AppCompatActivity() {
         firstStoreNumberEditText = findViewById(R.id.firstStoreNumberEditText)
         firstReceiptNumberEditText = findViewById(R.id.firstReceiptNumberEditText)
         firstReceiptDateEditText = findViewById(R.id.firstReceiptDateEditText)
+        firstCashRegisterNumberEditText = findViewById(R.id.firstCashRegisterNumberEditText) // Inicjalizacja pola numeru kasy
         firstVerificationDateEditText = findViewById(R.id.firstVerificationDateEditText)
         firstVerificationDateTodayCheckBox = findViewById(R.id.firstVerificationDateTodayCheckBox)
         newReceiptsContainer = findViewById(R.id.newReceiptsContainer)
@@ -203,6 +214,7 @@ class AddReceiptToClientActivity : AppCompatActivity() {
         val storeNumberEditText = receiptFieldsView.findViewById<EditText>(R.id.additionalStoreNumberEditText)
         val receiptNumberEditText = receiptFieldsView.findViewById<EditText>(R.id.additionalReceiptNumberEditText)
         val receiptDateEditText = receiptFieldsView.findViewById<EditText>(R.id.additionalReceiptDateEditText)
+        val cashRegisterNumberEditText = receiptFieldsView.findViewById<EditText>(R.id.additionalCashRegisterNumberEditText) // Pobranie pola numeru kasy
         val removeReceiptButton = receiptFieldsView.findViewById<ImageButton>(R.id.removeReceiptButton)
         val verificationDateEditText = receiptFieldsView.findViewById<EditText>(R.id.additionalVerificationDateEditText)
         val verificationDateTodayCheckBox = receiptFieldsView.findViewById<CheckBox>(R.id.additionalVerificationDateTodayCheckBox)
@@ -224,6 +236,7 @@ class AddReceiptToClientActivity : AppCompatActivity() {
             storeNumberEditText,
             receiptNumberEditText,
             receiptDateEditText,
+            cashRegisterNumberEditText, // Dodanie pola do struktury
             verificationDateEditText,
             verificationDateTodayCheckBox
         )
@@ -240,6 +253,7 @@ class AddReceiptToClientActivity : AppCompatActivity() {
      * Zbiera dane ze wszystkich pól paragonów, waliduje je i wywołuje metodę zapisu w ViewModelu.
      */
     private fun saveNewReceipts() {
+        // Używamy tej samej struktury danych co w AddClientActivity
         val receiptsData = mutableListOf<AddClientActivity.ReceiptData>()
         var hasEmptyFields = false
         var invalidDateFound = false // Flaga dla błędów formatu daty
@@ -248,6 +262,7 @@ class AddReceiptToClientActivity : AppCompatActivity() {
             val storeNumber = fields.storeNumberEditText.text.toString().trim()
             val receiptNumber = fields.receiptNumberEditText.text.toString().trim()
             val receiptDate = fields.receiptDateEditText.text.toString().trim()
+            val cashRegisterNumber = fields.cashRegisterNumberEditText.text.toString().trim() // Pobranie numeru kasy
             val verificationDateString = fields.verificationDateEditText.text.toString().trim()
 
             if (storeNumber.isEmpty() || receiptNumber.isEmpty() || receiptDate.isEmpty()) {
@@ -262,7 +277,13 @@ class AddReceiptToClientActivity : AppCompatActivity() {
                 invalidDateFound = true
                 break
             }
-            receiptsData.add(AddClientActivity.ReceiptData(storeNumber, receiptNumber, receiptDate, verificationDateString.takeIf { it.isNotEmpty() }))
+            receiptsData.add(AddClientActivity.ReceiptData(
+                storeNumber,
+                receiptNumber,
+                receiptDate,
+                cashRegisterNumber.takeIf { it.isNotEmpty() }, // Dodanie numeru kasy
+                verificationDateString.takeIf { it.isNotEmpty() }
+            ))
         }
 
         if (hasEmptyFields) {
@@ -379,10 +400,4 @@ class AddReceiptToClientActivity : AppCompatActivity() {
         })
     }
 }
-
-
-
-
-
-
 

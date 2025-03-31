@@ -176,6 +176,17 @@
                     android:hint="@string/hint_receipt_date_required"
                     android:inputType="date" />
 
+                <!-- Dodane pole numeru kasy -->
+                <EditText
+                    android:id="@+id/firstCashRegisterNumberEditText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:autofillHints="number"
+                    android:hint="@string/cash_register_number_hint"
+                    android:inputType="number"
+                    android:maxLength="2" />
+
                 <!-- Pole daty weryfikacji i checkbox "Dzisiaj" w jednej linii. -->
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -255,6 +266,4 @@
         app:layout_constraintStart_toStartOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
-
-
 

@@ -14,6 +14,7 @@ import java.util.Date
  * @property receiptNumber Numer paragonu (String).
  * @property receiptDate Data wystawienia paragonu (Date).
  * @property storeId Klucz obcy wskazujący na sklep ([Store]), do którego należy paragon.
+ * @property cashRegisterNumber Numer kasy, z której pochodzi paragon (opcjonalny, String).
  * @property verificationDate Data weryfikacji paragonu (opcjonalna, może być null).
  * @property clientId Klucz obcy wskazujący na klienta ([Client]), do którego przypisany jest paragon.
  */
@@ -36,6 +37,8 @@ data class Receipt(
     val receiptNumber: String,
     val receiptDate: Date,
     val storeId: Long,
+    val cashRegisterNumber: String? = null, // Dodano pole numeru kasy
     val verificationDate: Date? = null,
     val clientId: Long
 )
+

@@ -8,7 +8,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.asLiveData
 import androidx.lifecycle.switchMap
 import androidx.room.withTransaction
-import com.kaminski.paragownik.AddClientActivity
+import com.kaminski.paragownik.AddClientActivity // Import dla ReceiptData
 import com.kaminski.paragownik.R
 import com.kaminski.paragownik.data.AppDatabase
 import com.kaminski.paragownik.data.Client
@@ -230,6 +230,7 @@ class AddReceiptToClientViewModel(application: Application) : AndroidViewModel(a
                         receiptNumber = receiptData.receiptNumber,
                         receiptDate = receiptDate,
                         storeId = storeId,
+                        cashRegisterNumber = receiptData.cashRegisterNumber?.takeIf { it.isNotBlank() }, // Zapis numeru kasy
                         verificationDate = verificationDate, // Używamy sparsowanej lub null daty weryfikacji
                         clientId = clientId // Przypisanie paragonu do istniejącego klienta
                     )
@@ -274,3 +275,4 @@ class AddReceiptToClientViewModel(application: Application) : AndroidViewModel(a
     private class StoreNumberMissingException : Exception()
     private class DatabaseException(message: String) : Exception(message)
 }
+

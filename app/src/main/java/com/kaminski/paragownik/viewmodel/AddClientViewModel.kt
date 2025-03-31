@@ -209,6 +209,7 @@ class AddClientViewModel(application: Application) : AndroidViewModel(applicatio
                         receiptNumber = receiptData.receiptNumber,
                         receiptDate = receiptDate,
                         storeId = storeId,
+                        cashRegisterNumber = receiptData.cashRegisterNumber?.takeIf { it.isNotBlank() }, // Zapis numeru kasy
                         verificationDate = verificationDate, // Używamy sparsowanej lub null daty weryfikacji
                         clientId = clientId // Przypisanie paragonu do nowo utworzonego klienta
                     )
@@ -248,3 +249,4 @@ class AddClientViewModel(application: Application) : AndroidViewModel(applicatio
     private class StoreNumberMissingException : Exception()
     private class DatabaseException(message: String) : Exception(message)
 }
+

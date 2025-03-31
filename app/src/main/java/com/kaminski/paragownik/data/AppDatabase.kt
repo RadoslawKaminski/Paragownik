@@ -22,7 +22,7 @@ import com.kaminski.paragownik.data.daos.StoreDao
  * @property version Numer wersji schematu bazy danych. Należy go zwiększać przy każdej zmianie schematu.
  * @property exportSchema Czy eksportować schemat bazy do pliku JSON (przydatne do testów i dokumentacji).
  */
-@Database(entities = [Store::class, Receipt::class, Client::class, Photo::class], version = 5, exportSchema = false)
+@Database(entities = [Store::class, Receipt::class, Client::class, Photo::class], version = 6, exportSchema = false) // Zwiększono wersję do 6
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
 
@@ -143,6 +143,17 @@ abstract class AppDatabase : RoomDatabase() {
         }
 
         /**
+         * Migracja z wersji 5 do 6.
+         * Dodaje nową, opcjonalną kolumnę 'cashRegisterNumber' do tabeli 'receipts'.
+         */
+        val MIGRATION_5_6 = object : Migration(5, 6) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE receipts ADD COLUMN cashRegisterNumber TEXT")
+                Log.i("AppDatabaseMigration", "Migracja 5->6: Dodano kolumnę 'cashRegisterNumber' do tabeli 'receipts'.")
+            }
+        }
+
+        /**
          * Zwraca instancję Singleton bazy danych [AppDatabase].
          * Jeśli instancja nie istnieje, tworzy ją w sposób bezpieczny wątkowo.
          * Konfiguruje budowniczego bazy danych, dodając niezbędne migracje.
@@ -156,7 +167,8 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "app_database"
                 )
-                    .addMigrations(MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5)
+                    // Dodajemy wszystkie migracje, w tym nową MIGRATION_5_6
+                    .addMigrations(MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6)
                     .build()
                 INSTANCE = instance
                 instance

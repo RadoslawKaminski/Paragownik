@@ -1,10 +1,8 @@
 package com.kaminski.paragownik.viewmodel
 
-import android.app.Application // Nadal potrzebne dla AndroidViewModel, ale nie użyjemy go do getDatabase
+import android.app.Application
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
-import androidx.room.withTransaction // Import dla potencjalnego użycia w przyszłości lub testach integracyjnych
 import com.kaminski.paragownik.AddClientActivity.ReceiptData
-import com.kaminski.paragownik.data.AppDatabase
 import com.kaminski.paragownik.data.Client
 import com.kaminski.paragownik.data.Photo
 import com.kaminski.paragownik.data.PhotoType
@@ -16,16 +14,31 @@ import com.kaminski.paragownik.data.daos.ReceiptDao
 import com.kaminski.paragownik.data.daos.StoreDao
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.test.*
+import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.TestScope
+import kotlinx.coroutines.test.resetMain
+import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.test.setMain
 import org.junit.After
-import org.junit.Assert.*
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.kotlin.*
+import org.mockito.kotlin.any
+import org.mockito.kotlin.argumentCaptor
+import org.mockito.kotlin.check
+import org.mockito.kotlin.eq
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.never
+import org.mockito.kotlin.times
+import org.mockito.kotlin.verify
+import org.mockito.kotlin.whenever
 import java.text.ParseException
 import java.text.SimpleDateFormat
-import java.util.*
+import java.util.Date
+import java.util.Locale
 
 /**
  * Testy jednostkowe dla logiki zawartej w [AddClientViewModel].
@@ -70,12 +83,14 @@ class AddClientViewModelTest {
         Dispatchers.resetMain() // Resetuj dispatcher
     }
 
+    // Poprawiona funkcja pomocnicza createReceiptData
     private fun createReceiptData(
         storeNumber: String = "1234",
         receiptNumber: String = "5678",
         receiptDate: String = "01-01-2024",
+        cashRegisterNumber: String? = null, // Dodano parametr cashRegisterNumber
         verificationDate: String? = null
-    ) = ReceiptData(storeNumber, receiptNumber, receiptDate, verificationDate)
+    ) = ReceiptData(storeNumber, receiptNumber, receiptDate, cashRegisterNumber, verificationDate) // Zaktualizowano wywołanie konstruktora
 
     private val testClientPhotoUri = "file:///client/photo.jpg"
     private val testTransactionPhotoUri = "file:///transaction/photo.jpg"
@@ -157,6 +172,7 @@ class AddClientViewModelTest {
                         receiptNumber = receiptData.receiptNumber,
                         receiptDate = receiptDate,
                         storeId = storeId,
+                        cashRegisterNumber = receiptData.cashRegisterNumber?.takeIf { it.isNotBlank() }, // Dodano obsługę numeru kasy
                         verificationDate = verificationDate,
                         clientId = clientId
                     )
@@ -180,7 +196,8 @@ class AddClientViewModelTest {
         val clientDesc = "Test Client"
         val clientAppNum = "111"
         val amoditNum = "222"
-        val receiptData = createReceiptData()
+        val testCashRegisterNum = "5" // Dodano numer kasy do testu
+        val receiptData = createReceiptData(cashRegisterNumber = testCashRegisterNum) // Przekazanie numeru kasy
         val storeNumber = receiptData.storeNumber
         val receiptDateParsed = dateFormat.parse(receiptData.receiptDate)!!
         val newClientId = 1L
@@ -224,6 +241,7 @@ class AddClientViewModelTest {
             assertEquals(receiptData.receiptNumber, it.receiptNumber)
             assertEquals(receiptDateParsed, it.receiptDate)
             assertEquals(storeId, it.storeId)
+            assertEquals(testCashRegisterNum, it.cashRegisterNumber) // Weryfikacja numeru kasy
             assertEquals(newClientId, it.clientId)
             assertNull(it.verificationDate)
         })
@@ -361,7 +379,7 @@ class AddClientViewModelTest {
      @Test
     fun `addClientWithReceiptsTransactionally success with empty optional fields`() = testScope.runTest {
         // Arrange
-        val receiptData = createReceiptData()
+        val receiptData = createReceiptData(cashRegisterNumber = "  ") // Pusty numer kasy
         val storeNumber = receiptData.storeNumber
         val newClientId = 1L
         val storeId = 10L
@@ -392,7 +410,8 @@ class AddClientViewModelTest {
             assertNull(it.amoditNumber)
         })
         verify(mockPhotoDao, never()).insertPhoto(any())
+        verify(mockReceiptDao).insertReceipt(check<Receipt> {
+            assertNull(it.cashRegisterNumber) // Sprawdzenie, czy pusty numer kasy jest zapisywany jako null
+        })
     }
 }
-
-

@@ -70,6 +70,7 @@ class ReceiptAdapter(
         val receiptNumberTextView: TextView = itemView.findViewById(R.id.receiptNumberTextView)
         val receiptDateTextView: TextView = itemView.findViewById(R.id.receiptDateTextView)
         val storeNumberTextView: TextView = itemView.findViewById(R.id.storeNumberTextView)
+        val cashRegisterNumberTextView: TextView = itemView.findViewById(R.id.cashRegisterNumberTextView) // Dodano pole numeru kasy
         val verificationDateLayout: LinearLayout = itemView.findViewById(R.id.verificationDateLayout)
         val verificationDateTextView: TextView = itemView.findViewById(R.id.verificationDateTextView)
         val clientDescriptionTextView: TextView = itemView.findViewById(R.id.clientDescriptionTextView)
@@ -182,6 +183,13 @@ class ReceiptAdapter(
                 holder.receiptNumberTextView.text = currentReceipt.receiptNumber
                 holder.receiptDateTextView.text = dateFormat.format(currentReceipt.receiptDate)
 
+                // Wyświetlanie numeru kasy (jeśli istnieje)
+                val cashRegisterNumberText = currentReceipt.cashRegisterNumber?.takeIf { it.isNotBlank() }?.let {
+                    context.getString(R.string.label_cash_register_number) + " " + it
+                }
+                holder.cashRegisterNumberTextView.text = cashRegisterNumberText
+                holder.cashRegisterNumberTextView.isVisible = cashRegisterNumberText != null
+
                 val verificationDateText = currentReceipt.verificationDate?.let { dateFormat.format(it) }
                 holder.verificationDateLayout.isVisible = true
                 holder.verificationDateTextView.text = verificationDateText ?: context.getString(R.string.no_verification_date)
@@ -251,8 +259,4 @@ class ReceiptAdapter(
         }
     }
 }
-
-
-
-
 
