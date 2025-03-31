@@ -46,7 +46,7 @@ class AddClientViewModel(application: Application) : AndroidViewModel(applicatio
         SUCCESS, // Operacja zakończona sukcesem
         ERROR_DATE_FORMAT, // Błąd formatu daty paragonu (np. "30-02-2023")
         ERROR_VERIFICATION_DATE_FORMAT, // Błąd formatu daty weryfikacji
-        ERROR_DUPLICATE_RECEIPT, // Próba dodania paragonu, który już istnieje (ten sam numer, data, sklep)
+        ERROR_DUPLICATE_RECEIPT, // Próba dodania paragonu, który już istnieje (ten sam numer, data, sklep, kasa)
         ERROR_STORE_NUMBER_MISSING, // Brak numeru drogerii w danych paragonu
         ERROR_DATABASE, // Ogólny błąd podczas operacji bazodanowej (np. wstawiania)
         ERROR_UNKNOWN // Nieoczekiwany, inny błąd
@@ -123,6 +123,7 @@ class AddClientViewModel(application: Application) : AndroidViewModel(applicatio
                 // Krok 3: Przetwarzanie i dodawanie Paragonów
                 for (receiptData in receiptsData) {
                     val verificationDateStringFromData = receiptData.verificationDateString
+                    val cashRegisterNumber = receiptData.cashRegisterNumber?.takeIf { it.isNotBlank() } // Pobranie numeru kasy
 
                     // Sprawdzenie, czy numer drogerii został podany.
                     if (receiptData.storeNumber.isBlank()) {
@@ -190,16 +191,17 @@ class AddClientViewModel(application: Application) : AndroidViewModel(applicatio
                     }
 
                     // Walidacja Duplikatów Paragonów: Sprawdzenie, czy paragon o tej samej
-                    // kombinacji numeru, daty i sklepu już istnieje w bazie.
-                    val existingReceipt = receiptDao.findByNumberDateStore(
+                    // kombinacji numeru, daty, sklepu i numeru kasy już istnieje w bazie.
+                    val existingReceipt = receiptDao.findByNumberDateStoreCashRegister(
                         receiptData.receiptNumber,
                         receiptDate,
-                        storeId
+                        storeId,
+                        cashRegisterNumber // Dodano numer kasy do sprawdzania
                     )
                     if (existingReceipt != null) {
                         Log.e(
                             "AddClientViewModel",
-                            "Transakcja: Znaleziono duplikat paragonu: Nr ${receiptData.receiptNumber}, Data ${receiptData.receiptDate}, Sklep ID $storeId"
+                            "Transakcja: Znaleziono duplikat paragonu: Nr ${receiptData.receiptNumber}, Data ${receiptData.receiptDate}, Sklep ID $storeId, Kasa ${cashRegisterNumber ?: "brak"}"
                         )
                         throw DuplicateReceiptException()
                     }
@@ -209,7 +211,7 @@ class AddClientViewModel(application: Application) : AndroidViewModel(applicatio
                         receiptNumber = receiptData.receiptNumber,
                         receiptDate = receiptDate,
                         storeId = storeId,
-                        cashRegisterNumber = receiptData.cashRegisterNumber?.takeIf { it.isNotBlank() }, // Zapis numeru kasy
+                        cashRegisterNumber = cashRegisterNumber, // Zapis numeru kasy
                         verificationDate = verificationDate, // Używamy sparsowanej lub null daty weryfikacji
                         clientId = clientId // Przypisanie paragonu do nowo utworzonego klienta
                     )

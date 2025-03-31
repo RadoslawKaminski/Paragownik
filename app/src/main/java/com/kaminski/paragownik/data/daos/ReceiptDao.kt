@@ -107,15 +107,24 @@ interface ReceiptDao {
     suspend fun getReceiptWithClient(receiptId: Long): ReceiptWithClient?
 
     /**
-     * Znajduje paragon na podstawie unikalnej kombinacji numeru, daty i ID sklepu.
+     * Znajduje paragon na podstawie unikalnej kombinacji numeru, daty, ID sklepu i numeru kasy.
      * Używane do sprawdzania duplikatów przed wstawieniem lub aktualizacją paragonu.
+     * Obsługuje przypadki, gdy numer kasy jest NULL.
      * @param receiptNumber Numer paragonu.
      * @param receiptDate Data paragonu.
      * @param storeId ID sklepu.
+     * @param cashRegisterNumber Numer kasy (może być null).
      * @return Obiekt [Receipt] jeśli znaleziono pasujący paragon, lub `null` w przeciwnym razie.
      */
-    @Query("SELECT * FROM receipts WHERE receiptNumber = :receiptNumber AND receiptDate = :receiptDate AND storeId = :storeId LIMIT 1")
-    suspend fun findByNumberDateStore(receiptNumber: String, receiptDate: Date, storeId: Long): Receipt?
+    @Query("""
+        SELECT * FROM receipts
+        WHERE receiptNumber = :receiptNumber
+          AND receiptDate = :receiptDate
+          AND storeId = :storeId
+          AND (:cashRegisterNumber IS NULL AND cashRegisterNumber IS NULL OR cashRegisterNumber = :cashRegisterNumber)
+        LIMIT 1
+    """)
+    suspend fun findByNumberDateStoreCashRegister(receiptNumber: String, receiptDate: Date, storeId: Long, cashRegisterNumber: String?): Receipt?
 
     /**
      * Pobiera listę unikalnych identyfikatorów sklepów (storeId), z którymi powiązane są paragony
@@ -152,3 +161,4 @@ interface ReceiptDao {
     """)
     fun getAllReceiptsSorted(): Flow<List<ReceiptWithClient>>
 }
+

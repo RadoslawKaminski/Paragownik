@@ -52,7 +52,7 @@ class EditReceiptViewModel(application: Application) : AndroidViewModel(applicat
         SUCCESS,
         ERROR_NOT_FOUND,
         ERROR_DATE_FORMAT,
-        ERROR_DUPLICATE_RECEIPT,
+        ERROR_DUPLICATE_RECEIPT, // Zmieniono opis błędu
         ERROR_STORE_NUMBER_MISSING,
         ERROR_DATABASE,
         ERROR_UNKNOWN
@@ -176,8 +176,13 @@ class EditReceiptViewModel(application: Application) : AndroidViewModel(applicat
                 }
 
                 // --- Krok 4: Walidacja duplikatów paragonów ---
-                // Sprawdź, czy inny paragon (o innym ID) nie ma już takiej samej kombinacji numeru, daty i sklepu
-                val potentialDuplicate = receiptDao.findByNumberDateStore(receiptNumber, receiptDate, newStoreId)
+                // Sprawdź, czy inny paragon (o innym ID) nie ma już takiej samej kombinacji numeru, daty, sklepu i numeru kasy
+                val potentialDuplicate = receiptDao.findByNumberDateStoreCashRegister(
+                    receiptNumber,
+                    receiptDate,
+                    newStoreId,
+                    cashRegisterNumber?.takeIf { it.isNotBlank() } // Dodano numer kasy do sprawdzania
+                )
                 if (potentialDuplicate != null && potentialDuplicate.id != receiptId) {
                     Log.e("EditReceiptViewModel", "Edycja: Znaleziono inny paragon (ID: ${potentialDuplicate.id}) z tymi samymi danymi.")
                     throw DuplicateReceiptException()

@@ -46,9 +46,10 @@ class EditReceiptViewModelTest {
     private val testClientId = 1L
     private val testStoreId = 10L
     private val testReceiptId = 100L
+    private val testCashRegisterNum = "1" // Dodano numer kasy
     private val testClient = Client(id = testClientId, description = "Old Desc", clientAppNumber = "111", amoditNumber = "222")
     private val testStore = Store(id = testStoreId, storeNumber = "1234")
-    private val testReceipt = Receipt(id = testReceiptId, receiptNumber = "5678", receiptDate = testDate, storeId = testStoreId, clientId = testClientId)
+    private val testReceipt = Receipt(id = testReceiptId, receiptNumber = "5678", receiptDate = testDate, storeId = testStoreId, cashRegisterNumber = testCashRegisterNum, clientId = testClientId) // Dodano numer kasy
     private val testReceiptWithClient = ReceiptWithClient(testReceipt, testClient)
     private val testPhotoClient = Photo(id = 1, clientId = testClientId, uri = "file:///client.jpg", type = PhotoType.CLIENT)
     private val testPhotoTransaction = Photo(id = 2, clientId = testClientId, uri = "file:///trans.jpg", type = PhotoType.TRANSACTION)
@@ -76,6 +77,7 @@ class EditReceiptViewModelTest {
         storeNumberString: String,
         receiptNumber: String,
         receiptDateString: String,
+        cashRegisterNumber: String?, // Dodano parametr
         verificationDateString: String?,
         clientDescription: String?,
         clientAppNumber: String?,
@@ -122,13 +124,23 @@ class EditReceiptViewModelTest {
                 newStoreId = store.id
             }
 
-            val potentialDuplicate = receiptDao.findByNumberDateStore(receiptNumber, receiptDate, newStoreId)
+            // Zaktualizowano wywołanie DAO do sprawdzania duplikatów
+            val potentialDuplicate = receiptDao.findByNumberDateStoreCashRegister(
+                receiptNumber,
+                receiptDate,
+                newStoreId,
+                cashRegisterNumber?.takeIf { it.isNotBlank() } // Dodano numer kasy
+            )
             if (potentialDuplicate != null && potentialDuplicate.id != receiptId) {
                 return EditReceiptViewModel.EditResult.ERROR_DUPLICATE_RECEIPT
             }
 
             val updatedReceipt = existingReceipt.copy(
-                receiptNumber = receiptNumber, receiptDate = receiptDate, storeId = newStoreId, verificationDate = verificationDate
+                receiptNumber = receiptNumber,
+                receiptDate = receiptDate,
+                storeId = newStoreId,
+                cashRegisterNumber = cashRegisterNumber?.takeIf { it.isNotBlank() }, // Zapis numeru kasy
+                verificationDate = verificationDate
             )
             receiptDao.updateReceipt(updatedReceipt)
 
@@ -260,6 +272,7 @@ class EditReceiptViewModelTest {
         val newStoreNumber = "4321"
         val newReceiptNumber = "9999"
         val newDateStr = "02-02-2024"
+        val newCashRegisterNum = "2" // Nowy numer kasy
         val newVerDateStr = "03-02-2024"
         val newDesc = "New Desc"
         val newAppNum = "333"
@@ -275,7 +288,8 @@ class EditReceiptViewModelTest {
 
         whenever(mockReceiptDao.getReceiptWithClient(testReceiptId)).thenReturn(testReceiptWithClient)
         whenever(mockStoreDao.getStoreByNumber(newStoreNumber)).thenReturn(newStore)
-        whenever(mockReceiptDao.findByNumberDateStore(newReceiptNumber, newDateParsed, newStoreId)).thenReturn(null)
+        // Zaktualizowano mockowanie findBy...
+        whenever(mockReceiptDao.findByNumberDateStoreCashRegister(newReceiptNumber, newDateParsed, newStoreId, newCashRegisterNum)).thenReturn(null)
         whenever(mockReceiptDao.updateReceipt(any())).then {}
         whenever(mockClientDao.updateClient(any())).then {}
         whenever(mockPhotoDao.deletePhotoByUri(any())).then {}
@@ -288,6 +302,7 @@ class EditReceiptViewModelTest {
             storeNumberString = newStoreNumber,
             receiptNumber = newReceiptNumber,
             receiptDateString = newDateStr,
+            cashRegisterNumber = newCashRegisterNum, // Przekazanie numeru kasy
             verificationDateString = newVerDateStr,
             clientDescription = newDesc,
             clientAppNumber = newAppNum,
@@ -307,6 +322,7 @@ class EditReceiptViewModelTest {
             assertEquals(newReceiptNumber, it.receiptNumber)
             assertEquals(newDateParsed, it.receiptDate)
             assertEquals(newStoreId, it.storeId)
+            assertEquals(newCashRegisterNum, it.cashRegisterNumber) // Weryfikacja numeru kasy
             assertEquals(newVerDateParsed, it.verificationDate)
         })
         verify(mockClientDao).updateClient(check<Client> {
@@ -336,7 +352,8 @@ class EditReceiptViewModelTest {
         whenever(mockReceiptDao.getReceiptWithClient(testReceiptId)).thenReturn(testReceiptWithClient)
         whenever(mockStoreDao.getStoreByNumber(newStoreNumber)).thenReturn(null).thenReturn(newStore)
         whenever(mockStoreDao.insertStore(any())).then {}
-        whenever(mockReceiptDao.findByNumberDateStore(any(), any(), eq(newStoreId))).thenReturn(null)
+        // Zaktualizowano mockowanie findBy...
+        whenever(mockReceiptDao.findByNumberDateStoreCashRegister(any(), any(), eq(newStoreId), eq(testCashRegisterNum))).thenReturn(null)
         whenever(mockReceiptDao.updateReceipt(any())).then {}
         whenever(mockClientDao.updateClient(any())).then {}
         whenever(mockReceiptDao.getReceiptsForStoreCount(testStoreId)).thenReturn(0) // Stary sklep staje się pusty
@@ -349,6 +366,7 @@ class EditReceiptViewModelTest {
             storeNumberString = newStoreNumber,
             receiptNumber = testReceipt.receiptNumber,
             receiptDateString = dateFormat.format(testReceipt.receiptDate),
+            cashRegisterNumber = testCashRegisterNum, // Przekazanie numeru kasy
             verificationDateString = null,
             clientDescription = testClient.description,
             clientAppNumber = testClient.clientAppNumber,
@@ -373,7 +391,7 @@ class EditReceiptViewModelTest {
         whenever(mockReceiptDao.getReceiptWithClient(testReceiptId)).thenReturn(null)
 
         // Act
-        val result = executeUpdateReceiptLogic(testReceiptId, "1", "1", "01-01-2024", null, null, null, null, emptyList(), emptyList(), emptyList(),
+        val result = executeUpdateReceiptLogic(testReceiptId, "1", "1", "01-01-2024", null, null, null, null, null, emptyList(), emptyList(), emptyList(),
             mockReceiptDao, mockStoreDao, mockClientDao, mockPhotoDao)
 
         // Assert
@@ -386,7 +404,7 @@ class EditReceiptViewModelTest {
         whenever(mockReceiptDao.getReceiptWithClient(testReceiptId)).thenReturn(testReceiptWithClient)
 
         // Act
-        val result = executeUpdateReceiptLogic(testReceiptId, "1", "1", "invalid-date", null, null, null, null, emptyList(), emptyList(), emptyList(),
+        val result = executeUpdateReceiptLogic(testReceiptId, "1", "1", "invalid-date", null, null, null, null, null, emptyList(), emptyList(), emptyList(),
             mockReceiptDao, mockStoreDao, mockClientDao, mockPhotoDao)
 
         // Assert
@@ -398,22 +416,63 @@ class EditReceiptViewModelTest {
         // Arrange
         val newReceiptNumber = "9999"
         val newDateStr = "02-02-2024"
+        val newCashRegisterNum = "3"
         val newDateParsed = dateFormat.parse(newDateStr)!!
-        val existingDuplicate = Receipt(id = 999L, receiptNumber = newReceiptNumber, receiptDate = newDateParsed, storeId = testStoreId, clientId = 88L)
+        val existingDuplicate = Receipt(id = 999L, receiptNumber = newReceiptNumber, receiptDate = newDateParsed, storeId = testStoreId, cashRegisterNumber = newCashRegisterNum, clientId = 88L)
 
         whenever(mockReceiptDao.getReceiptWithClient(testReceiptId)).thenReturn(testReceiptWithClient)
         whenever(mockStoreDao.getStoreByNumber(testStore.storeNumber)).thenReturn(testStore)
-        whenever(mockReceiptDao.findByNumberDateStore(newReceiptNumber, newDateParsed, testStoreId)).thenReturn(existingDuplicate)
+        // Zaktualizowano mockowanie findBy...
+        whenever(mockReceiptDao.findByNumberDateStoreCashRegister(newReceiptNumber, newDateParsed, testStoreId, newCashRegisterNum)).thenReturn(existingDuplicate)
 
         // Act
-        val result = executeUpdateReceiptLogic(testReceiptId, testStore.storeNumber, newReceiptNumber, newDateStr, null, null, null, null, emptyList(), emptyList(), emptyList(),
+        val result = executeUpdateReceiptLogic(testReceiptId, testStore.storeNumber, newReceiptNumber, newDateStr, newCashRegisterNum, null, null, null, null, emptyList(), emptyList(), emptyList(),
             mockReceiptDao, mockStoreDao, mockClientDao, mockPhotoDao)
 
         // Assert
         assertEquals(EditReceiptViewModel.EditResult.ERROR_DUPLICATE_RECEIPT, result)
-        verify(mockReceiptDao).findByNumberDateStore(newReceiptNumber, newDateParsed, testStoreId)
+        // Zaktualizowano weryfikację findBy...
+        verify(mockReceiptDao).findByNumberDateStoreCashRegister(newReceiptNumber, newDateParsed, testStoreId, newCashRegisterNum)
         verify(mockReceiptDao, never()).updateReceipt(any())
     }
+
+    @Test
+    fun `updateReceiptAndClient success different cash register`() = testScope.runTest {
+        // Arrange: Zmieniamy tylko numer kasy, reszta bez zmian
+        val newCashRegisterNum = "2" // Inny niż w testReceipt (który ma "1")
+
+        whenever(mockReceiptDao.getReceiptWithClient(testReceiptId)).thenReturn(testReceiptWithClient)
+        whenever(mockStoreDao.getStoreByNumber(testStore.storeNumber)).thenReturn(testStore)
+        // Mockowanie: Sprawdzamy duplikat z nowym numerem kasy - nie powinno go być
+        whenever(mockReceiptDao.findByNumberDateStoreCashRegister(testReceipt.receiptNumber, testReceipt.receiptDate, testStoreId, newCashRegisterNum)).thenReturn(null)
+        whenever(mockReceiptDao.updateReceipt(any())).then {}
+        whenever(mockClientDao.updateClient(any())).then {}
+        whenever(mockReceiptDao.getReceiptsForStoreCount(testStoreId)).thenReturn(1) // Sklep nie jest pusty
+
+        // Act
+        val result = executeUpdateReceiptLogic(
+            receiptId = testReceiptId,
+            storeNumberString = testStore.storeNumber,
+            receiptNumber = testReceipt.receiptNumber,
+            receiptDateString = dateFormat.format(testReceipt.receiptDate),
+            cashRegisterNumber = newCashRegisterNum, // Przekazujemy nowy numer kasy
+            verificationDateString = null,
+            clientDescription = testClient.description,
+            clientAppNumber = testClient.clientAppNumber,
+            amoditNumber = testClient.amoditNumber,
+            clientPhotoUrisToAdd = emptyList(),
+            transactionPhotoUrisToAdd = emptyList(),
+            photoUrisToRemove = emptyList(),
+            mockReceiptDao, mockStoreDao, mockClientDao, mockPhotoDao
+        )
+
+        // Assert
+        assertEquals(EditReceiptViewModel.EditResult.SUCCESS, result)
+        // Weryfikacja: Sprawdzono duplikat z nowym numerem kasy i zaktualizowano paragon
+        verify(mockReceiptDao).findByNumberDateStoreCashRegister(testReceipt.receiptNumber, testReceipt.receiptDate, testStoreId, newCashRegisterNum)
+        verify(mockReceiptDao).updateReceipt(check<Receipt> { assertEquals(newCashRegisterNum, it.cashRegisterNumber) })
+    }
+
 
     @Test
     fun `deleteReceipt success client not deleted`() = testScope.runTest {

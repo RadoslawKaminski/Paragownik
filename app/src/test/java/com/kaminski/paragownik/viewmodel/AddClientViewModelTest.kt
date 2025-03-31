@@ -30,6 +30,7 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.check
 import org.mockito.kotlin.eq
+import org.mockito.kotlin.isNull
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.never
 import org.mockito.kotlin.times
@@ -164,7 +165,14 @@ class AddClientViewModelTest {
                     storeId = store.id
                 }
 
-                val existingReceipt = receiptDao.findByNumberDateStore(receiptData.receiptNumber, receiptDate, storeId)
+                // Zaktualizowano wywołanie DAO do sprawdzania duplikatów
+                val cashRegisterNumber = receiptData.cashRegisterNumber?.takeIf { it.isNotBlank() }
+                val existingReceipt = receiptDao.findByNumberDateStoreCashRegister(
+                    receiptData.receiptNumber,
+                    receiptDate,
+                    storeId,
+                    cashRegisterNumber
+                )
                 if (existingReceipt != null) return AddClientViewModel.AddResult.ERROR_DUPLICATE_RECEIPT
 
                 receiptDao.insertReceipt(
@@ -172,7 +180,7 @@ class AddClientViewModelTest {
                         receiptNumber = receiptData.receiptNumber,
                         receiptDate = receiptDate,
                         storeId = storeId,
-                        cashRegisterNumber = receiptData.cashRegisterNumber?.takeIf { it.isNotBlank() }, // Dodano obsługę numeru kasy
+                        cashRegisterNumber = cashRegisterNumber, // Dodano obsługę numeru kasy
                         verificationDate = verificationDate,
                         clientId = clientId
                     )
@@ -208,7 +216,8 @@ class AddClientViewModelTest {
         whenever(mockClientDao.insertClient(any())).thenReturn(newClientId) // Mock dla tego testu
         whenever(mockPhotoDao.insertPhoto(any())).thenReturn(1L)
         whenever(mockStoreDao.getStoreByNumber(storeNumber)).thenReturn(store)
-        whenever(mockReceiptDao.findByNumberDateStore(receiptData.receiptNumber, receiptDateParsed, storeId)).thenReturn(null)
+        // Zaktualizowano mockowanie findBy...
+        whenever(mockReceiptDao.findByNumberDateStoreCashRegister(receiptData.receiptNumber, receiptDateParsed, storeId, testCashRegisterNum)).thenReturn(null)
         whenever(mockReceiptDao.insertReceipt(any())).thenReturn(100L)
 
         // Act
@@ -236,7 +245,8 @@ class AddClientViewModelTest {
 
         verify(mockStoreDao).getStoreByNumber(storeNumber)
         verify(mockStoreDao, never()).insertStore(any())
-        verify(mockReceiptDao).findByNumberDateStore(receiptData.receiptNumber, receiptDateParsed, storeId)
+        // Zaktualizowano weryfikację findBy...
+        verify(mockReceiptDao).findByNumberDateStoreCashRegister(receiptData.receiptNumber, receiptDateParsed, storeId, testCashRegisterNum)
         verify(mockReceiptDao).insertReceipt(check<Receipt> {
             assertEquals(receiptData.receiptNumber, it.receiptNumber)
             assertEquals(receiptDateParsed, it.receiptDate)
@@ -260,7 +270,8 @@ class AddClientViewModelTest {
         whenever(mockPhotoDao.insertPhoto(any())).thenReturn(1L)
         whenever(mockStoreDao.getStoreByNumber(storeNumber)).thenReturn(null).thenReturn(newStore)
         whenever(mockStoreDao.insertStore(any())).then {}
-        whenever(mockReceiptDao.findByNumberDateStore(any(), any(), eq(newStoreId))).thenReturn(null)
+        // Zaktualizowano mockowanie findBy... (zakładamy brak numeru kasy)
+        whenever(mockReceiptDao.findByNumberDateStoreCashRegister(any(), any(), eq(newStoreId), isNull())).thenReturn(null)
         whenever(mockReceiptDao.insertReceipt(any())).thenReturn(101L)
 
         // Act
@@ -277,18 +288,20 @@ class AddClientViewModelTest {
     @Test
     fun `addClientWithReceiptsTransactionally error duplicate receipt`() = testScope.runTest {
         // Arrange
-        val receiptData = createReceiptData()
+        val testCashRegisterNum = "1"
+        val receiptData = createReceiptData(cashRegisterNumber = testCashRegisterNum)
         val storeNumber = receiptData.storeNumber
         val receiptDateParsed = dateFormat.parse(receiptData.receiptDate)!!
         val newClientId = 1L
         val storeId = 10L
         val store = Store(id = storeId, storeNumber = storeNumber)
-        val existingReceipt = Receipt(id = 99L, receiptNumber = receiptData.receiptNumber, receiptDate = receiptDateParsed, storeId = storeId, clientId = 5L)
+        val existingReceipt = Receipt(id = 99L, receiptNumber = receiptData.receiptNumber, receiptDate = receiptDateParsed, storeId = storeId, cashRegisterNumber = testCashRegisterNum, clientId = 5L)
 
         whenever(mockClientDao.insertClient(any())).thenReturn(newClientId) // Mock dla tego testu
         whenever(mockPhotoDao.insertPhoto(any())).thenReturn(1L)
         whenever(mockStoreDao.getStoreByNumber(storeNumber)).thenReturn(store)
-        whenever(mockReceiptDao.findByNumberDateStore(receiptData.receiptNumber, receiptDateParsed, storeId)).thenReturn(existingReceipt)
+        // Zaktualizowano mockowanie findBy...
+        whenever(mockReceiptDao.findByNumberDateStoreCashRegister(receiptData.receiptNumber, receiptDateParsed, storeId, testCashRegisterNum)).thenReturn(existingReceipt)
 
         // Act
         val result = executeAddClientLogic(null, null, null, emptyList(), emptyList(), listOf(receiptData),
@@ -296,9 +309,71 @@ class AddClientViewModelTest {
 
         // Assert
         assertEquals(AddClientViewModel.AddResult.ERROR_DUPLICATE_RECEIPT, result)
-        verify(mockReceiptDao).findByNumberDateStore(receiptData.receiptNumber, receiptDateParsed, storeId)
+        // Zaktualizowano weryfikację findBy...
+        verify(mockReceiptDao).findByNumberDateStoreCashRegister(receiptData.receiptNumber, receiptDateParsed, storeId, testCashRegisterNum)
         verify(mockReceiptDao, never()).insertReceipt(any())
     }
+
+    @Test
+    fun `addClientWithReceiptsTransactionally success different cash register`() = testScope.runTest {
+        // Arrange: Paragon 1 ma kasę 1, Paragon 2 ma kasę 2 (reszta danych taka sama)
+        val receiptData1 = createReceiptData(cashRegisterNumber = "1")
+        val receiptData2 = createReceiptData(cashRegisterNumber = "2") // Ten sam numer, data, sklep, inna kasa
+        val storeNumber = receiptData1.storeNumber
+        val receiptDateParsed = dateFormat.parse(receiptData1.receiptDate)!!
+        val newClientId = 1L
+        val storeId = 10L
+        val store = Store(id = storeId, storeNumber = storeNumber)
+
+        whenever(mockClientDao.insertClient(any())).thenReturn(newClientId)
+        whenever(mockStoreDao.getStoreByNumber(storeNumber)).thenReturn(store)
+        // Mockowanie: pierwszy paragon nie istnieje, drugi też nie (bo ma inną kasę)
+        whenever(mockReceiptDao.findByNumberDateStoreCashRegister(receiptData1.receiptNumber, receiptDateParsed, storeId, "1")).thenReturn(null)
+        whenever(mockReceiptDao.findByNumberDateStoreCashRegister(receiptData2.receiptNumber, receiptDateParsed, storeId, "2")).thenReturn(null)
+        whenever(mockReceiptDao.insertReceipt(any())).thenReturn(100L).thenReturn(101L) // Dwa udane inserty
+
+        // Act
+        val result = executeAddClientLogic(null, null, null, emptyList(), emptyList(), listOf(receiptData1, receiptData2),
+            mockClientDao, mockPhotoDao, mockStoreDao, mockReceiptDao)
+
+        // Assert
+        assertEquals(AddClientViewModel.AddResult.SUCCESS, result)
+        // Weryfikacja: sprawdzono duplikaty dla obu paragonów i oba zostały wstawione
+        verify(mockReceiptDao).findByNumberDateStoreCashRegister(receiptData1.receiptNumber, receiptDateParsed, storeId, "1")
+        verify(mockReceiptDao).findByNumberDateStoreCashRegister(receiptData2.receiptNumber, receiptDateParsed, storeId, "2")
+        verify(mockReceiptDao, times(2)).insertReceipt(any())
+    }
+
+    @Test
+    fun `addClientWithReceiptsTransactionally success null cash register`() = testScope.runTest {
+        // Arrange: Paragon 1 ma kasę null, Paragon 2 ma kasę 1
+        val receiptData1 = createReceiptData(cashRegisterNumber = null)
+        val receiptData2 = createReceiptData(cashRegisterNumber = "1") // Ten sam numer, data, sklep, inna kasa
+        val storeNumber = receiptData1.storeNumber
+        val receiptDateParsed = dateFormat.parse(receiptData1.receiptDate)!!
+        val newClientId = 1L
+        val storeId = 10L
+        val store = Store(id = storeId, storeNumber = storeNumber)
+
+        whenever(mockClientDao.insertClient(any())).thenReturn(newClientId)
+        whenever(mockStoreDao.getStoreByNumber(storeNumber)).thenReturn(store)
+        // Mockowanie: pierwszy paragon (kasa null) nie istnieje, drugi (kasa 1) też nie
+        whenever(mockReceiptDao.findByNumberDateStoreCashRegister(receiptData1.receiptNumber, receiptDateParsed, storeId, null)).thenReturn(null)
+        whenever(mockReceiptDao.findByNumberDateStoreCashRegister(receiptData2.receiptNumber, receiptDateParsed, storeId, "1")).thenReturn(null)
+        whenever(mockReceiptDao.insertReceipt(any())).thenReturn(100L).thenReturn(101L) // Dwa udane inserty
+
+        // Act
+        val result = executeAddClientLogic(null, null, null, emptyList(), emptyList(), listOf(receiptData1, receiptData2),
+            mockClientDao, mockPhotoDao, mockStoreDao, mockReceiptDao)
+
+        // Assert
+        assertEquals(AddClientViewModel.AddResult.SUCCESS, result)
+        // Weryfikacja: sprawdzono duplikaty dla obu paragonów i oba zostały wstawione
+        verify(mockReceiptDao).findByNumberDateStoreCashRegister(receiptData1.receiptNumber, receiptDateParsed, storeId, null)
+        verify(mockReceiptDao).findByNumberDateStoreCashRegister(receiptData2.receiptNumber, receiptDateParsed, storeId, "1")
+        verify(mockReceiptDao, times(2)).insertReceipt(any())
+    }
+
 
     @Test
     fun `addClientWithReceiptsTransactionally error invalid date format`() = testScope.runTest {
@@ -362,7 +437,8 @@ class AddClientViewModelTest {
         whenever(mockClientDao.insertClient(any())).thenReturn(newClientId) // Mock dla tego testu
         whenever(mockPhotoDao.insertPhoto(any())).thenReturn(1L)
         whenever(mockStoreDao.getStoreByNumber(storeNumber)).thenReturn(store)
-        whenever(mockReceiptDao.findByNumberDateStore(any(), any(), any())).thenReturn(null)
+        // Zaktualizowano mockowanie findBy...
+        whenever(mockReceiptDao.findByNumberDateStoreCashRegister(any(), any(), any(), isNull())).thenReturn(null)
         whenever(mockReceiptDao.insertReceipt(any())).thenReturn(100L)
 
         // Act
@@ -388,7 +464,8 @@ class AddClientViewModelTest {
         whenever(mockClientDao.insertClient(any())).thenReturn(newClientId) // Mock dla tego testu
         whenever(mockPhotoDao.insertPhoto(any())).thenReturn(1L)
         whenever(mockStoreDao.getStoreByNumber(storeNumber)).thenReturn(store)
-        whenever(mockReceiptDao.findByNumberDateStore(any(), any(), any())).thenReturn(null)
+        // Zaktualizowano mockowanie findBy...
+        whenever(mockReceiptDao.findByNumberDateStoreCashRegister(any(), any(), any(), isNull())).thenReturn(null)
         whenever(mockReceiptDao.insertReceipt(any())).thenReturn(100L)
 
         // Act
@@ -415,3 +492,4 @@ class AddClientViewModelTest {
         })
     }
 }
+
