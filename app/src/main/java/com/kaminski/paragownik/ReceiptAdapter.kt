@@ -12,6 +12,7 @@ import android.widget.TextView
 import androidx.core.net.toUri
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide // Import Glide
 import com.kaminski.paragownik.data.ReceiptWithClient
 import java.text.SimpleDateFormat
 import java.util.Locale
@@ -39,6 +40,7 @@ sealed interface DisplayableItem {
  * Adapter dla RecyclerView wyświetlającego listę paragonów.
  * Może działać w dwóch trybach: pokazywania danych klienta lub numeru sklepu.
  * W trybie STORE_LIST obsługuje teraz wyświetlanie nagłówków z numerem sklepu.
+ * Używa Glide do ładowania miniatur zdjęć klientów.
  */
 class ReceiptAdapter(
     // Usunięto listę z konstruktora, adapter zarządza nią wewnętrznie
@@ -46,7 +48,6 @@ class ReceiptAdapter(
     private val displayMode: DisplayMode
 ) : RecyclerView.Adapter<RecyclerView.ViewHolder>() { // Zmieniono na RecyclerView.ViewHolder
 
-    // Usunięto lateinit var context, będzie przekazywany do updateReceipts
     // Mapa przechowująca ID sklepu -> Numer sklepu (używana w trybie CLIENT_LIST i do nagłówków)
     private var storeMap: Map<Long, String> = emptyMap()
     // Mapa przechowująca ID klienta -> URI miniatury (używana w trybie STORE_LIST)
@@ -93,7 +94,6 @@ class ReceiptAdapter(
      * Tworzy nowy ViewHolder odpowiedniego typu (nagłówek lub paragon).
      */
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
-        // Kontekst jest teraz pobierany tutaj, ale nie jest już potrzebny jako pole lateinit
         val context = parent.context
         val inflater = LayoutInflater.from(context)
         // Zwraca odpowiedni ViewHolder w zależności od viewType
@@ -170,6 +170,7 @@ class ReceiptAdapter(
 
     /**
      * Łączy dane z widokami w odpowiednim ViewHolderze (nagłówek lub paragon).
+     * Używa Glide do ładowania miniatur zdjęć klientów.
      */
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
         val item = displayableItems[position] // Pobierz element z przygotowanej listy
@@ -198,9 +199,7 @@ class ReceiptAdapter(
 
                 // --- Obsługa daty weryfikacji ---
                 val verificationDateText = currentReceipt.verificationDate?.let { dateFormat.format(it) }
-                // Layout weryfikacji jest teraz zawsze widoczny
                 holder.verificationDateLayout.isVisible = true
-                // Ustaw tekst daty lub informację o jej braku
                 holder.verificationDateTextView.text = verificationDateText ?: context.getString(R.string.no_verification_date)
 
                 // --- Logika zależna od trybu wyświetlania ---
@@ -210,40 +209,38 @@ class ReceiptAdapter(
                         holder.storeNumberTextView.visibility = View.GONE // Numer sklepu jest teraz w nagłówku
 
                         if (client != null) {
-                            // Pokaż opis klienta lub informację o jego braku
                             holder.clientDescriptionTextView.text = if (client.description.isNullOrBlank()) {
-                                context.getString(R.string.no_client_description) // Użyj nowego stringa
+                                context.getString(R.string.no_client_description)
                             } else {
                                 client.description
                             }
-                            holder.clientDescriptionTextView.isVisible = true // Zawsze widoczne, jeśli jest klient
+                            holder.clientDescriptionTextView.isVisible = true
 
-                            // Pokaż numer aplikacji klienta, jeśli istnieje
                             val appNumberText = client.clientAppNumber?.takeIf { it.isNotBlank() }?.let {
                                 context.getString(R.string.client_item_app_number_prefix) + " " + it
                             }
                             holder.clientAppNumberTextView.text = appNumberText
                             holder.clientAppNumberTextView.isVisible = appNumberText != null
 
-                            // Pokaż numer Amodit, jeśli istnieje
                             val amoditNumberText = client.amoditNumber?.takeIf { it.isNotBlank() }?.let {
                                 context.getString(R.string.client_item_amodit_number_prefix) + " " + it
                             }
                             holder.amoditNumberTextView.text = amoditNumberText
                             holder.amoditNumberTextView.isVisible = amoditNumberText != null
 
-                            // Pokaż miniaturę zdjęcia klienta, jeśli istnieje
+                            // Pokaż miniaturę zdjęcia klienta za pomocą Glide
                             val thumbnailUriString = clientThumbnailsMap[client.id]
                             if (!thumbnailUriString.isNullOrBlank()) {
-                                try {
-                                    holder.clientPhotoImageView.setImageURI(thumbnailUriString.toUri())
-                                    holder.clientPhotoImageView.visibility = View.VISIBLE
-                                } catch (e: Exception) {
-                                    Log.w("ReceiptAdapter", "Błąd ładowania miniatury klienta ${client.id}, URI: $thumbnailUriString", e)
-                                    holder.clientPhotoImageView.setImageResource(R.drawable.ic_photo_placeholder)
-                                    holder.clientPhotoImageView.visibility = View.VISIBLE
-                                }
+                                Glide.with(context) // Użyj kontekstu z holdera
+                                    .load(thumbnailUriString.toUri())
+                                    .placeholder(R.drawable.ic_photo_placeholder)
+                                    .error(R.drawable.ic_photo_placeholder)
+                                    .centerCrop()
+                                    .into(holder.clientPhotoImageView)
+                                holder.clientPhotoImageView.visibility = View.VISIBLE
                             } else {
+                                // Jeśli nie ma URI, ukryj ImageView lub ustaw placeholder przez Glide
+                                Glide.with(context).clear(holder.clientPhotoImageView) // Wyczyść poprzedni obraz
                                 holder.clientPhotoImageView.visibility = View.GONE
                             }
                         } else {
@@ -252,6 +249,7 @@ class ReceiptAdapter(
                             holder.clientDescriptionTextView.isVisible = true
                             holder.clientAppNumberTextView.visibility = View.GONE
                             holder.amoditNumberTextView.visibility = View.GONE
+                            Glide.with(context).clear(holder.clientPhotoImageView)
                             holder.clientPhotoImageView.visibility = View.GONE
                         }
                     }
@@ -260,7 +258,7 @@ class ReceiptAdapter(
                         holder.clientDescriptionTextView.visibility = View.GONE
                         holder.clientAppNumberTextView.visibility = View.GONE
                         holder.amoditNumberTextView.visibility = View.GONE
-                        holder.clientPhotoImageView.visibility = View.GONE
+                        holder.clientPhotoImageView.visibility = View.GONE // Ukryj ImageView
 
                         // Pobierz i ustaw numer sklepu z mapy
                         val storeNumber = storeMap[currentReceipt.storeId] ?: "?"
@@ -277,3 +275,6 @@ class ReceiptAdapter(
         }
     }
 }
+
+
+

@@ -26,6 +26,8 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager // Dodano import
 import androidx.recyclerview.widget.RecyclerView // Dodano import
+import com.bumptech.glide.Glide // Import Glide
+import com.kaminski.paragownik.adapter.GlideScaleType // Import enuma
 import com.kaminski.paragownik.adapter.PhotoAdapter // Dodano import
 import com.kaminski.paragownik.data.Photo // Dodano import
 import com.kaminski.paragownik.data.PhotoType // Dodano import
@@ -46,7 +48,7 @@ import java.util.Calendar // Dodano import
 
 /**
  * Aktywność odpowiedzialna za przeglądanie i edycję istniejącego paragonu oraz danych klienta,
- * w tym zarządzanie wieloma zdjęciami.
+ * w tym zarządzanie wieloma zdjęciami. Używa Glide do ładowania obrazów.
  */
 class EditReceiptActivity : AppCompatActivity() {
 
@@ -59,13 +61,10 @@ class EditReceiptActivity : AppCompatActivity() {
     private lateinit var editClientDescriptionEditText: EditText
     private lateinit var editClientAppNumberEditText: EditText
     private lateinit var editAmoditNumberEditText: EditText
-    // private lateinit var editClientPhotoImageView: ImageView // USUNIĘTO
-    // private lateinit var editAddChangePhotoButton: ImageButton // USUNIĘTO
     private lateinit var saveReceiptButton: Button
     private lateinit var deleteReceiptButton: Button
     private lateinit var deleteClientButton: Button
     private lateinit var editModeImageButton: ImageButton // Ikona "Edytuj"
-    // private lateinit var largeClientPhotoImageView: ImageView // USUNIĘTO
     private lateinit var showClientReceiptsButton: Button // Przycisk nawigacji do paragonów klienta
     private lateinit var showStoreReceiptsButton: Button // Przycisk nawigacji do paragonów sklepu
     // Layouty i etykiety do ukrywania/pokazywania
@@ -75,7 +74,6 @@ class EditReceiptActivity : AppCompatActivity() {
     private lateinit var editDescriptionLayout: LinearLayout
     private lateinit var editAppNumberLayout: LinearLayout
     private lateinit var editAmoditNumberLayout: LinearLayout
-    // private lateinit var editPhotoSectionLayout: LinearLayout // USUNIĘTO
     private lateinit var clientDataSectionTitleEdit: TextView // Etykieta edycji
     private lateinit var clientDataSectionTitleView: TextView // Etykieta widoku
 
@@ -84,8 +82,6 @@ class EditReceiptActivity : AppCompatActivity() {
     private lateinit var clientPhotosTitleView: TextView
     private lateinit var clientPhotosScrollViewEdit: HorizontalScrollView
     private lateinit var clientPhotosContainerEdit: LinearLayout
-    // private lateinit var clientPhotosScrollViewView: HorizontalScrollView // USUNIĘTO
-    // private lateinit var clientPhotosContainerView: LinearLayout // USUNIĘTO
     private lateinit var clientPhotosRecyclerViewView: RecyclerView // NOWE
     private lateinit var addClientPhotoButtonEdit: Button
 
@@ -93,8 +89,6 @@ class EditReceiptActivity : AppCompatActivity() {
     private lateinit var transactionPhotosTitleView: TextView
     private lateinit var transactionPhotosScrollViewEdit: HorizontalScrollView
     private lateinit var transactionPhotosContainerEdit: LinearLayout
-    // private lateinit var transactionPhotosScrollViewView: HorizontalScrollView // USUNIĘTO
-    // private lateinit var transactionPhotosContainerView: LinearLayout // USUNIĘTO
     private lateinit var transactionPhotosRecyclerViewView: RecyclerView // NOWE
     private lateinit var addTransactionPhotoButtonEdit: Button
 
@@ -111,7 +105,6 @@ class EditReceiptActivity : AppCompatActivity() {
     private var currentClientId: Long? = null
     private var currentStoreId: Long = -1L
     private var loadDataJob: Job? = null
-    // private var selectedPhotoUri: Uri? = null // USUNIĘTO
     private var isEditMode = false
     private var navigationContext: String? = null
 
@@ -121,7 +114,6 @@ class EditReceiptActivity : AppCompatActivity() {
     private val photosToAdd = mutableMapOf<PhotoType, MutableList<Uri>>() // Nowe URI do dodania
     private val photosToRemove = mutableListOf<Uri>() // Istniejące URI do usunięcia
     private val photoUriToViewMapEdit = mutableMapOf<Uri, View>() // Mapa URI -> Widok miniatury (tryb edycji)
-    // private val photoUriToViewMapView = mutableMapOf<Uri, View>() // Już niepotrzebne
     private var currentPhotoTypeToAdd: PhotoType? = null // Typ zdjęcia dla launchera
 
 
@@ -148,7 +140,7 @@ class EditReceiptActivity : AppCompatActivity() {
                         updatePhotoSectionVisibility(type, true)
                     } else {
                          Log.d("EditReceiptActivity", "Zdjęcie $finalUri już istnieje lub zostało dodane.")
-                         Toast.makeText(this, "To zdjęcie już zostało dodane.", Toast.LENGTH_SHORT).show()
+                         Toast.makeText(this, R.string.photo_already_added, Toast.LENGTH_SHORT).show()
                     }
                 } else {
                      Log.w("EditReceiptActivity", "Nieznany typ zdjęcia do dodania (currentPhotoTypeToAdd is null)")
@@ -190,11 +182,12 @@ class EditReceiptActivity : AppCompatActivity() {
         setupButtonClickListeners()
 
         // Inicjalizacja adapterów i RecyclerView dla zdjęć w trybie widoku
-        clientPhotosAdapter = PhotoAdapter(emptyList(), R.layout.large_photo_item, R.id.largePhotoImageViewItem) { uri -> /* TODO: Obsługa kliknięcia */ }
+        // Używamy GlideScaleType.FIT_CENTER dla dużych zdjęć
+        clientPhotosAdapter = PhotoAdapter(emptyList(), R.layout.large_photo_item, R.id.largePhotoImageViewItem, GlideScaleType.FIT_CENTER) { uri -> /* TODO: Obsługa kliknięcia */ }
         clientPhotosRecyclerViewView.layoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
         clientPhotosRecyclerViewView.adapter = clientPhotosAdapter
 
-        transactionPhotosAdapter = PhotoAdapter(emptyList(), R.layout.large_photo_item, R.id.largePhotoImageViewItem) { uri -> /* TODO: Obsługa kliknięcia */ }
+        transactionPhotosAdapter = PhotoAdapter(emptyList(), R.layout.large_photo_item, R.id.largePhotoImageViewItem, GlideScaleType.FIT_CENTER) { uri -> /* TODO: Obsługa kliknięcia */ }
         transactionPhotosRecyclerViewView.layoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
         transactionPhotosRecyclerViewView.adapter = transactionPhotosAdapter
 
@@ -213,13 +206,10 @@ class EditReceiptActivity : AppCompatActivity() {
         editClientDescriptionEditText = findViewById(R.id.editClientDescriptionEditText)
         editClientAppNumberEditText = findViewById(R.id.editClientAppNumberEditText)
         editAmoditNumberEditText = findViewById(R.id.editAmoditNumberEditText)
-        // editClientPhotoImageView = findViewById(R.id.editClientPhotoImageView) // USUNIĘTO
-        // editAddChangePhotoButton = findViewById(R.id.editAddChangePhotoButton) // USUNIĘTO
         saveReceiptButton = findViewById(R.id.saveReceiptButton)
         deleteReceiptButton = findViewById(R.id.deleteReceiptButton)
         deleteClientButton = findViewById(R.id.deleteClientButton)
         editModeImageButton = findViewById(R.id.editModeImageButton) // Ikona Edytuj
-        // largeClientPhotoImageView = findViewById(R.id.largeClientPhotoImageView) // USUNIĘTO
         showClientReceiptsButton = findViewById(R.id.showClientReceiptsButton)
         showStoreReceiptsButton = findViewById(R.id.showStoreReceiptsButton)
         // Layouty i etykiety do ukrywania/pokazywania
@@ -229,7 +219,6 @@ class EditReceiptActivity : AppCompatActivity() {
         editDescriptionLayout = findViewById(R.id.editDescriptionLayout)
         editAppNumberLayout = findViewById(R.id.editAppNumberLayout)
         editAmoditNumberLayout = findViewById(R.id.editAmoditNumberLayout)
-        // editPhotoSectionLayout = findViewById(R.id.editPhotoSectionLayout) // USUNIĘTO
         clientDataSectionTitleEdit = findViewById(R.id.clientDataSectionTitleEdit)
         clientDataSectionTitleView = findViewById(R.id.clientDataSectionTitleView)
 
@@ -238,8 +227,6 @@ class EditReceiptActivity : AppCompatActivity() {
         clientPhotosTitleView = findViewById(R.id.clientPhotosTitleView)
         clientPhotosScrollViewEdit = findViewById(R.id.clientPhotosScrollViewEdit)
         clientPhotosContainerEdit = findViewById(R.id.clientPhotosContainerEdit)
-        // clientPhotosScrollViewView = findViewById(R.id.clientPhotosScrollViewView) // USUNIĘTO
-        // clientPhotosContainerView = findViewById(R.id.clientPhotosContainerView) // USUNIĘTO
         clientPhotosRecyclerViewView = findViewById(R.id.clientPhotosRecyclerViewView) // NOWE
         addClientPhotoButtonEdit = findViewById(R.id.addClientPhotoButtonEdit)
 
@@ -247,8 +234,6 @@ class EditReceiptActivity : AppCompatActivity() {
         transactionPhotosTitleView = findViewById(R.id.transactionPhotosTitleView)
         transactionPhotosScrollViewEdit = findViewById(R.id.transactionPhotosScrollViewEdit)
         transactionPhotosContainerEdit = findViewById(R.id.transactionPhotosContainerEdit)
-        // transactionPhotosScrollViewView = findViewById(R.id.transactionPhotosScrollViewView) // USUNIĘTO
-        // transactionPhotosContainerView = findViewById(R.id.transactionPhotosContainerView) // USUNIĘTO
         transactionPhotosRecyclerViewView = findViewById(R.id.transactionPhotosRecyclerViewView) // NOWE
         addTransactionPhotoButtonEdit = findViewById(R.id.addTransactionPhotoButtonEdit)
     }
@@ -268,7 +253,6 @@ class EditReceiptActivity : AppCompatActivity() {
         saveReceiptButton.setOnClickListener { saveChanges() }
         deleteReceiptButton.setOnClickListener { showDeleteReceiptDialog() }
         deleteClientButton.setOnClickListener { showDeleteClientDialog() }
-        // editAddChangePhotoButton.setOnClickListener { pickImageLauncher.launch("image/*") } // USUNIĘTO
 
         // Listener dla przycisku dodawania zdjęcia KLIENTA (w trybie edycji)
         addClientPhotoButtonEdit.setOnClickListener {
@@ -394,9 +378,7 @@ class EditReceiptActivity : AppCompatActivity() {
     /** Wyczyść kontenery i listy danych zdjęć. */
     private fun clearPhotoData() {
         clientPhotosContainerEdit.removeAllViews()
-        // clientPhotosContainerView.removeAllViews() // USUNIĘTO
         transactionPhotosContainerEdit.removeAllViews()
-        // transactionPhotosContainerView.removeAllViews() // USUNIĘTO
         clientPhotosAdapter.updatePhotos(emptyList()) // NOWE
         transactionPhotosAdapter.updatePhotos(emptyList()) // NOWE
         currentClientPhotos.clear()
@@ -404,7 +386,6 @@ class EditReceiptActivity : AppCompatActivity() {
         photosToAdd.clear()
         photosToRemove.clear()
         photoUriToViewMapEdit.clear()
-        // photoUriToViewMapView.clear() // Już niepotrzebne
     }
 
 
@@ -421,7 +402,7 @@ class EditReceiptActivity : AppCompatActivity() {
             val editContainer = container ?: return // Potrzebujemy kontenera w trybie edycji
             editContainer.removeAllViews()
             val mapToUse = photoUriToViewMapEdit
-            mapToUse.clear()
+            // Nie czyścimy mapy tutaj, bo addPhotoThumbnail dodaje do niej wpisy
 
             for (photo in photos) {
                  try {
@@ -465,7 +446,7 @@ class EditReceiptActivity : AppCompatActivity() {
 
 
     /**
-     * Dodaje widok miniatury zdjęcia do określonego kontenera (tylko dla trybu edycji).
+     * Dodaje widok miniatury zdjęcia do określonego kontenera (tylko dla trybu edycji), używając Glide.
      * @param photoUri URI zdjęcia do wyświetlenia.
      * @param container LinearLayout, do którego zostanie dodana miniatura.
      * @param photoType Typ zdjęcia.
@@ -480,7 +461,14 @@ class EditReceiptActivity : AppCompatActivity() {
         val deleteButton = thumbnailView.findViewById<ImageButton>(R.id.deletePhotoButton)
 
         try {
-            imageView.setImageURI(photoUri)
+            // Użycie Glide do załadowania miniatury
+            Glide.with(this)
+                .load(photoUri)
+                .placeholder(R.drawable.ic_photo_placeholder)
+                .error(R.drawable.ic_photo_placeholder)
+                .centerCrop()
+                .into(imageView)
+
             deleteButton.visibility = View.VISIBLE // Zawsze widoczny w trybie edycji
 
             deleteButton.setOnClickListener {
@@ -526,7 +514,6 @@ class EditReceiptActivity : AppCompatActivity() {
         val titleEdit = if (photoType == PhotoType.CLIENT) clientPhotosTitleEdit else transactionPhotosTitleEdit
         val titleView = if (photoType == PhotoType.CLIENT) clientPhotosTitleView else transactionPhotosTitleView
         val scrollViewEdit = if (photoType == PhotoType.CLIENT) clientPhotosScrollViewEdit else transactionPhotosScrollViewEdit
-        // val scrollViewView = if (photoType == PhotoType.CLIENT) clientPhotosScrollViewView else transactionPhotosScrollViewView // USUNIĘTO
         val recyclerViewView = if (photoType == PhotoType.CLIENT) clientPhotosRecyclerViewView else transactionPhotosRecyclerViewView // NOWE
         val addButton = if (photoType == PhotoType.CLIENT) addClientPhotoButtonEdit else addTransactionPhotoButtonEdit
 
@@ -537,7 +524,6 @@ class EditReceiptActivity : AppCompatActivity() {
 
         // Widoczność w trybie widoku
         titleView.visibility = if (!isEditing && photosExist) View.VISIBLE else View.GONE
-        // scrollViewView.visibility = if (!isEditing && photosExist) View.VISIBLE else View.GONE // USUNIĘTO
         recyclerViewView.visibility = if (!isEditing && photosExist) View.VISIBLE else View.GONE // NOWE
     }
 
@@ -564,11 +550,7 @@ class EditReceiptActivity : AppCompatActivity() {
         saveReceiptButton.visibility = if (isEditing) View.VISIBLE else View.GONE
         deleteReceiptButton.visibility = if (isEditing) View.VISIBLE else View.GONE
         deleteClientButton.visibility = if (isEditing) View.VISIBLE else View.GONE
-        // editAddChangePhotoButton.visibility = if (isEditing) View.VISIBLE else View.GONE // USUNIĘTO
         editModeImageButton.visibility = if (isEditing) View.GONE else View.VISIBLE // Ikona edycji
-
-        // Pokaż/Ukryj duży obrazek (już nie istnieje)
-        // largeClientPhotoImageView.visibility = if (!isEditing && selectedPhotoUri != null) View.VISIBLE else View.GONE // USUNIĘTO
 
         // Pokaż/Ukryj opcjonalne sekcje i przełącz etykiety
         val hasVerificationDate = !editVerificationDateEditText.text.isNullOrBlank()
@@ -589,9 +571,6 @@ class EditReceiptActivity : AppCompatActivity() {
         // Przełącz etykietę sekcji danych klienta
         clientDataSectionTitleEdit.visibility = if (isEditing) View.VISIBLE else View.GONE
         clientDataSectionTitleView.visibility = if (!isEditing) View.VISIBLE else View.GONE
-
-        // Sekcja zdjęcia (miniatura + przycisk) jest widoczna TYLKO w trybie edycji (już nie istnieje)
-        // editPhotoSectionLayout.visibility = if (isEditing) View.VISIBLE else View.GONE // USUNIĘTO
 
         // Zaktualizuj widoczność sekcji zdjęć
         updatePhotoSectionVisibility(PhotoType.CLIENT, isEditing)
@@ -851,7 +830,7 @@ class EditReceiptActivity : AppCompatActivity() {
             null
         } catch (e: SecurityException) {
             Log.e("EditReceiptActivity", "Brak uprawnień do odczytu URI źródłowego (SecurityException)", e)
-            Toast.makeText(this, "Brak uprawnień do odczytu zdjęcia.", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, R.string.error_permission_read_photo, Toast.LENGTH_SHORT).show()
             null
         }
     }

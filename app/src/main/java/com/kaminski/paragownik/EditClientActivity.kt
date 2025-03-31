@@ -22,6 +22,8 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide // Import Glide
+import com.kaminski.paragownik.adapter.GlideScaleType // Import enuma
 import com.kaminski.paragownik.adapter.PhotoAdapter
 import com.kaminski.paragownik.data.Photo
 import com.kaminski.paragownik.data.PhotoType
@@ -37,7 +39,7 @@ import java.util.UUID
 
 /**
  * Aktywność odpowiedzialna za przeglądanie i edycję danych istniejącego klienta,
- * w tym zarządzanie jego zdjęciami.
+ * w tym zarządzanie jego zdjęciami. Używa Glide do ładowania obrazów.
  */
 class EditClientActivity : AppCompatActivity() {
 
@@ -54,7 +56,6 @@ class EditClientActivity : AppCompatActivity() {
     private lateinit var editAppNumberLayout: LinearLayout
     private lateinit var editAmoditNumberLayout: LinearLayout
     private lateinit var clientDataSectionTitleEdit: TextView // Etykieta edycji
-    // private lateinit var clientDataSectionTitleView: TextView // USUNIĘTO referencję
 
     // Widoki dla zdjęć
     private lateinit var clientPhotosTitleEdit: TextView
@@ -145,11 +146,12 @@ class EditClientActivity : AppCompatActivity() {
         }
 
         // Inicjalizacja adapterów i RecyclerView dla zdjęć w trybie widoku
-        clientPhotosAdapter = PhotoAdapter(emptyList(), R.layout.large_photo_item, R.id.largePhotoImageViewItem) { uri -> /* TODO: Obsługa kliknięcia */ }
+        // Używamy GlideScaleType.FIT_CENTER dla dużych zdjęć
+        clientPhotosAdapter = PhotoAdapter(emptyList(), R.layout.large_photo_item, R.id.largePhotoImageViewItem, GlideScaleType.FIT_CENTER) { uri -> /* TODO: Obsługa kliknięcia */ }
         clientPhotosRecyclerViewView.layoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
         clientPhotosRecyclerViewView.adapter = clientPhotosAdapter
 
-        transactionPhotosAdapter = PhotoAdapter(emptyList(), R.layout.large_photo_item, R.id.largePhotoImageViewItem) { uri -> /* TODO: Obsługa kliknięcia */ }
+        transactionPhotosAdapter = PhotoAdapter(emptyList(), R.layout.large_photo_item, R.id.largePhotoImageViewItem, GlideScaleType.FIT_CENTER) { uri -> /* TODO: Obsługa kliknięcia */ }
         transactionPhotosRecyclerViewView.layoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
         transactionPhotosRecyclerViewView.adapter = transactionPhotosAdapter
 
@@ -177,7 +179,6 @@ class EditClientActivity : AppCompatActivity() {
         editAppNumberLayout = findViewById(R.id.editAppNumberLayout)
         editAmoditNumberLayout = findViewById(R.id.editAmoditNumberLayout)
         clientDataSectionTitleEdit = findViewById(R.id.clientDataSectionTitleEdit)
-        // clientDataSectionTitleView = findViewById(R.id.clientDataSectionTitleView) // USUNIĘTO referencję
 
         // Widoki zdjęć
         clientPhotosTitleEdit = findViewById(R.id.clientPhotosTitleEdit)
@@ -348,7 +349,7 @@ class EditClientActivity : AppCompatActivity() {
     }
 
     /**
-     * Dodaje widok miniatury zdjęcia do określonego kontenera (tylko dla trybu edycji).
+     * Dodaje widok miniatury zdjęcia do określonego kontenera (tylko dla trybu edycji), używając Glide.
      * @param photoUri URI zdjęcia do wyświetlenia.
      * @param container LinearLayout, do którego zostanie dodana miniatura.
      * @param photoType Typ zdjęcia.
@@ -363,7 +364,14 @@ class EditClientActivity : AppCompatActivity() {
         val deleteButton = thumbnailView.findViewById<ImageButton>(R.id.deletePhotoButton)
 
         try {
-            imageView.setImageURI(photoUri)
+            // Użycie Glide do załadowania miniatury
+            Glide.with(this)
+                .load(photoUri)
+                .placeholder(R.drawable.ic_photo_placeholder)
+                .error(R.drawable.ic_photo_placeholder)
+                .centerCrop()
+                .into(imageView)
+
             deleteButton.visibility = View.VISIBLE // Zawsze widoczny w trybie edycji
 
             deleteButton.setOnClickListener {
@@ -444,7 +452,6 @@ class EditClientActivity : AppCompatActivity() {
 
         // Przełącz etykietę sekcji danych klienta (tylko w trybie edycji)
         clientDataSectionTitleEdit.visibility = if (isEditing) View.VISIBLE else View.GONE
-        // clientDataSectionTitleView.visibility = if (!isEditing) View.VISIBLE else View.GONE // USUNIĘTO obsługę
 
         // Zaktualizuj widoczność sekcji zdjęć
         updatePhotoSectionVisibility(PhotoType.CLIENT, isEditing)
@@ -568,3 +575,6 @@ class EditClientActivity : AppCompatActivity() {
         }
     }
 }
+
+
+

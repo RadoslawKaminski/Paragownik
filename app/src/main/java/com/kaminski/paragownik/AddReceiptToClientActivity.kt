@@ -20,6 +20,7 @@ import androidx.core.net.toUri
 import androidx.core.view.isVisible
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
+import com.bumptech.glide.Glide // Import Glide
 import com.kaminski.paragownik.viewmodel.AddReceiptToClientViewModel
 import kotlinx.coroutines.launch
 import java.text.ParseException
@@ -30,6 +31,7 @@ import java.util.Locale
 /**
  * Aktywność do dodawania nowych paragonów do istniejącego klienta.
  * Wyświetla dane klienta i pozwala na dodanie jednego lub więcej paragonów, w tym daty weryfikacji.
+ * Używa Glide do wyświetlania miniatury klienta.
  */
 class AddReceiptToClientActivity : AppCompatActivity() {
 
@@ -148,7 +150,7 @@ class AddReceiptToClientActivity : AppCompatActivity() {
     }
 
     /**
-     * Obserwuje dane klienta i jego miniaturę z ViewModelu i aktualizuje UI.
+     * Obserwuje dane klienta i jego miniaturę z ViewModelu i aktualizuje UI, używając Glide.
      */
     private fun observeClientData() {
         viewModel.clientDataWithThumbnail.observe(this) { pair ->
@@ -158,8 +160,9 @@ class AddReceiptToClientActivity : AppCompatActivity() {
             if (client == null) {
                 Log.e("AddReceiptToClient", "Nie znaleziono klienta o ID: $clientId w observeClientData")
                 Toast.makeText(this@AddReceiptToClientActivity, R.string.error_client_not_found, Toast.LENGTH_SHORT).show()
-                // Rozważ finish() lub inną obsługę błędu
-                clientPhotoImageView.visibility = View.GONE // Ukryj ImageView
+                // Ukryj ImageView i wyczyść ewentualny poprzedni obraz
+                Glide.with(this).clear(clientPhotoImageView)
+                clientPhotoImageView.visibility = View.GONE
                 return@observe
             }
 
@@ -184,18 +187,19 @@ class AddReceiptToClientActivity : AppCompatActivity() {
             clientAmoditNumberTextView.text = amoditNumberText
             clientAmoditNumberTextView.isVisible = amoditNumberText != null
 
-            // Ustaw zdjęcie (miniaturę)
+            // Ustaw zdjęcie (miniaturę) za pomocą Glide
             if (!thumbnailUriString.isNullOrBlank()) {
-                try {
-                    clientPhotoImageView.setImageURI(thumbnailUriString.toUri())
-                    clientPhotoImageView.visibility = View.VISIBLE
-                } catch (e: Exception) {
-                    Log.w("AddReceiptToClient", "Błąd ładowania miniatury klienta ${client.id}, URI: $thumbnailUriString", e)
-                    clientPhotoImageView.setImageResource(R.drawable.ic_photo_placeholder)
-                    clientPhotoImageView.visibility = View.VISIBLE // Pokaż placeholder w razie błędu
-                }
+                Glide.with(this)
+                    .load(thumbnailUriString.toUri())
+                    .placeholder(R.drawable.ic_photo_placeholder)
+                    .error(R.drawable.ic_photo_placeholder) // Pokaż placeholder w razie błędu
+                    .centerCrop()
+                    .into(clientPhotoImageView)
+                clientPhotoImageView.visibility = View.VISIBLE
             } else {
-                clientPhotoImageView.visibility = View.GONE // Ukryj, jeśli nie ma miniatury
+                // Jeśli nie ma miniatury, ukryj ImageView
+                Glide.with(this).clear(clientPhotoImageView) // Wyczyść, jeśli był tam obraz
+                clientPhotoImageView.visibility = View.GONE
             }
         }
     }
@@ -394,4 +398,6 @@ class AddReceiptToClientActivity : AppCompatActivity() {
         })
     }
 }
+
+
 

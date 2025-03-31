@@ -10,19 +10,20 @@ import android.widget.TextView
 import androidx.core.net.toUri // Potrzebny do konwersji String na Uri
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide // Import Glide
 import com.kaminski.paragownik.data.Client // Nadal potrzebne dla ClientDao
 import com.kaminski.paragownik.data.ClientWithThumbnail // Dodano import
 
 /**
  * Adapter dla RecyclerView wyświetlającego listę klientów w [ClientListActivity].
- * Pokazuje miniaturę zdjęcia klienta.
+ * Pokazuje miniaturę zdjęcia klienta, używając Glide.
  */
 class ClientAdapter(
     var clientList: List<ClientWithThumbnail>, // Zmieniono typ listy
     private val itemClickListener: OnClientClickListener
 ) : RecyclerView.Adapter<ClientAdapter.ClientViewHolder>() {
 
-    private lateinit var context: Context
+    // Usunięto lateinit var context, pobieramy z holdera
 
     /**
      * Interfejs dla obsługi kliknięcia elementu listy.
@@ -45,20 +46,20 @@ class ClientAdapter(
      * Tworzy nowy ViewHolder.
      */
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ClientViewHolder {
-        context = parent.context
-        val itemView = LayoutInflater.from(context)
+        // context = parent.context // Usunięto
+        val itemView = LayoutInflater.from(parent.context)
             .inflate(R.layout.client_item, parent, false)
         return ClientViewHolder(itemView)
     }
 
     /**
-     * Łączy dane z widokami w ViewHolderze, w tym ładuje miniaturę zdjęcia.
+     * Łączy dane z widokami w ViewHolderze, w tym ładuje miniaturę zdjęcia za pomocą Glide.
      */
     override fun onBindViewHolder(holder: ClientViewHolder, position: Int) {
         val currentClientWithThumbnail = clientList[position] // Zmieniono nazwę i typ
         val currentClient = currentClientWithThumbnail.client // Pobierz obiekt Client
         val thumbnailUri = currentClientWithThumbnail.thumbnailUri // Pobierz URI miniatury
-
+        val context = holder.itemView.context // Pobierz kontekst z widoku elementu
 
         // Ustawienie danych tekstowych klienta
         holder.descriptionTextView.text =
@@ -80,18 +81,13 @@ class ClientAdapter(
         holder.amoditNumberTextView.text = amoditNumberText
         holder.amoditNumberTextView.isVisible = amoditNumberText != null
 
-        // Ładowanie miniatury zdjęcia klienta
-        if (!thumbnailUri.isNullOrBlank()) { // Użyj thumbnailUri
-            try {
-                holder.clientPhotoImageView.setImageURI(thumbnailUri.toUri()) // Użyj thumbnailUri
-            } catch (e: Exception) {
-                Log.w("ClientAdapter", "Błąd ładowania miniatury dla klienta ${currentClient.id}, URI: $thumbnailUri", e)
-                holder.clientPhotoImageView.setImageResource(R.drawable.ic_photo_placeholder)
-            }
-        } else {
-            holder.clientPhotoImageView.setImageResource(R.drawable.ic_photo_placeholder)
-        }
-
+        // Ładowanie miniatury zdjęcia klienta za pomocą Glide
+        Glide.with(context) // Użyj kontekstu z holdera
+            .load(thumbnailUri?.toUri()) // Bezpieczne ładowanie URI (może być null)
+            .placeholder(R.drawable.ic_photo_placeholder) // Placeholder na czas ładowania
+            .error(R.drawable.ic_photo_placeholder) // Obrazek w razie błędu
+            .centerCrop() // Skalowanie, aby wypełnić ImageView, przycinając nadmiar
+            .into(holder.clientPhotoImageView) // Docelowy ImageView
 
         // Ustawienie listenera dla kliknięcia całego elementu listy
         holder.itemView.setOnClickListener {
@@ -104,4 +100,6 @@ class ClientAdapter(
      */
     override fun getItemCount() = clientList.size
 }
+
+
 

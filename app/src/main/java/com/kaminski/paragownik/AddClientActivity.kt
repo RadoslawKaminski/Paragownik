@@ -20,6 +20,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.net.toUri // Do konwersji File na Uri
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
+import com.bumptech.glide.Glide // Import Glide
 import com.kaminski.paragownik.data.PhotoType // Dodano import
 import com.kaminski.paragownik.viewmodel.AddClientViewModel
 import com.kaminski.paragownik.viewmodel.StoreViewModel
@@ -35,6 +36,7 @@ import java.util.Calendar // Potrzebne dla Calendar.getInstance()
 
 /**
  * Aktywność odpowiedzialna za dodawanie nowego klienta wraz z jednym lub wieloma paragonami i zdjęciami.
+ * Używa Glide do wyświetlania miniatur.
  */
 class AddClientActivity : AppCompatActivity() {
 
@@ -47,8 +49,6 @@ class AddClientActivity : AppCompatActivity() {
     private lateinit var clientDescriptionEditText: EditText
     private lateinit var clientAppNumberEditText: EditText
     private lateinit var amoditNumberEditText: EditText
-    // private lateinit var clientPhotoImageView: ImageView // USUNIĘTO
-    // private lateinit var addChangePhotoButton: ImageButton // USUNIĘTO
     private lateinit var addClientButton: Button
     private lateinit var addAdditionalReceiptButton: Button
     private lateinit var receiptsContainer: LinearLayout
@@ -66,8 +66,6 @@ class AddClientActivity : AppCompatActivity() {
     // --- Dane pomocnicze ---
     private val receiptFieldsList = ArrayList<ReceiptFields>()
     private var storeIdFromIntent: Long = -1L
-    // private var selectedPhotoUri: Uri? = null // USUNIĘTO
-
     // Nowe listy dla URI zdjęć
     private val clientPhotoUris = mutableListOf<Uri>()
     private val transactionPhotoUris = mutableListOf<Uri>()
@@ -113,9 +111,8 @@ class AddClientActivity : AppCompatActivity() {
                             addPhotoThumbnail(finalUri, clientPhotosContainer, PhotoType.CLIENT)
                             Log.d("AddClientActivity", "Dodano zdjęcie klienta: $finalUri")
                         } else {
-                            // Pusty else, aby zadowolić kompilator
                             Log.d("AddClientActivity", "Zdjęcie klienta $finalUri już istnieje.")
-                            Toast.makeText(this, "To zdjęcie już zostało dodane.", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(this, R.string.photo_already_added, Toast.LENGTH_SHORT).show()
                         }
                     }
                     PhotoType.TRANSACTION -> {
@@ -124,9 +121,8 @@ class AddClientActivity : AppCompatActivity() {
                             addPhotoThumbnail(finalUri, transactionPhotosContainer, PhotoType.TRANSACTION)
                             Log.d("AddClientActivity", "Dodano zdjęcie transakcji: $finalUri")
                         } else {
-                            // Pusty else, aby zadowolić kompilator
                             Log.d("AddClientActivity", "Zdjęcie transakcji $finalUri już istnieje.")
-                            Toast.makeText(this, "To zdjęcie już zostało dodane.", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(this, R.string.photo_already_added, Toast.LENGTH_SHORT).show()
                         }
                     }
                     null -> {
@@ -171,8 +167,6 @@ class AddClientActivity : AppCompatActivity() {
         clientDescriptionEditText = findViewById(R.id.clientDescriptionEditText)
         clientAppNumberEditText = findViewById(R.id.clientAppNumberEditText)
         amoditNumberEditText = findViewById(R.id.amoditNumberEditText)
-        // clientPhotoImageView = findViewById(R.id.clientPhotoImageView) // USUNIĘTO
-        // addChangePhotoButton = findViewById(R.id.addChangePhotoButton) // USUNIĘTO
         addClientButton = findViewById(R.id.addClientButton)
         addAdditionalReceiptButton = findViewById(R.id.addAdditionalReceiptButton)
         receiptsContainer = findViewById(R.id.receiptsContainer)
@@ -475,7 +469,7 @@ class AddClientActivity : AppCompatActivity() {
     }
 
     /**
-     * Dodaje widok miniatury zdjęcia do określonego kontenera.
+     * Dodaje widok miniatury zdjęcia do określonego kontenera, używając Glide.
      * @param photoUri URI zdjęcia do wyświetlenia.
      * @param container LinearLayout, do którego zostanie dodana miniatura.
      * @param photoType Typ zdjęcia (potrzebny do logiki usuwania).
@@ -486,7 +480,14 @@ class AddClientActivity : AppCompatActivity() {
         val imageView = thumbnailView.findViewById<ImageView>(R.id.photoThumbnailImageView)
         val deleteButton = thumbnailView.findViewById<ImageButton>(R.id.deletePhotoButton)
 
-        imageView.setImageURI(photoUri)
+        // Użycie Glide do załadowania miniatury
+        Glide.with(this) // Kontekst aktywności
+            .load(photoUri)
+            .placeholder(R.drawable.ic_photo_placeholder) // Placeholder
+            .error(R.drawable.ic_photo_placeholder) // Obrazek błędu
+            .centerCrop() // Skalowanie miniatury
+            .into(imageView) // Docelowy ImageView
+
         deleteButton.visibility = View.VISIBLE // Pokaż przycisk usuwania w AddClientActivity
 
         deleteButton.setOnClickListener {
@@ -500,8 +501,7 @@ class AddClientActivity : AppCompatActivity() {
             // Usuń z mapy śledzenia
             photoUriToViewMap.remove(photoUri)
             Log.d("AddClientActivity", "Usunięto miniaturę i URI: $photoUri")
-            // Uwaga: Plik na dysku nie jest usuwany na tym etapie, bo klient jeszcze nie został zapisany.
-            // Jeśli użytkownik anuluje dodawanie, pliki pozostaną (można dodać logikę czyszczenia).
+            // Plik na dysku nie jest usuwany, bo klient nie został zapisany.
         }
 
         container.addView(thumbnailView)
@@ -517,24 +517,15 @@ class AddClientActivity : AppCompatActivity() {
      */
     private fun copyImageToInternalStorage(sourceUri: Uri): Uri? {
         return try {
-            // Otwórz strumień wejściowy dla źródłowego URI
             val inputStream = contentResolver.openInputStream(sourceUri) ?: return null
-
-            // Utwórz katalog 'images' w wewnętrznym magazynie plików aplikacji, jeśli nie istnieje
             val imagesDir = File(filesDir, "images")
             if (!imagesDir.exists()) {
                 imagesDir.mkdirs()
             }
-
-            // Utwórz unikalną nazwę pliku dla kopii (np. używając UUID)
             val uniqueFileName = "${UUID.randomUUID()}.jpg"
             val destinationFile = File(imagesDir, uniqueFileName)
-
-            // Otwórz strumień wyjściowy do pliku docelowego
             val outputStream = FileOutputStream(destinationFile)
 
-            // Skopiuj dane ze strumienia wejściowego do wyjściowego
-            // Użycie 'use' zapewnia automatyczne zamknięcie strumieni
             inputStream.use { input ->
                 outputStream.use { output ->
                     input.copyTo(output)
@@ -542,19 +533,19 @@ class AddClientActivity : AppCompatActivity() {
             }
 
             Log.d("AddClientActivity", "Skopiowano zdjęcie do: ${destinationFile.absolutePath}")
-            // Zwróć URI dla nowo utworzonego pliku
-            destinationFile.toUri() // Używamy toUri() dla plików wewnętrznych
+            destinationFile.toUri()
 
         } catch (e: IOException) {
             Log.e("AddClientActivity", "Błąd podczas kopiowania zdjęcia", e)
             Toast.makeText(this, R.string.error_copying_image, Toast.LENGTH_SHORT).show()
-            null // Zwróć null w przypadku błędu
+            null
         } catch (e: SecurityException) {
-            // Ten błąd nie powinien tu wystąpić, bo mamy tymczasowe uprawnienie, ale dla pewności
             Log.e("AddClientActivity", "Brak uprawnień do odczytu URI źródłowego (SecurityException)", e)
-            Toast.makeText(this, "Brak uprawnień do odczytu zdjęcia.", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, R.string.error_permission_read_photo, Toast.LENGTH_SHORT).show()
             null
         }
     }
 }
+
+
 

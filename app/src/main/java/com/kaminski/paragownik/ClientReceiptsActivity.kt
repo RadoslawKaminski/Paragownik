@@ -19,6 +19,7 @@ import androidx.core.view.isVisible
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide // Import Glide
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.kaminski.paragownik.data.PhotoType // Dodano import
 import com.kaminski.paragownik.data.ReceiptWithClient // Dodano import
@@ -28,6 +29,7 @@ import com.kaminski.paragownik.viewmodel.StoreViewModel // Import StoreViewModel
 /**
  * Aktywność wyświetlająca szczegóły klienta, listę jego paragonów oraz listę jego zdjęć.
  * Umożliwia dodawanie paragonów oraz edycję/usuwanie klienta.
+ * Używa Glide do wyświetlania miniatur.
  */
 class ClientReceiptsActivity : AppCompatActivity(), ReceiptAdapter.OnReceiptClickListener {
 
@@ -61,7 +63,6 @@ class ClientReceiptsActivity : AppCompatActivity(), ReceiptAdapter.OnReceiptClic
     private var currentStoreMap: Map<Long, String>? = null
     // Mapa miniatur nie jest potrzebna w trybie CLIENT_LIST
 
-    // Usunięto @SuppressLint, bo aktualizacja jest teraz w dedykowanej metodzie
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_client_receipts)
@@ -243,7 +244,7 @@ class ClientReceiptsActivity : AppCompatActivity(), ReceiptAdapter.OnReceiptClic
         }
     }
 
-    /** Wyświetla zdjęcia klienta w odpowiednich kontenerach. */
+    /** Wyświetla zdjęcia klienta w odpowiednich kontenerach, używając Glide. */
     private fun displayClientPhotos(photos: List<com.kaminski.paragownik.data.Photo>) {
         // Wyczyść kontenery
         clientPhotosContainerDetails.removeAllViews()
@@ -266,24 +267,25 @@ class ClientReceiptsActivity : AppCompatActivity(), ReceiptAdapter.OnReceiptClic
         //     transactionPhotos.forEach { addPhotoThumbnailToDetailsView(it.uri.toUri(), transactionPhotosContainerDetails) }
         // }
 
-         // Ustaw miniaturę w nagłówku (pierwsze zdjęcie klienta)
+         // Ustaw miniaturę w nagłówku (pierwsze zdjęcie klienta) za pomocą Glide
          val firstClientPhotoUri = clientPhotos.firstOrNull()?.uri?.toUri()
          if (firstClientPhotoUri != null) {
-             try {
-                 clientPhotoImageView.setImageURI(firstClientPhotoUri)
-                 clientPhotoImageView.visibility = View.VISIBLE
-             } catch (e: Exception) {
-                 Log.w("ClientReceiptsActivity", "Błąd ładowania miniatury w nagłówku, URI: $firstClientPhotoUri", e)
-                 clientPhotoImageView.setImageResource(R.drawable.ic_photo_placeholder)
-                 clientPhotoImageView.visibility = View.VISIBLE
-             }
+             Glide.with(this)
+                 .load(firstClientPhotoUri)
+                 .placeholder(R.drawable.ic_photo_placeholder)
+                 .error(R.drawable.ic_photo_placeholder) // Pokaż placeholder w razie błędu
+                 .centerCrop()
+                 .into(clientPhotoImageView)
+             clientPhotoImageView.visibility = View.VISIBLE
          } else {
+             // Jeśli nie ma miniatury, ukryj ImageView
+             Glide.with(this).clear(clientPhotoImageView) // Wyczyść, jeśli był tam obraz
              clientPhotoImageView.visibility = View.GONE
          }
     }
 
 
-    /** Dodaje miniaturę zdjęcia do kontenera w widoku szczegółów (bez usuwania). */
+    /** Dodaje miniaturę zdjęcia do kontenera w widoku szczegółów (bez usuwania), używając Glide. */
     private fun addPhotoThumbnailToDetailsView(photoUri: Uri, container: LinearLayout) {
         val inflater = LayoutInflater.from(this)
         val thumbnailView = inflater.inflate(R.layout.photo_thumbnail_item, container, false)
@@ -291,7 +293,14 @@ class ClientReceiptsActivity : AppCompatActivity(), ReceiptAdapter.OnReceiptClic
         val deleteButton = thumbnailView.findViewById<ImageButton>(R.id.deletePhotoButton)
 
         try {
-            imageView.setImageURI(photoUri)
+            // Użycie Glide do załadowania miniatury
+            Glide.with(this)
+                .load(photoUri)
+                .placeholder(R.drawable.ic_photo_placeholder)
+                .error(R.drawable.ic_photo_placeholder)
+                .centerCrop()
+                .into(imageView)
+
             deleteButton.visibility = View.GONE // Ukryj przycisk usuwania w tym widoku
 
             // TODO: Dodać listener kliknięcia na imageView w przyszłości, aby otworzyć pełny ekran
@@ -317,3 +326,6 @@ class ClientReceiptsActivity : AppCompatActivity(), ReceiptAdapter.OnReceiptClic
         startActivity(intent)
     }
 }
+
+
+
