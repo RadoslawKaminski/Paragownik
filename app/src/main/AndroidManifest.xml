@@ -58,10 +58,18 @@
         <!-- Deklaracja aktywności EditClientActivity. -->
         <activity android:name=".EditClientActivity" />
 
-        <!-- Deklaracja NOWEJ aktywności AllReceiptsActivity. -->
+        <!-- Deklaracja aktywności AllReceiptsActivity. -->
         <activity android:name=".AllReceiptsActivity" />
+
+        <!-- Deklaracja NOWEJ aktywności FullScreenImageActivity. -->
+        <!-- Dodano motyw, aby ukryć pasek akcji i potencjalnie paski systemowe -->
+        <activity
+            android:name=".FullScreenImageActivity"
+            android:theme="@style/Theme.Paragownik.FullScreen"/>
 
     </application>
 
 </manifest>
+
+
 

@@ -45,4 +45,20 @@
         <!-- Kolor tekstu (używa selektora, aby obsłużyć stan wyłączony). -->
         <item name="android:textColor">@color/edittext_disabled_text_color</item>
     </style>
+
+    <!-- NOWY Motyw dla FullScreenImageActivity -->
+    <!-- Dziedziczy z głównego motywu, ale usuwa pasek akcji i ustawia pełny ekran -->
+    <style name="Theme.Paragownik.FullScreen" parent="Theme.Paragownik">
+        <!-- Ukrywa pasek akcji (już jest w NoActionBar, ale dla pewności) -->
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+        <!-- Ustawia aktywność na pełny ekran (ukrywa pasek statusu) -->
+        <!-- <item name="android:windowFullscreen">true</item> --> <!-- Zastąpione kodem w aktywności -->
+        <!-- Usuwa domyślne tło okna, aby uniknąć overdraw -->
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <!-- Umożliwia rysowanie za paskami systemowymi (potrzebne do półprzezroczystego tła) -->
+        <item name="android:windowTranslucentStatus">true</item>
+        <item name="android:windowTranslucentNavigation">true</item>
+    </style>
+
 </resources>

@@ -1,6 +1,6 @@
 package com.kaminski.paragownik
 
-import android.content.Intent
+import android.content.Intent // Dodano import Intent
 import android.net.Uri
 import android.os.Bundle
 import android.text.Editable
@@ -49,6 +49,7 @@ import java.util.Calendar // Dodano import
 /**
  * Aktywność odpowiedzialna za przeglądanie i edycję istniejącego paragonu oraz danych klienta,
  * w tym zarządzanie wieloma zdjęciami. Używa Glide do ładowania obrazów.
+ * Umożliwia otwarcie zdjęcia na pełnym ekranie.
  */
 class EditReceiptActivity : AppCompatActivity() {
 
@@ -182,12 +183,22 @@ class EditReceiptActivity : AppCompatActivity() {
         setupButtonClickListeners()
 
         // Inicjalizacja adapterów i RecyclerView dla zdjęć w trybie widoku
-        // Używamy GlideScaleType.FIT_CENTER dla dużych zdjęć
-        clientPhotosAdapter = PhotoAdapter(emptyList(), R.layout.large_photo_item, R.id.largePhotoImageViewItem, GlideScaleType.FIT_CENTER) { uri -> /* TODO: Obsługa kliknięcia */ }
+        // Dodano listener kliknięcia do otwierania pełnego ekranu
+        clientPhotosAdapter = PhotoAdapter(
+            emptyList(),
+            R.layout.large_photo_item,
+            R.id.largePhotoImageViewItem,
+            GlideScaleType.FIT_CENTER
+        ) { uri -> openFullScreenImage(uri) } // Lambda do otwierania pełnego ekranu
         clientPhotosRecyclerViewView.layoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
         clientPhotosRecyclerViewView.adapter = clientPhotosAdapter
 
-        transactionPhotosAdapter = PhotoAdapter(emptyList(), R.layout.large_photo_item, R.id.largePhotoImageViewItem, GlideScaleType.FIT_CENTER) { uri -> /* TODO: Obsługa kliknięcia */ }
+        transactionPhotosAdapter = PhotoAdapter(
+            emptyList(),
+            R.layout.large_photo_item,
+            R.id.largePhotoImageViewItem,
+            GlideScaleType.FIT_CENTER
+        ) { uri -> openFullScreenImage(uri) } // Lambda do otwierania pełnego ekranu
         transactionPhotosRecyclerViewView.layoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
         transactionPhotosRecyclerViewView.adapter = transactionPhotosAdapter
 
@@ -834,4 +845,16 @@ class EditReceiptActivity : AppCompatActivity() {
             null
         }
     }
+
+    /**
+     * Otwiera aktywność FullScreenImageActivity dla podanego URI.
+     */
+    private fun openFullScreenImage(imageUri: Uri) {
+        val intent = Intent(this, FullScreenImageActivity::class.java)
+        intent.putExtra("IMAGE_URI", imageUri.toString())
+        startActivity(intent)
+    }
 }
+
+
+

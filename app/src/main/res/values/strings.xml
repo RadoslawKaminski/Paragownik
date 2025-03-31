@@ -114,6 +114,8 @@
     <string name="cd_delete_photo_button">Usuń zdjęcie</string>
     <string name="photo_already_added">To zdjęcie już zostało dodane.</string>
     <string name="error_permission_read_photo">Brak uprawnień do odczytu zdjęcia.</string>
+    <string name="error_loading_image">Błąd podczas ładowania obrazu.</string> <!-- NOWE -->
+    <string name="cd_full_screen_image">Zdjęcie na pełnym ekranie</string> <!-- NOWE -->
 
     <!-- ClientReceiptsActivity -->
     <string name="client_receipts_title">Paragony Klienta</string>
@@ -141,3 +143,6 @@
     <string name="all_receipts_activity_title">Wszystkie Paragony</string>
 
 </resources>
+
+
+
