@@ -51,52 +51,53 @@
             app:srcCompat="@drawable/ic_photo_placeholder"
             tools:visibility="visible"/>
 
-        <!-- Opis klienta -->
-        <TextView
-            android:id="@+id/clientDetailsDescriptionTextView"
+        <!-- NOWY LinearLayout dla danych tekstowych klienta -->
+        <LinearLayout
+            android:id="@+id/clientTextDetailsLayout"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:orientation="vertical"
             android:layout_marginStart="16dp"
             android:layout_marginEnd="8dp"
-            android:textColor="@color/white_text"
-            android:textSize="18sp"
-            android:textStyle="bold"
-            app:layout_constraintEnd_toStartOf="@+id/moreOptionsClientButton"
             app:layout_constraintStart_toEndOf="@+id/clientDetailsPhotoImageView"
-            app:layout_constraintTop_toTopOf="@+id/clientDetailsPhotoImageView"
-            tools:text="Wysoki blondyn w czerwonej kurtce" />
-
-        <!-- Numer aplikacji klienta -->
-        <TextView
-            android:id="@+id/clientDetailsAppNumberTextView"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:layout_marginEnd="8dp"
-            android:textColor="@color/sub_white_text"
-            android:textSize="14sp"
-            android:visibility="gone"
             app:layout_constraintEnd_toStartOf="@+id/moreOptionsClientButton"
-            app:layout_constraintStart_toStartOf="@+id/clientDetailsDescriptionTextView"
-            app:layout_constraintTop_toBottomOf="@+id/clientDetailsDescriptionTextView"
-            tools:text="Nr app: 12345678901234"
-            tools:visibility="visible" />
+            app:layout_constraintTop_toTopOf="@+id/clientDetailsPhotoImageView">
 
-        <!-- Numer Amodit -->
-        <TextView
-            android:id="@+id/clientDetailsAmoditNumberTextView"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="2dp"
-            android:layout_marginEnd="8dp"
-            android:textColor="@color/sub_white_text"
-            android:textSize="14sp"
-            android:visibility="gone"
-            app:layout_constraintEnd_toStartOf="@+id/moreOptionsClientButton"
-            app:layout_constraintStart_toStartOf="@+id/clientDetailsAppNumberTextView"
-            app:layout_constraintTop_toBottomOf="@+id/clientDetailsAppNumberTextView"
-            tools:text="Amodit: 12345678"
-            tools:visibility="visible" />
+            <!-- Opis klienta -->
+            <TextView
+                android:id="@+id/clientDetailsDescriptionTextView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textColor="@color/white_text"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                tools:text="Wysoki blondyn w czerwonej kurtce" />
+
+            <!-- Numer aplikacji klienta -->
+            <TextView
+                android:id="@+id/clientDetailsAppNumberTextView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:textColor="@color/sub_white_text"
+                android:textSize="14sp"
+                android:visibility="gone"
+                tools:text="Nr app: 12345678901234"
+                tools:visibility="visible" />
+
+            <!-- Numer Amodit -->
+            <TextView
+                android:id="@+id/clientDetailsAmoditNumberTextView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:textColor="@color/sub_white_text"
+                android:textSize="14sp"
+                android:visibility="gone"
+                tools:text="Amodit: 12345678"
+                tools:visibility="visible" />
+
+        </LinearLayout> <!-- Koniec LinearLayout dla tekstu -->
 
         <!-- Ikona "Więcej" (trzykropek) -->
         <ImageButton
