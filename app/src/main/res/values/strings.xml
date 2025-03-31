@@ -120,7 +120,7 @@
     <string name="error_invalid_client_id">Błąd: Nieprawidłowy identyfikator klienta.</string>
     <string name="error_client_not_found">Błąd: Nie znaleziono klienta.</string>
     <string name="cd_add_receipt_to_client_fab">Dodaj nowy paragon dla tego klienta</string>
-    <string name="edit_client_button_text">Edytuj dane klienta</string> <!-- NOWE -->
+    <string name="more_options_button_text">Więcej opcji dla klienta</string> <!-- Zmieniono tekst -->
 
     <!-- AddReceiptToClientActivity -->
     <string name="add_receipt_to_client_title">Dodaj Paragony dla Klienta</string>
@@ -131,7 +131,8 @@
     <string name="hint_receipt_date_required">Data paragonu (DD-MM-YYYY)</string> <!-- Usunięto * -->
 
     <!-- EditClientActivity -->
-    <string name="edit_client_title">Edytuj Dane Klienta</string>
+    <string name="view_client_title">Dane Klienta</string> <!-- NOWY tytuł dla trybu widoku -->
+    <string name="edit_client_title">Edytuj Dane Klienta</string> <!-- Zmieniono tekst -->
     <string name="delete_client_button_text_short">Usuń klienta</string>
     <string name="delete_client_confirmation_title_short">Potwierdzenie usunięcia klienta</string>
     <string name="delete_client_confirmation_message_short">Czy na pewno chcesz usunąć tego klienta?\n\nUWAGA: Usunięcie klienta spowoduje USUNIĘCIE WSZYSTKICH jego paragonów! Drogerie, które staną się puste, również zostaną usunięte.</string>

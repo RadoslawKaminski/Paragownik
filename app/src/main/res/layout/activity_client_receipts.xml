@@ -15,31 +15,13 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
         android:layout_marginTop="16dp"
-        android:layout_marginEnd="8dp"
+        android:layout_marginEnd="16dp"
         android:gravity="center"
         android:text="@string/client_receipts_title"
         android:textSize="24sp"
-        app:layout_constraintEnd_toStartOf="@+id/editClientButton"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
-
-    <!-- Ikona Edycji Klienta (NOWA) -->
-    <ImageButton
-        android:id="@+id/editClientButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:layout_marginEnd="8dp"
-        android:background="?attr/selectableItemBackgroundBorderless"
-        android:contentDescription="@string/edit_client_button_text"
-        android:minWidth="48dp"
-        android:minHeight="48dp"
-        android:padding="8dp"
-        app:layout_constraintBottom_toBottomOf="@+id/clientReceiptsTitleTextView"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/clientReceiptsTitleTextView"
-        app:srcCompat="@drawable/ic_edit_icon"
-        app:tint="@color/scnd_color_bright" />
 
     <!-- Sekcja danych klienta -->
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -75,10 +57,11 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
+            android:layout_marginEnd="8dp"
             android:textColor="@color/white_text"
             android:textSize="18sp"
             android:textStyle="bold"
-            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/moreOptionsClientButton"
             app:layout_constraintStart_toEndOf="@+id/clientDetailsPhotoImageView"
             app:layout_constraintTop_toTopOf="@+id/clientDetailsPhotoImageView"
             tools:text="Wysoki blondyn w czerwonej kurtce" />
@@ -89,10 +72,11 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
+            android:layout_marginEnd="8dp"
             android:textColor="@color/sub_white_text"
             android:textSize="14sp"
             android:visibility="gone"
-            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/moreOptionsClientButton"
             app:layout_constraintStart_toStartOf="@+id/clientDetailsDescriptionTextView"
             app:layout_constraintTop_toBottomOf="@+id/clientDetailsDescriptionTextView"
             tools:text="Nr app: 12345678901234"
@@ -104,14 +88,31 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="2dp"
+            android:layout_marginEnd="8dp"
             android:textColor="@color/sub_white_text"
             android:textSize="14sp"
             android:visibility="gone"
-            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/moreOptionsClientButton"
             app:layout_constraintStart_toStartOf="@+id/clientDetailsAppNumberTextView"
             app:layout_constraintTop_toBottomOf="@+id/clientDetailsAppNumberTextView"
             tools:text="Amodit: 12345678"
             tools:visibility="visible" />
+
+        <!-- Ikona "Więcej" (trzykropek) -->
+        <ImageButton
+            android:id="@+id/moreOptionsClientButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/more_options_button_text"
+            android:minWidth="48dp"
+            android:minHeight="48dp"
+            android:padding="8dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:srcCompat="@drawable/ic_more_vert"
+            app:tint="@color/scnd_color_bright" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
@@ -237,4 +238,3 @@
         app:srcCompat="@android:drawable/ic_input_add" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
-

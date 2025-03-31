@@ -42,6 +42,7 @@ import java.util.UUID
 class EditClientActivity : AppCompatActivity() {
 
     // --- Widoki UI ---
+    private lateinit var titleTextView: TextView // TextView dla tytułu
     private lateinit var editClientDescriptionEditText: EditText
     private lateinit var editClientAppNumberEditText: EditText
     private lateinit var editAmoditNumberEditText: EditText
@@ -161,6 +162,8 @@ class EditClientActivity : AppCompatActivity() {
      * Inicjalizuje wszystkie referencje do widoków UI.
      */
     private fun initializeViews() {
+        // Tytuł
+        titleTextView = findViewById(R.id.editClientTitleTextView) // Inicjalizacja TextView tytułu
         // Pola klienta
         editClientDescriptionEditText = findViewById(R.id.editClientDescriptionEditText)
         editClientAppNumberEditText = findViewById(R.id.editClientAppNumberEditText)
@@ -416,6 +419,9 @@ class EditClientActivity : AppCompatActivity() {
     private fun updateUiMode(isEditing: Boolean) {
         isEditMode = isEditing
 
+        // Ustaw tytuł aktywności
+        titleTextView.text = getString(if (isEditing) R.string.edit_client_title else R.string.view_client_title)
+
         // Włącz/Wyłącz EditTexty
         editClientDescriptionEditText.isEnabled = isEditing
         editClientAppNumberEditText.isEnabled = isEditing
@@ -562,4 +568,3 @@ class EditClientActivity : AppCompatActivity() {
         }
     }
 }
-

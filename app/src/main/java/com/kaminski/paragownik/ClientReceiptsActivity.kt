@@ -38,7 +38,7 @@ class ClientReceiptsActivity : AppCompatActivity(), ReceiptAdapter.OnReceiptClic
     private lateinit var clientAmoditNumberTextView: TextView
     private lateinit var clientReceiptsRecyclerView: RecyclerView
     private lateinit var fabAddReceiptToClient: FloatingActionButton
-    private lateinit var editClientButton: ImageButton // <-- NOWY Przycisk edycji klienta
+    private lateinit var moreOptionsClientButton: ImageButton // Zmieniono nazwę z editClientButton
     // Nowe widoki dla zdjęć
     private lateinit var clientPhotosTitleDetails: TextView
     private lateinit var clientPhotosScrollViewDetails: HorizontalScrollView
@@ -111,7 +111,7 @@ class ClientReceiptsActivity : AppCompatActivity(), ReceiptAdapter.OnReceiptClic
         clientAmoditNumberTextView = findViewById(R.id.clientDetailsAmoditNumberTextView)
         clientReceiptsRecyclerView = findViewById(R.id.clientReceiptsRecyclerView)
         fabAddReceiptToClient = findViewById(R.id.fabAddReceiptToClient)
-        editClientButton = findViewById(R.id.editClientButton) // <-- NOWE
+        moreOptionsClientButton = findViewById(R.id.moreOptionsClientButton) // Zmieniono ID
         // Inicjalizacja widoków zdjęć
         clientPhotosTitleDetails = findViewById(R.id.clientPhotosTitleDetails)
         clientPhotosScrollViewDetails = findViewById(R.id.clientPhotosScrollViewDetails)
@@ -145,9 +145,9 @@ class ClientReceiptsActivity : AppCompatActivity(), ReceiptAdapter.OnReceiptClic
             startActivity(intent)
         }
 
-        // Listener dla ikony edycji klienta <-- NOWE
-        editClientButton.setOnClickListener {
-            Log.d("ClientReceiptsActivity", "Kliknięto Edytuj Klienta - uruchamianie EditClientActivity dla klienta ID: $clientId")
+        // Listener dla ikony "Więcej" (trzykropek)
+        moreOptionsClientButton.setOnClickListener {
+            Log.d("ClientReceiptsActivity", "Kliknięto Więcej Opcji - uruchamianie EditClientActivity dla klienta ID: $clientId")
             val intent = Intent(this, EditClientActivity::class.java)
             intent.putExtra("CLIENT_ID", clientId)
             startActivity(intent)
