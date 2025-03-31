@@ -17,11 +17,11 @@
         android:layout_marginTop="16dp"
         android:layout_marginEnd="8dp"
         android:gravity="center"
-        android:text="@string/edit_client_title"
         android:textSize="24sp"
         app:layout_constraintEnd_toStartOf="@+id/editModeClientButton"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        tools:text="Dane Klienta" /> <!-- Tekst ustawiany programowo -->
 
     <!-- Ikona Edycji (zastępuje przycisk). -->
     <ImageButton
@@ -72,7 +72,7 @@
                     android:layout_marginBottom="8dp"
                     android:text="@string/client_data_section_title"
                     android:textSize="18sp" />
-                <!-- Etykieta sekcji (tryb widoku). -->
+                <!-- Etykieta sekcji (tryb widoku) - USUNIĘTA WIDOCZNOŚĆ. -->
                 <TextView
                     android:id="@+id/clientDataSectionTitleView"
                     android:layout_width="match_parent"
@@ -80,7 +80,7 @@
                     android:layout_marginBottom="8dp"
                     android:text="@string/client_data_section_title_view"
                     android:textSize="18sp"
-                    android:visibility="gone"/>
+                    android:visibility="gone"/> <!-- Ustawiono visibility na gone -->
 
                 <!-- Opis klienta -->
                 <LinearLayout
@@ -328,4 +328,3 @@
     </ScrollView>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
-

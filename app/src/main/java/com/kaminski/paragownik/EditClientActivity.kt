@@ -54,7 +54,7 @@ class EditClientActivity : AppCompatActivity() {
     private lateinit var editAppNumberLayout: LinearLayout
     private lateinit var editAmoditNumberLayout: LinearLayout
     private lateinit var clientDataSectionTitleEdit: TextView // Etykieta edycji
-    private lateinit var clientDataSectionTitleView: TextView // Etykieta widoku
+    // private lateinit var clientDataSectionTitleView: TextView // USUNIĘTO referencję
 
     // Widoki dla zdjęć
     private lateinit var clientPhotosTitleEdit: TextView
@@ -177,7 +177,7 @@ class EditClientActivity : AppCompatActivity() {
         editAppNumberLayout = findViewById(R.id.editAppNumberLayout)
         editAmoditNumberLayout = findViewById(R.id.editAmoditNumberLayout)
         clientDataSectionTitleEdit = findViewById(R.id.clientDataSectionTitleEdit)
-        clientDataSectionTitleView = findViewById(R.id.clientDataSectionTitleView)
+        // clientDataSectionTitleView = findViewById(R.id.clientDataSectionTitleView) // USUNIĘTO referencję
 
         // Widoki zdjęć
         clientPhotosTitleEdit = findViewById(R.id.clientPhotosTitleEdit)
@@ -442,9 +442,9 @@ class EditClientActivity : AppCompatActivity() {
         val hasAmoditNumber = !editAmoditNumberEditText.text.isNullOrBlank()
         editAmoditNumberLayout.visibility = if (isEditing || hasAmoditNumber) View.VISIBLE else View.GONE
 
-        // Przełącz etykietę sekcji danych klienta
+        // Przełącz etykietę sekcji danych klienta (tylko w trybie edycji)
         clientDataSectionTitleEdit.visibility = if (isEditing) View.VISIBLE else View.GONE
-        clientDataSectionTitleView.visibility = if (!isEditing) View.VISIBLE else View.GONE
+        // clientDataSectionTitleView.visibility = if (!isEditing) View.VISIBLE else View.GONE // USUNIĘTO obsługę
 
         // Zaktualizuj widoczność sekcji zdjęć
         updatePhotoSectionVisibility(PhotoType.CLIENT, isEditing)
