@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.Bundle
 import android.widget.Button
+import android.widget.ImageButton
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -15,7 +16,8 @@ import com.kaminski.paragownik.viewmodel.StoreViewModel
  * Główna aktywność aplikacji. Wyświetla listę dostępnych drogerii (sklepów).
  * Umożliwia przejście do listy paragonów dla wybranej drogerii,
  * przejście do dodawania nowego klienta (bez kontekstu sklepu),
- * przejście do listy wszystkich klientów oraz do listy wszystkich paragonów.
+ * przejście do listy wszystkich klientów, do listy wszystkich paragonów
+ * oraz do ekranu informacyjnego "O Aplikacji".
  */
 class MainActivity : AppCompatActivity(), StoreAdapter.OnItemClickListener {
 
@@ -24,11 +26,12 @@ class MainActivity : AppCompatActivity(), StoreAdapter.OnItemClickListener {
     private lateinit var fabAddClientMain: FloatingActionButton
     private lateinit var viewClientsButton: Button
     private lateinit var viewAllReceiptsButton: Button
+    private lateinit var infoButton: ImageButton
 
     /**
      * Metoda cyklu życia Aktywności, wywoływana przy jej tworzeniu.
      * Inicjalizuje RecyclerView, Adapter, ViewModel, obserwuje dane sklepów
-     * i ustawia listenery dla FAB i przycisków nawigacyjnych.
+     * i ustawia listenery dla FAB i przycisków nawigacyjnych, w tym nowego przycisku informacji.
      */
     @SuppressLint("NotifyDataSetChanged") // TODO: Rozważyć DiffUtil
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -67,6 +70,13 @@ class MainActivity : AppCompatActivity(), StoreAdapter.OnItemClickListener {
             val intent = Intent(this, AllReceiptsActivity::class.java)
             startActivity(intent)
         }
+
+        // Inicjalizacja i ustawienie listenera dla przycisku informacji
+        infoButton = findViewById(R.id.infoButton)
+        infoButton.setOnClickListener {
+            val intent = Intent(this, AboutActivity::class.java)
+            startActivity(intent)
+        }
     }
 
     /**
@@ -81,4 +91,3 @@ class MainActivity : AppCompatActivity(), StoreAdapter.OnItemClickListener {
         startActivity(intent)
     }
 }
-

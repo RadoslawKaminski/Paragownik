@@ -66,11 +66,11 @@
             android:name=".FullScreenImageActivity"
             android:theme="@style/Theme.Paragownik.FullScreen"/>
 
+        <!-- Aktywność informacyjna "O Aplikacji". -->
+        <activity
+            android:name=".AboutActivity"
+            android:exported="false" />
+
     </application>
 
 </manifest>
-
-
-
-
-

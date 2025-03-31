@@ -37,6 +37,7 @@
     <string name="view_clients_button">Pokaż Klientów</string>
     <string name="main_activity_title">Lista Drogerii</string>
     <string name="view_all_receipts_button">Pokaż Wszystkie Paragony</string>
+    <string name="info_button_description">O aplikacji</string> <!-- Opis dla przycisku Info -->
 
     <!-- ReceiptListActivity -->
     <string name="cd_add_receipt_fab">Dodaj nowy paragon dla tego sklepu</string>
@@ -143,5 +144,57 @@
 
     <!-- AllReceiptsActivity -->
     <string name="all_receipts_activity_title">Wszystkie Paragony</string>
+
+    <!-- AboutActivity -->
+    <string name="about_title">O Aplikacji</string>
+    <string name="back_button_description">Powrót</string>
+    <string name="about_description">
+        Paragownik to aplikacja stworzona dla pracowników ochrony w drogeriach.\n\n
+        <b>Główne funkcje:</b>\n\n
+        <b>1. Ekran Główny (Lista Drogerii):</b>\n
+        • Przeglądanie listy drogerii, w których zarejestrowano paragony.\n
+        • Kliknięcie drogerii pokazuje listę jej paragonów.\n
+        • Przycisk (+) pozwala dodać nowego klienta z paragonami (z dowolnej drogerii).\n
+        • Przycisk "Pokaż Klientów" prowadzi do listy wszystkich zarejestrowanych klientów.\n
+        • Przycisk "Pokaż Wszystkie Paragony" wyświetla listę wszystkich paragonów z wszystkich drogerii.\n\n
+        <b>2. Paragony Drogerii:</b>\n
+        • Przeglądanie paragonów przypisanych do wybranej drogerii (sortowane wg daty weryfikacji).\n
+        • Widoczne dane klienta (opis, numery, zdjęcie, nr kasy).\n
+        • Przycisk (+) pozwala dodać nowego klienta z paragonem dla tej konkretnej drogerii.\n
+        • Kliknięcie paragonu otwiera jego szczegóły do edycji.\n\n
+        <b>3. Lista Klientów:</b>\n
+        • Przeglądanie wszystkich zarejestrowanych klientów (z miniaturą zdjęcia).\n
+        • Kliknięcie klienta otwiera jego profil z listą paragonów.\n\n
+        <b>4. Paragony Klienta:</b>\n
+        • Wyświetlanie danych wybranego klienta.\n
+        • Lista paragonów przypisanych do tego klienta (sortowane wg numeru drogerii).\n
+        • Przycisk (+) pozwala dodać kolejne paragony dla tego klienta.\n
+        • Ikona strzałki w nagłówku prowadzi do edycji danych klienta.\n\n
+        <b>5. Dodawanie Klienta / Paragonów:</b>\n
+        • Wprowadzanie danych pierwszego paragonu (drogeria, nr paragonu, data, opcjonalny nr kasy oraz data weryfikacji - checkbox "Dzisiaj").\n
+        • Wprowadzanie danych klienta (opis, nr aplikacji, nr Amodit - opcjonalne).\n
+        • Dodawanie wielu zdjęć klienta i zdjęć transakcji (z galerii).\n
+        • Możliwość dodania kolejnych paragonów (z innych drogerii) dla tego samego klienta.\n\n
+        <b>6. Edycja Paragonu / Klienta:</b>\n
+        • Dwa tryby: widoku i edycji (przełączane ikoną ołówka).\n
+        • Widok: Wyświetla dane paragonu (z nr kasy) i klienta, duże zdjęcia (kliknięcie otwiera pełny ekran z zoomem).\n
+        • Edycja: Pozwala modyfikować dane paragonu (w tym nr kasy) i klienta, dodawać i usuwać zdjęcia.\n
+        • Przyciski: "Zapisz zmiany", "Usuń paragon", "Usuń klienta".\n
+        • Usunięcie ostatniego paragonu klienta usuwa też klienta.\n
+        • Usunięcie paragonu lub zmiana jego sklepu może usunąć pustą drogerię.\n\n
+        <b>7. Edycja Klienta:</b>\n
+        • Dwa tryby: widoku ("Dane Klienta") i edycji ("Edytuj Dane Klienta").\n
+        • Pozwala modyfikować dane klienta oraz zarządzać jego zdjęciami (dodawanie/usuwanie).\n
+        • Przyciski: "Zapisz zmiany", "Usuń klienta" (usuwa klienta i WSZYSTKIE jego paragony).\n\n
+        <b>8. Wszystkie Paragony:</b>\n
+        • Lista wszystkich paragonów z wszystkich drogerii, pogrupowana wg drogerii.\n
+        • Widoczne dane klienta przy każdym paragonie.\n
+        • Kliknięcie paragonu otwiera jego szczegóły.\n\n
+        <b>Pamiętaj:</b>\n
+        • Usuwanie klienta jest nieodwracalne i usuwa wszystkie powiązane z nim dane (paragony, zdjęcia).\n
+        • Usunięcie ostatniego paragonu klienta usuwa również klienta
+    </string>
+    <string name="about_creator">Twórca: Radosław Kamiński</string>
+    <string name="about_email">radoslaw.kaminski.mail@gmail.com</string>
 
 </resources>
