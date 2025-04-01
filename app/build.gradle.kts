@@ -83,6 +83,8 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.7.0") // ViewModel z Kotlin extensions
     implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.7.0") // LiveData z Kotlin extensions
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.7.0") // Cykl życia dla Coroutines
+    implementation("androidx.lifecycle:lifecycle-viewmodel-savedstate:2.7.0") // Dla SavedStateHandle w ViewModelu
+    implementation("androidx.activity:activity-ktx:1.9.0") // Zawiera delegata by viewModels() - DODANO
 
     // Biblioteka Room (baza danych)
     val room_version = "2.6.1" // Definicja wersji Room
@@ -108,5 +110,4 @@ dependencies {
     androidTestImplementation("androidx.test.ext:junit:1.1.5") // Rozszerzenia JUnit dla AndroidTest
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1") // Framework do testów UI Espresso
 }
-
 
