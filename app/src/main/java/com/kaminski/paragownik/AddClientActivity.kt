@@ -335,7 +335,10 @@ class AddClientActivity : AppCompatActivity() {
             if (verificationDateTodayCheckBoxFirstReceipt.isChecked != firstState.isVerificationDateToday) {
                 verificationDateTodayCheckBoxFirstReceipt.isChecked = firstState.isVerificationDateToday
             }
-            verificationDateEditTextFirstReceipt.isEnabled = !firstState.isVerificationDateToday && storeIdFromIntent == -1L // Dodatkowe sprawdzenie dla intentu
+            // Poprawka: Stan edytowalności pola numeru sklepu zależy tylko od intencji
+            storeNumberEditTextFirstReceipt.isEnabled = storeIdFromIntent == -1L
+            // Stan edytowalności pola daty weryfikacji zależy od checkboxa
+            verificationDateEditTextFirstReceipt.isEnabled = !firstState.isVerificationDateToday
         }
 
         // Dodaj lub zaktualizuj widoki dla pozostałych stanów
@@ -628,15 +631,16 @@ class AddClientActivity : AppCompatActivity() {
                 // Ustaw sformatowany tekst w EditText
                 editText.setText(current)
 
-                // Przywróć pozycję kursora
+                // Przywróć pozycję kursora - POPRAWIONA LOGIKA
                 try {
+                    // Podstawowe obliczenie nowej pozycji
                     val lengthDiff = current.length - textLengthBefore
                     var newCursorPos = cursorPosBefore + lengthDiff
-                    // Korekta pozycji kursora, jeśli dodano/usunięto myślniki
-                    if (lengthDiff != 0 && (cursorPosBefore == 2 || cursorPosBefore == 5)) {
-                        if (lengthDiff > 0) newCursorPos++ else newCursorPos--
-                    }
+
+                    // Upewnij się, że kursor jest w granicach tekstu
                     newCursorPos = maxOf(0, minOf(newCursorPos, current.length))
+
+                    // Ustaw kursor
                     editText.setSelection(newCursorPos)
                 } catch (e: Exception) {
                     try { editText.setSelection(current.length) } catch (e2: Exception) { /* Ignoruj */ }
@@ -683,3 +687,4 @@ class AddClientActivity : AppCompatActivity() {
         }
     }
 }
+
