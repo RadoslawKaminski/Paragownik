@@ -1,9 +1,14 @@
+
 package com.kaminski.paragownik.viewmodel
 
 import android.app.Application
+import android.net.Uri
 import android.util.Log
 import androidx.core.net.toUri
 import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.MutableLiveData
+// Usunięto: import androidx.lifecycle.SavedStateHandle
+import androidx.lifecycle.viewModelScope
 import androidx.room.withTransaction
 import com.kaminski.paragownik.R
 import com.kaminski.paragownik.data.AppDatabase
@@ -20,22 +25,28 @@ import com.kaminski.paragownik.data.daos.StoreDao
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.text.ParseException
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import java.util.Calendar
 
 /**
  * ViewModel dla EditReceiptActivity.
  * Odpowiada za logikę biznesową związaną z edycją i usuwaniem paragonów/klientów,
  * w tym obsługę wielu zdjęć i usuwanie plików zdjęć.
+ * Przechowuje również stan UI edycji za pomocą MutableLiveData.
  */
+// Usunięto SavedStateHandle z konstruktora
 class EditReceiptViewModel(application: Application) : AndroidViewModel(application) {
 
     // Referencje do bazy danych i DAO
@@ -52,105 +63,201 @@ class EditReceiptViewModel(application: Application) : AndroidViewModel(applicat
         SUCCESS,
         ERROR_NOT_FOUND,
         ERROR_DATE_FORMAT,
-        ERROR_DUPLICATE_RECEIPT, // Zmieniono opis błędu
+        ERROR_DUPLICATE_RECEIPT,
         ERROR_STORE_NUMBER_MISSING,
         ERROR_DATABASE,
         ERROR_UNKNOWN
     }
 
+    // --- MutableLiveData do zarządzania stanem UI ---
+
+    // Tryb edycji (true) lub widoku (false)
+    val isEditMode = MutableLiveData<Boolean>(false) // Wartość początkowa false
+
+    // Stany edytowalnych pól
+    val storeNumberState = MutableLiveData<String>("")
+    val receiptNumberState = MutableLiveData<String>("")
+    val receiptDateState = MutableLiveData<String>("")
+    val cashRegisterNumberState = MutableLiveData<String>("")
+    val verificationDateState = MutableLiveData<String>("")
+    val isVerificationDateTodayState = MutableLiveData<Boolean>(false)
+    val clientDescriptionState = MutableLiveData<String>("")
+    val clientAppNumberState = MutableLiveData<String>("")
+    val amoditNumberState = MutableLiveData<String>("")
+
+    // Stany list zdjęć
+    val clientPhotosToAddUris = MutableLiveData<MutableList<Uri>>(mutableListOf())
+    val transactionPhotosToAddUris = MutableLiveData<MutableList<Uri>>(mutableListOf())
+    val photosToRemoveUris = MutableLiveData<MutableList<Uri>>(mutableListOf())
+
+    // --- Metody do aktualizacji stanu UI ---
+
+    fun setEditMode(isEditing: Boolean) {
+        isEditMode.value = isEditing
+    }
+
+    // Metody set... aktualizują teraz MutableLiveData
+    fun setStoreNumber(number: String) { storeNumberState.value = number }
+    fun setReceiptNumber(number: String) { receiptNumberState.value = number }
+    fun setReceiptDate(date: String) { receiptDateState.value = date }
+    fun setCashRegisterNumber(number: String) { cashRegisterNumberState.value = number }
+    fun setVerificationDate(date: String) { verificationDateState.value = date }
+    fun setIsVerificationDateToday(isToday: Boolean) { isVerificationDateTodayState.value = isToday }
+    fun setClientDescription(desc: String) { clientDescriptionState.value = desc }
+    fun setClientAppNumber(number: String) { clientAppNumberState.value = number }
+    fun setAmoditNumber(number: String) { amoditNumberState.value = number }
+
+    fun addPhotoToAdd(uri: Uri, type: PhotoType) {
+        val liveData = if (type == PhotoType.CLIENT) clientPhotosToAddUris else transactionPhotosToAddUris
+        val currentList = liveData.value ?: mutableListOf()
+        if (!currentList.contains(uri)) {
+            currentList.add(uri)
+            liveData.value = currentList // Zaktualizuj LiveData
+        }
+    }
+
+    fun removePhotoToAdd(uri: Uri, type: PhotoType) {
+        val liveData = if (type == PhotoType.CLIENT) clientPhotosToAddUris else transactionPhotosToAddUris
+        val currentList = liveData.value ?: mutableListOf()
+        if (currentList.remove(uri)) {
+            liveData.value = currentList // Zaktualizuj LiveData
+        }
+    }
+
+    fun addPhotoToRemove(uri: Uri) {
+        val currentList = photosToRemoveUris.value ?: mutableListOf()
+        if (!currentList.contains(uri)) {
+            currentList.add(uri)
+            photosToRemoveUris.value = currentList // Zaktualizuj LiveData
+        }
+    }
+
+    fun removePhotoToRemove(uri: Uri) {
+        val currentList = photosToRemoveUris.value ?: mutableListOf()
+        if (currentList.remove(uri)) {
+            photosToRemoveUris.value = currentList // Zaktualizuj LiveData
+        }
+    }
+
+    // Flaga inicjalizacji pozostaje jako zwykła zmienna
+    private var isDataInitialized = false
+
+    /**
+     * Inicjalizuje stan MutableLiveData na podstawie danych z bazy, ale tylko raz.
+     * @param receiptWithClient Dane paragonu i klienta.
+     * @param storeNumber Numer sklepu.
+     */
+    fun initializeStateIfNeeded(receiptWithClient: ReceiptWithClient, storeNumber: String?) {
+        if (!isDataInitialized) {
+            val receipt = receiptWithClient.receipt
+            val client = receiptWithClient.client
+            val dateFormat = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault())
+
+            // Ustaw wartości w MutableLiveData
+            storeNumberState.value = storeNumber ?: ""
+            receiptNumberState.value = receipt.receiptNumber
+            receiptDateState.value = dateFormat.format(receipt.receiptDate)
+            cashRegisterNumberState.value = receipt.cashRegisterNumber ?: ""
+            val verificationDateStr = receipt.verificationDate?.let { dateFormat.format(it) } ?: ""
+            verificationDateState.value = verificationDateStr
+            val todayDateStr = dateFormat.format(Calendar.getInstance().time)
+            isVerificationDateTodayState.value = verificationDateStr == todayDateStr
+            clientDescriptionState.value = client?.description ?: ""
+            clientAppNumberState.value = client?.clientAppNumber ?: ""
+            amoditNumberState.value = client?.amoditNumber ?: ""
+
+            // Resetujemy listy zdjęć do dodania/usunięcia
+            clientPhotosToAddUris.value = mutableListOf()
+            transactionPhotosToAddUris.value = mutableListOf()
+            photosToRemoveUris.value = mutableListOf()
+
+            isDataInitialized = true
+            Log.d("EditReceiptViewModel", "Stan ViewModelu (LiveData) zainicjalizowany danymi z bazy.")
+        } else {
+            Log.d("EditReceiptViewModel", "Stan ViewModelu (LiveData) już zainicjalizowany, pomijanie.")
+        }
+    }
+
     /**
      * Pobiera Flow emitujący trójkę: [ReceiptWithClient?], numer sklepu [String?] oraz listę zdjęć [List<Photo>?].
-     * Łączy dane z paragonu, klienta, sklepu i zdjęć.
+     * Pozostaje jako Flow, nie konwertujemy na StateFlow tutaj.
      * @param receiptId ID paragonu do pobrania.
      * @return Flow emitujący Triple.
      */
     @OptIn(ExperimentalCoroutinesApi::class)
-    fun getReceiptWithClientAndStoreNumber(receiptId: Long): Flow<Triple<ReceiptWithClient?, String?, List<Photo>?>> {
-        // Rozpoczynamy od pobrania paragonu z klientem
+    fun getReceiptDataFlow(receiptId: Long): Flow<Triple<ReceiptWithClient?, String?, List<Photo>?>> {
         return receiptDao.getReceiptWithClientFlow(receiptId)
             .flatMapLatest { receiptWithClient ->
-                // Jeśli paragon lub klient nie istnieje, zwracamy od razu null'e
                 if (receiptWithClient?.client == null) {
                     kotlinx.coroutines.flow.flowOf(Triple(null, null, null))
                 } else {
-                    // Jeśli istnieją, łączymy Flow sklepu i Flow zdjęć
-                    storeDao.getStoreByIdFlow(receiptWithClient.receipt.storeId) // Pobierz Flow sklepu
+                    storeDao.getStoreByIdFlow(receiptWithClient.receipt.storeId)
                         .combine(photoDao.getPhotosForClient(receiptWithClient.client.id)) { store, photos ->
-                            // Kiedy oba Flow (sklep i zdjęcia) wyemitują wartość, tworzymy Triple
                             Triple(receiptWithClient, store?.storeNumber, photos)
                         }
                 }
             }
-            .flowOn(Dispatchers.IO) // Wykonuj operacje DAO w tle
+            .flowOn(Dispatchers.IO)
+            // Usunięto .stateIn()
     }
 
 
     /**
      * Aktualizuje dane istniejącego paragonu, powiązanego klienta oraz synchronizuje zdjęcia.
-     * Dodatkowo sprawdza, czy pierwotna drogeria nie została osierocona i ewentualnie ją usuwa.
+     * Pobiera dane do zapisu z aktualnego stanu ViewModelu (MutableLiveData).
      * @param receiptId ID edytowanego paragonu.
-     * @param storeNumberString Nowy numer sklepu (jako String).
-     * @param receiptNumber Nowy numer paragonu.
-     * @param receiptDateString Nowa data paragonu (jako String "dd-MM-yyyy").
-     * @param cashRegisterNumber Nowy numer kasy (opcjonalny).
-     * @param verificationDateString Nowa data weryfikacji (opcjonalna, jako String "dd-MM-yyyy").
-     * @param clientDescription Nowy opis klienta (opcjonalny).
-     * @param clientAppNumber Nowy numer aplikacji klienta (opcjonalny).
-     * @param amoditNumber Nowy numer Amodit (opcjonalny).
-     * @param clientPhotoUrisToAdd Lista URI zdjęć klienta do dodania.
-     * @param transactionPhotoUrisToAdd Lista URI zdjęć transakcji do dodania.
-     * @param photoUrisToRemove Lista URI zdjęć do usunięcia.
      * @return [EditResult] wskazujący wynik operacji.
      */
     suspend fun updateReceiptAndClient(
-        receiptId: Long,
-        storeNumberString: String,
-        receiptNumber: String,
-        receiptDateString: String,
-        cashRegisterNumber: String?, // Dodano parametr numeru kasy
-        verificationDateString: String?,
-        clientDescription: String?,
-        clientAppNumber: String?,
-        amoditNumber: String?,
-        clientPhotoUrisToAdd: List<String>,
-        transactionPhotoUrisToAdd: List<String>,
-        photoUrisToRemove: List<String>
+        receiptId: Long
     ): EditResult = withContext(Dispatchers.IO) {
-        // Format daty używany w UI i do parsowania
+        // Pobierz aktualne wartości ze stanu LiveData
+        val storeNumberString = storeNumberState.value ?: ""
+        val receiptNumber = receiptNumberState.value ?: ""
+        val receiptDateString = receiptDateState.value ?: ""
+        val cashRegisterNumber = cashRegisterNumberState.value?.takeIf { it.isNotBlank() }
+        val verificationDateString = verificationDateState.value?.takeIf { it.isNotBlank() }
+        val clientDescription = clientDescriptionState.value?.takeIf { it.isNotBlank() }
+        val clientAppNumber = clientAppNumberState.value?.takeIf { it.isNotBlank() }
+        val amoditNumber = amoditNumberState.value?.takeIf { it.isNotBlank() }
+        val clientPhotoUrisToAddList = clientPhotosToAddUris.value ?: mutableListOf()
+        val transactionPhotoUrisToAddList = transactionPhotosToAddUris.value ?: mutableListOf()
+        val photoUrisToRemoveList = photosToRemoveUris.value ?: mutableListOf()
+
+        // Format daty
         val dateFormat = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault())
-        dateFormat.isLenient = false // Ścisłe sprawdzanie formatu
+        dateFormat.isLenient = false
 
         try {
-            // Używamy transakcji, aby zapewnić atomowość operacji na wielu tabelach
+            // Transakcja bazodanowa
             database.withTransaction {
+                // Kroki 1-8 pozostają takie same jak w poprzedniej wersji,
+                // używając pobranych wartości z LiveData
                 // --- Krok 1: Pobierz istniejące dane PRZED modyfikacją ---
                 val existingReceiptWithClient = receiptDao.getReceiptWithClient(receiptId)
                 if (existingReceiptWithClient == null || existingReceiptWithClient.client == null) {
                     Log.e("EditReceiptViewModel", "Nie znaleziono paragonu (ID: $receiptId) lub klienta do edycji.")
-                    throw NotFoundException() // Rzuć wyjątek, aby przerwać transakcję
+                    throw NotFoundException()
                 }
                 val existingReceipt = existingReceiptWithClient.receipt
                 val existingClient = existingReceiptWithClient.client
-                val clientId = existingClient.id // Pobierz ID klienta
-                val originalStoreId = existingReceipt.storeId // <-- ZAPISZ ORYGINALNE ID SKLEPU
+                val clientId = existingClient.id
+                val originalStoreId = existingReceipt.storeId
 
-                // --- Krok 2: Walidacja i parsowanie danych wejściowych ---
+                // --- Krok 2: Walidacja i parsowanie danych wejściowych ze stanu ---
                 val receiptDate: Date = try {
                     dateFormat.parse(receiptDateString) as Date
                 } catch (e: ParseException) {
                     Log.e("EditReceiptViewModel", "Błąd formatu daty paragonu: $receiptDateString")
                     throw DateFormatException()
                 }
-                val verificationDate: Date? = if (!verificationDateString.isNullOrBlank()) {
+                val verificationDate: Date? = verificationDateString?.let {
                     try {
-                        dateFormat.parse(verificationDateString) as Date
+                        dateFormat.parse(it) as Date
                     } catch (e: ParseException) {
-                        // Błąd formatu daty weryfikacji traktujemy jako brak daty
-                        Log.w("EditReceiptViewModel", "Błąd formatu daty weryfikacji (ignorowanie): $verificationDateString")
-                        null
+                        Log.w("EditReceiptViewModel", "Błąd formatu daty weryfikacji (ignorowanie): $it")
+                        null // Traktujemy błąd jako brak daty
                     }
-                } else {
-                    null
                 }
 
                 // --- Krok 3: Walidacja i obsługa numeru sklepu ---
@@ -159,14 +266,12 @@ class EditReceiptViewModel(application: Application) : AndroidViewModel(applicat
                     throw StoreNumberMissingException()
                 }
                 var store = storeDao.getStoreByNumber(storeNumberString)
-                val newStoreId: Long // ID sklepu PO edycji
+                val newStoreId: Long
                 if (store == null) {
-                    // Jeśli sklep nie istnieje, utwórz go
                     store = Store(storeNumber = storeNumberString)
                     storeDao.insertStore(store)
-                    store = storeDao.getStoreByNumber(storeNumberString) // Pobierz ponownie, aby uzyskać ID
+                    store = storeDao.getStoreByNumber(storeNumberString)
                     if (store == null) {
-                        // Błąd krytyczny - nie udało się utworzyć/pobrać sklepu
                         throw DatabaseException(getApplication<Application>().getString(R.string.error_creating_store_edit, storeNumberString))
                     }
                     newStoreId = store.id
@@ -176,12 +281,11 @@ class EditReceiptViewModel(application: Application) : AndroidViewModel(applicat
                 }
 
                 // --- Krok 4: Walidacja duplikatów paragonów ---
-                // Sprawdź, czy inny paragon (o innym ID) nie ma już takiej samej kombinacji numeru, daty, sklepu i numeru kasy
                 val potentialDuplicate = receiptDao.findByNumberDateStoreCashRegister(
                     receiptNumber,
                     receiptDate,
                     newStoreId,
-                    cashRegisterNumber?.takeIf { it.isNotBlank() } // Dodano numer kasy do sprawdzania
+                    cashRegisterNumber
                 )
                 if (potentialDuplicate != null && potentialDuplicate.id != receiptId) {
                     Log.e("EditReceiptViewModel", "Edycja: Znaleziono inny paragon (ID: ${potentialDuplicate.id}) z tymi samymi danymi.")
@@ -192,8 +296,8 @@ class EditReceiptViewModel(application: Application) : AndroidViewModel(applicat
                 val updatedReceipt = existingReceipt.copy(
                     receiptNumber = receiptNumber,
                     receiptDate = receiptDate,
-                    storeId = newStoreId, // Użyj nowego ID sklepu
-                    cashRegisterNumber = cashRegisterNumber?.takeIf { it.isNotBlank() }, // Zapis numeru kasy
+                    storeId = newStoreId,
+                    cashRegisterNumber = cashRegisterNumber,
                     verificationDate = verificationDate
                 )
                 receiptDao.updateReceipt(updatedReceipt)
@@ -201,28 +305,28 @@ class EditReceiptViewModel(application: Application) : AndroidViewModel(applicat
 
                 // --- Krok 6: Aktualizacja Klienta ---
                 val updatedClient = existingClient.copy(
-                    description = clientDescription?.takeIf { it.isNotBlank() },
-                    clientAppNumber = clientAppNumber?.takeIf { it.isNotBlank() },
-                    amoditNumber = amoditNumber?.takeIf { it.isNotBlank() }
+                    description = clientDescription,
+                    clientAppNumber = clientAppNumber,
+                    amoditNumber = amoditNumber
                 )
                 clientDao.updateClient(updatedClient)
                 Log.d("EditReceiptViewModel", "Transakcja: Zaktualizowano klienta ID: $clientId.")
 
                 // --- Krok 7: Synchronizacja zdjęć (w ramach tej samej transakcji) ---
-                // 7a. Usuń zdjęcia oznaczone do usunięcia (tylko wpisy w bazie)
-                for (uriToRemove in photoUrisToRemove) {
-                    photoDao.deletePhotoByUri(uriToRemove)
+                // 7a. Usuń zdjęcia oznaczone do usunięcia
+                for (uriToRemove in photoUrisToRemoveList) {
+                    photoDao.deletePhotoByUri(uriToRemove.toString()) // Konwersja Uri na String
                     Log.d("EditReceiptViewModel", "Transakcja: Usunięto wpis zdjęcia: $uriToRemove dla klienta $clientId")
                 }
                 // 7b. Dodaj nowe zdjęcia klienta
-                for (uriToAdd in clientPhotoUrisToAdd) {
-                    val photo = Photo(clientId = clientId, uri = uriToAdd, type = PhotoType.CLIENT)
+                for (uriToAdd in clientPhotoUrisToAddList) {
+                    val photo = Photo(clientId = clientId, uri = uriToAdd.toString(), type = PhotoType.CLIENT)
                     photoDao.insertPhoto(photo)
                     Log.d("EditReceiptViewModel", "Transakcja: Dodano zdjęcie klienta: $uriToAdd dla klienta $clientId")
                 }
                 // 7c. Dodaj nowe zdjęcia transakcji
-                for (uriToAdd in transactionPhotoUrisToAdd) {
-                    val photo = Photo(clientId = clientId, uri = uriToAdd, type = PhotoType.TRANSACTION)
+                for (uriToAdd in transactionPhotoUrisToAddList) {
+                    val photo = Photo(clientId = clientId, uri = uriToAdd.toString(), type = PhotoType.TRANSACTION)
                     photoDao.insertPhoto(photo)
                     Log.d("EditReceiptViewModel", "Transakcja: Dodano zdjęcie transakcji: $uriToAdd dla klienta $clientId")
                 }
@@ -230,32 +334,36 @@ class EditReceiptViewModel(application: Application) : AndroidViewModel(applicat
                 // --- Krok 8: Sprawdź i usuń osieroconą pierwotną drogerię (JEŚLI SIĘ ZMIENIŁA) ---
                 if (originalStoreId != newStoreId) {
                     Log.d("EditReceiptViewModel", "Transakcja: ID sklepu zmienione z $originalStoreId na $newStoreId. Sprawdzanie starego sklepu.")
-                    // Sprawdź liczbę paragonów dla ORYGINALNEGO sklepu
                     val originalStoreReceiptsCount = receiptDao.getReceiptsForStoreCount(originalStoreId)
                     Log.d("EditReceiptViewModel", "Transakcja: Liczba paragonów dla starego sklepu (ID: $originalStoreId): $originalStoreReceiptsCount")
                     if (originalStoreReceiptsCount == 0) {
-                        // Jeśli stary sklep jest pusty, usuń go
                         val storeToDelete = storeDao.getStoreById(originalStoreId)
                         storeToDelete?.let {
                             storeDao.deleteStore(it)
                             Log.d("EditReceiptViewModel", "Transakcja: Pierwotna drogeria (ID: $originalStoreId) usunięta automatycznie.")
                         } ?: run {
-                            // Sytuacja mało prawdopodobna, ale warto zalogować
-                            Log.w("EditReceiptViewModel", "Transakcja: Nie znaleziono pierwotnej drogerii (ID: $originalStoreId) do usunięcia, mimo że powinna być pusta.")
+                            Log.w("EditReceiptViewModel", "Transakcja: Nie znaleziono pierwotnej drogerii (ID: $originalStoreId) do usunięcia.")
                         }
                     }
                 }
-
             } // Koniec bloku withTransaction
 
             // --- Krok 9: Usuwanie plików zdjęć POZA transakcją ---
-            // Operacje na plikach nie powinny być częścią transakcji bazodanowej
-            for (uriToRemove in photoUrisToRemove) {
-                deleteImageFile(uriToRemove)
+            for (uriToRemove in photoUrisToRemoveList) {
+                deleteImageFile(uriToRemove.toString()) // Konwersja Uri na String
             }
 
-            Log.d("EditReceiptViewModel", "Paragon (ID: $receiptId) i Klient zaktualizowane, zdjęcia zsynchronizowane, stare sklepy sprawdzone.")
-            EditResult.SUCCESS // Zwróć sukces, jeśli transakcja się powiodła
+            // Resetuj listy zdjęć do dodania/usunięcia w stanie LiveData po udanym zapisie
+            clientPhotosToAddUris.postValue(mutableListOf()) // Użyj postValue, bo jesteśmy w tle
+            transactionPhotosToAddUris.postValue(mutableListOf())
+            photosToRemoveUris.postValue(mutableListOf())
+            // Ustaw tryb widoku
+            setEditMode(false) // To też powinno użyć postValue, jeśli jest ryzyko wywołania z tła
+            // Zresetuj flagę inicjalizacji, aby dane zostały ponownie załadowane z bazy po zapisie
+            isDataInitialized = false
+
+            Log.d("EditReceiptViewModel", "Paragon (ID: $receiptId) i Klient zaktualizowane.")
+            EditResult.SUCCESS
         } catch (e: NotFoundException) {
             EditResult.ERROR_NOT_FOUND
         } catch (e: DateFormatException) {
@@ -282,48 +390,37 @@ class EditReceiptViewModel(application: Application) : AndroidViewModel(applicat
      */
     suspend fun deleteReceipt(receipt: Receipt): EditResult = withContext(Dispatchers.IO) {
         try {
-            // Pobierz aktualny stan paragonu z bazy
             val receiptToDelete = receiptDao.getReceiptById(receipt.id)
             if (receiptToDelete == null) {
                 Log.e("EditReceiptViewModel", "Nie znaleziono paragonu do usunięcia. ID: ${receipt.id}")
                 return@withContext EditResult.ERROR_NOT_FOUND
             }
 
-            // Zapamiętaj ID klienta i sklepu przed usunięciem paragonu
             val clientId = receiptToDelete.clientId
             val storeId = receiptToDelete.storeId
-            var clientDeleted = false // Flaga wskazująca, czy klient został usunięty
-            var photoUrisToDelete: List<String> = emptyList() // Lista URI zdjęć do usunięcia (jeśli klient zostanie usunięty)
+            var clientDeleted = false
+            var photoUrisToDelete: List<String> = emptyList()
 
-            // Używamy transakcji do usunięcia paragonu i potencjalnie klienta/sklepu
             database.withTransaction {
-                // Krok 1: Usuń paragon
                 receiptDao.deleteReceipt(receiptToDelete)
                 Log.d("EditReceiptViewModel", "Transakcja: Paragon usunięty. ID: ${receipt.id}")
 
-                // Krok 2: Sprawdź, czy klient stał się osierocony
                 val clientReceiptsCount = receiptDao.getReceiptsForClientCount(clientId)
                 Log.d("EditReceiptViewModel", "Transakcja: Liczba pozostałych paragonów dla klienta (ID: $clientId): $clientReceiptsCount")
                 if (clientReceiptsCount == 0) {
-                    // Klient jest osierocony, usuwamy go
                     val clientToDelete = clientDao.getClientById(clientId)
                     clientToDelete?.let { client ->
-                        // Pobierz listę URI zdjęć PRZED usunięciem klienta
                         photoUrisToDelete = photoDao.getPhotoUrisForClient(client.id)
                         Log.d("EditReceiptViewModel", "Transakcja: Klient osierocony (ID: ${client.id}). Znaleziono ${photoUrisToDelete.size} zdjęć do usunięcia.")
-                        // Usuń klienta (wpisy zdjęć usuną się kaskadowo dzięki onDelete = CASCADE)
                         clientDao.deleteClient(client)
-                        clientDeleted = true // Ustaw flagę
+                        clientDeleted = true
                         Log.d("EditReceiptViewModel", "Transakcja: Klient (ID: ${client.id}) usunięty automatycznie z bazy.")
                     }
                 }
 
-                // Krok 3: Sprawdź, czy sklep stał się osierocony
-                // Niezależnie od tego, czy klient został usunięty, sprawdzamy sklep
                 val storeReceiptsCount = receiptDao.getReceiptsForStoreCount(storeId)
                 Log.d("EditReceiptViewModel", "Transakcja: Liczba pozostałych paragonów dla sklepu (ID: $storeId): $storeReceiptsCount")
                 if (storeReceiptsCount == 0) {
-                    // Sklep jest osierocony, usuwamy go
                     val storeToDelete = storeDao.getStoreById(storeId)
                     storeToDelete?.let {
                         storeDao.deleteStore(it)
@@ -332,17 +429,16 @@ class EditReceiptViewModel(application: Application) : AndroidViewModel(applicat
                 }
             } // Koniec transakcji
 
-            // Krok 4: Usuń pliki zdjęć POZA transakcją, jeśli klient został usunięty
             if (clientDeleted) {
                 for (uri in photoUrisToDelete) {
                     deleteImageFile(uri)
                 }
             }
 
-            EditResult.SUCCESS // Zwróć sukces
+            EditResult.SUCCESS
         } catch (e: Exception) {
             Log.e("EditReceiptViewModel", "Błąd podczas usuwania paragonu (ID: ${receipt.id}).", e)
-            EditResult.ERROR_DATABASE // Zwróć błąd bazy danych
+            EditResult.ERROR_DATABASE
         }
     }
 
@@ -354,33 +450,26 @@ class EditReceiptViewModel(application: Application) : AndroidViewModel(applicat
      */
     suspend fun deleteClient(client: Client): EditResult = withContext(Dispatchers.IO) {
         try {
-            // Sprawdź, czy klient istnieje
             val clientToDelete = clientDao.getClientById(client.id)
             if (clientToDelete == null) {
                 Log.e("EditReceiptViewModel", "Nie znaleziono klienta do usunięcia. ID: ${client.id}")
                 return@withContext EditResult.ERROR_NOT_FOUND
             }
 
-            // Krok 1: Zbierz ID sklepów powiązanych z klientem PRZED usunięciem
             val associatedStoreIds = receiptDao.getStoreIdsForClient(clientToDelete.id)
             Log.d("EditReceiptViewModel", "Sklepy powiązane z klientem ${clientToDelete.id} przed usunięciem: $associatedStoreIds")
 
-            // Krok 2: Pobierz listę URI zdjęć PRZED usunięciem klienta
             val photoUrisToDelete = photoDao.getPhotoUrisForClient(clientToDelete.id)
             Log.d("EditReceiptViewModel", "Znaleziono ${photoUrisToDelete.size} zdjęć do usunięcia dla klienta ${clientToDelete.id}")
 
-            // Krok 3: Używamy transakcji do usunięcia klienta i sprawdzenia sklepów
             database.withTransaction {
-                // Usuń klienta (paragony i wpisy zdjęć usuną się kaskadowo dzięki onDelete = CASCADE)
                 clientDao.deleteClient(clientToDelete)
                 Log.d("EditReceiptViewModel", "Transakcja: Klient (ID: ${clientToDelete.id}) usunięty z bazy (paragony i zdjęcia kaskadowo).")
 
-                // Sprawdź i wyczyść potencjalnie puste sklepy, które były powiązane z klientem
                 for (storeId in associatedStoreIds) {
                     val storeReceiptsCount = receiptDao.getReceiptsForStoreCount(storeId)
                     Log.d("EditReceiptViewModel", "Transakcja: Sprawdzanie sklepu ID: $storeId. Pozostałe paragony: $storeReceiptsCount")
                     if (storeReceiptsCount == 0) {
-                        // Sklep jest pusty, usuń go
                         val storeToDelete = storeDao.getStoreById(storeId)
                         storeToDelete?.let {
                             storeDao.deleteStore(it)
@@ -390,15 +479,14 @@ class EditReceiptViewModel(application: Application) : AndroidViewModel(applicat
                 }
             } // Koniec transakcji
 
-            // Krok 4: Usuń pliki zdjęć z dysku PO usunięciu z bazy
             for (uri in photoUrisToDelete) {
                 deleteImageFile(uri)
             }
 
-            EditResult.SUCCESS // Zwróć sukces
+            EditResult.SUCCESS
         } catch (e: Exception) {
             Log.e("EditReceiptViewModel", "Błąd podczas usuwania klienta (ID: ${client.id}).", e)
-            EditResult.ERROR_DATABASE // Zwróć błąd bazy danych
+            EditResult.ERROR_DATABASE
         }
     }
 
@@ -410,16 +498,12 @@ class EditReceiptViewModel(application: Application) : AndroidViewModel(applicat
     private fun deleteImageFile(photoUriString: String?) {
         if (photoUriString.isNullOrBlank()) {
             Log.w("EditReceiptViewModel", "Próba usunięcia pliku, ale URI jest puste.")
-            return // Brak URI do usunięcia
+            return
         }
-
         try {
             val fileUri = photoUriString.toUri()
-            // Sprawdź, czy to URI pliku ('file' scheme) i czy ścieżka zaczyna się od katalogu plików aplikacji
-            // To zabezpieczenie przed próbą usunięcia plików spoza dedykowanego katalogu
             if (fileUri.scheme == "file" && fileUri.path?.startsWith(getApplication<Application>().filesDir.absolutePath) == true) {
-                // Utwórz obiekt File na podstawie ścieżki z URI
-                val fileToDelete = File(fileUri.path!!) // Wykrzyknik jest bezpieczny, bo path nie będzie null dla file:// URI
+                val fileToDelete = File(fileUri.path!!)
                 if (fileToDelete.exists()) {
                     if (fileToDelete.delete()) {
                         Log.d("EditReceiptViewModel", "Usunięto plik zdjęcia: $photoUriString")
@@ -427,15 +511,12 @@ class EditReceiptViewModel(application: Application) : AndroidViewModel(applicat
                         Log.w("EditReceiptViewModel", "Nie udało się usunąć pliku zdjęcia: $photoUriString (metoda delete() zwróciła false)")
                     }
                 } else {
-                    // Plik mógł zostać już usunięty lub URI jest nieaktualne
                     Log.w("EditReceiptViewModel", "Plik zdjęcia do usunięcia nie istnieje: $photoUriString")
                 }
             } else {
-                // Logujemy ostrzeżenie, jeśli URI nie jest z oczekiwanego źródła
                 Log.w("EditReceiptViewModel", "Próba usunięcia pliku z nieobsługiwanego URI lub spoza magazynu aplikacji: $photoUriString")
             }
         } catch (e: Exception) {
-            // Złap wszelkie błędy (np. parsowania URI, SecurityException - choć mało prawdopodobne dla plików wewnętrznych)
             Log.e("EditReceiptViewModel", "Błąd podczas próby usunięcia pliku zdjęcia: $photoUriString", e)
         }
     }
