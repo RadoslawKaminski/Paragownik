@@ -111,7 +111,8 @@
                     android:enabled="false"
                     android:autofillHints="date"
                     android:hint="@string/receipt_date_hint"
-                    android:inputType="date" />
+                    android:inputType="date"
+                    android:maxLength="10"/> <!-- Dodano maxLength -->
 
                 <!-- Sekcja numeru kasy -->
                 <LinearLayout
@@ -191,7 +192,8 @@
                                 android:enabled="false"
                                 android:autofillHints="date"
                                 android:hint="@string/verification_date_hint"
-                                android:inputType="date" />
+                                android:inputType="date"
+                                android:maxLength="10"/> <!-- Dodano maxLength -->
                         </LinearLayout>
                         <LinearLayout
                             android:layout_width="0dp"
@@ -514,4 +516,3 @@
     </ScrollView>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
-

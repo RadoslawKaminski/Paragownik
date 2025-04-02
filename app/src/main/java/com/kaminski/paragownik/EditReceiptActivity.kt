@@ -121,6 +121,10 @@ class EditReceiptActivity : AppCompatActivity() {
     private var loadedTransactionPhotos: List<Photo> = emptyList()
     // Flaga do jednorazowej inicjalizacji stanu z bazy
     private var isDataInitialized = false
+    // Flagi do blokowania listenerów podczas programowej zmiany tekstu daty
+    private var isReceiptDateUpdateFromVM = false
+    private var isVerificationDateUpdateFromVM = false
+
 
     // Launcher ActivityResult do wybierania obrazu z galerii
     private val pickImageLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
@@ -189,13 +193,19 @@ class EditReceiptActivity : AppCompatActivity() {
             return
         }
 
+        // Konfiguracja formatowania daty dla pól EditText (z przywróconym setText i kursorem)
         setupDateEditText(editReceiptDateEditText)
         setupDateEditText(editVerificationDateEditText)
+        // Konfiguracja CheckBoxa daty weryfikacji
         setupVerificationDateCheckBox()
+        // Inicjalizacja adapterów RecyclerView
         setupAdapters()
-        setupFieldListeners() // Ustawia listenery aktualizujące ViewModel
+        // Ustawienie listenerów dla pól edycyjnych (aktualizują ViewModel)
+        setupFieldListeners()
+        // Ustawienie listenerów dla przycisków
         setupButtonClickListeners()
-        observeViewModel() // Rozpocznij obserwację ViewModelu
+        // Rozpoczęcie obserwacji danych z ViewModelu
+        observeViewModel()
     }
 
     /**
@@ -268,12 +278,22 @@ class EditReceiptActivity : AppCompatActivity() {
         // Aktualizuj ViewModel tylko jeśli jesteśmy w trybie edycji
         editReceiptStoreNumberEditText.addTextChangedListener { if (editReceiptViewModel.isEditMode.value == true) editReceiptViewModel.setStoreNumber(it.toString()) }
         editReceiptNumberEditText.addTextChangedListener { if (editReceiptViewModel.isEditMode.value == true) editReceiptViewModel.setReceiptNumber(it.toString()) }
-        editReceiptDateEditText.addTextChangedListener { if (editReceiptViewModel.isEditMode.value == true) editReceiptViewModel.setReceiptDate(it.toString()) }
         editCashRegisterNumberEditText.addTextChangedListener { if (editReceiptViewModel.isEditMode.value == true) editReceiptViewModel.setCashRegisterNumber(it.toString()) }
-        editVerificationDateEditText.addTextChangedListener { if (editReceiptViewModel.isEditMode.value == true) editReceiptViewModel.setVerificationDate(it.toString()) }
         editClientDescriptionEditText.addTextChangedListener { if (editReceiptViewModel.isEditMode.value == true) editReceiptViewModel.setClientDescription(it.toString()) }
         editClientAppNumberEditText.addTextChangedListener { if (editReceiptViewModel.isEditMode.value == true) editReceiptViewModel.setClientAppNumber(it.toString()) }
         editAmoditNumberEditText.addTextChangedListener { if (editReceiptViewModel.isEditMode.value == true) editReceiptViewModel.setAmoditNumber(it.toString()) }
+
+        // Specjalna obsługa pól daty - aktualizacja ViewModelu
+        editReceiptDateEditText.addTextChangedListener { editable ->
+            if (editReceiptViewModel.isEditMode.value == true && !isReceiptDateUpdateFromVM) {
+                editReceiptViewModel.setReceiptDate(editable.toString())
+            }
+        }
+        editVerificationDateEditText.addTextChangedListener { editable ->
+             if (editReceiptViewModel.isEditMode.value == true && !isVerificationDateUpdateFromVM) {
+                editReceiptViewModel.setVerificationDate(editable.toString())
+            }
+        }
     }
 
     /** Ustawia listenery kliknięć dla przycisków. */
@@ -384,9 +404,23 @@ class EditReceiptActivity : AppCompatActivity() {
         // Obserwatory dla pól tekstowych
         editReceiptViewModel.storeNumberState.observe(this, Observer { value -> if (editReceiptStoreNumberEditText.text.toString() != value) editReceiptStoreNumberEditText.setText(value) })
         editReceiptViewModel.receiptNumberState.observe(this, Observer { value -> if (editReceiptNumberEditText.text.toString() != value) editReceiptNumberEditText.setText(value) })
-        editReceiptViewModel.receiptDateState.observe(this, Observer { value -> if (editReceiptDateEditText.text.toString() != value) editReceiptDateEditText.setText(value) })
+        // Obserwator daty paragonu - ustawia tekst, jeśli się różni i ustawia flagę
+        editReceiptViewModel.receiptDateState.observe(this, Observer { value ->
+            if (editReceiptDateEditText.text.toString() != value) {
+                isReceiptDateUpdateFromVM = true // Ustaw flagę przed zmianą tekstu
+                editReceiptDateEditText.setText(value)
+                isReceiptDateUpdateFromVM = false // Zdejmij flagę po zmianie tekstu
+            }
+        })
         editReceiptViewModel.cashRegisterNumberState.observe(this, Observer { value -> if (editCashRegisterNumberEditText.text.toString() != value) editCashRegisterNumberEditText.setText(value) })
-        editReceiptViewModel.verificationDateState.observe(this, Observer { value -> if (editVerificationDateEditText.text.toString() != value) editVerificationDateEditText.setText(value) })
+        // Obserwator daty weryfikacji - ustawia tekst, jeśli się różni i ustawia flagę
+        editReceiptViewModel.verificationDateState.observe(this, Observer { value ->
+            if (editVerificationDateEditText.text.toString() != value) {
+                isVerificationDateUpdateFromVM = true // Ustaw flagę przed zmianą tekstu
+                editVerificationDateEditText.setText(value)
+                isVerificationDateUpdateFromVM = false // Zdejmij flagę po zmianie tekstu
+            }
+        })
         editReceiptViewModel.isVerificationDateTodayState.observe(this, Observer { isChecked ->
             if (editVerificationDateTodayCheckBox.isChecked != isChecked) editVerificationDateTodayCheckBox.isChecked = isChecked
             editVerificationDateEditText.isEnabled = (editReceiptViewModel.isEditMode.value == true) && !isChecked
@@ -759,8 +793,9 @@ class EditReceiptActivity : AppCompatActivity() {
     }
 
     /**
-     * Konfiguruje [EditText] do automatycznego formatowania daty.
-     * Nie aktualizuje już bezpośrednio ViewModelu (robi to listener w setupFieldListeners).
+     * Konfiguruje [EditText] do automatycznego formatowania daty DD-MM-YYYY.
+     * Używa flagi `isFormatting`, aby uniknąć pętli.
+     * *** Ta funkcja NIE aktualizuje ViewModelu. ***
      */
     private fun setupDateEditText(editText: EditText) {
         editText.inputType = InputType.TYPE_CLASS_NUMBER
@@ -779,28 +814,30 @@ class EditReceiptActivity : AppCompatActivity() {
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
 
             override fun afterTextChanged(s: Editable?) {
-                if (isFormatting || s == null) return
-                isFormatting = true
+                if (isFormatting || s == null) return // Jeśli już formatujemy lub s jest null, wyjdź
 
                 val userInput = s.toString()
+                // Sprawdzamy, czy zmiana nie pochodzi z setText() w tym samym watcherze
                 if (userInput == current) {
                     isFormatting = false
                     return
                 }
 
+                isFormatting = true // Ustaw flagę formatowania
+
                 val digitsOnly = userInput.replace("[^\\d]".toRegex(), "")
                 val len = digitsOnly.length
                 val formatted = StringBuilder()
-                if (len >= 1) formatted.append(digitsOnly.substring(0, minOf(len, 2)))
-                if (len >= 3) formatted.append("-").append(digitsOnly.substring(2, minOf(len, 4)))
-                if (len >= 5) formatted.append("-").append(digitsOnly.substring(4, minOf(len, 8)))
+                if (len >= 1) formatted.append(digitsOnly.substring(0, minOf(len, 2))) // DD
+                if (len >= 3) formatted.append("-").append(digitsOnly.substring(2, minOf(len, 4))) // MM
+                if (len >= 5) formatted.append("-").append(digitsOnly.substring(4, minOf(len, 8))) // YYYY
                 current = formatted.toString()
 
-                // Ustaw sformatowany tekst w EditText
-                // Stan ViewModelu zostanie zaktualizowany przez listener dodany w setupFieldListeners
+                // Ustaw sformatowany tekst w EditText.
+                // To wywoła ponownie afterTextChanged, ale isFormatting=true zapobiegnie pętli.
                 editText.setText(current)
 
-                // Przywróć pozycję kursora - POPRAWIONA LOGIKA
+                // Przywróć pozycję kursora
                 try {
                     val lengthDiff = current.length - textLengthBefore
                     var newCursorPos = cursorPosBefore + lengthDiff
@@ -808,9 +845,10 @@ class EditReceiptActivity : AppCompatActivity() {
                     editText.setSelection(newCursorPos)
                 } catch (e: Exception) {
                     try { editText.setSelection(current.length) } catch (e2: Exception) { /* Ignoruj */ }
-                    Log.e("DateTextWatcher", "Błąd ustawiania kursora", e)
+                    Log.e("DateTextWatcher", "Błąd ustawiania kursora w EditReceiptActivity", e)
                 }
 
+                // Zdejmij flagę formatowania PO zakończeniu wszystkich operacji
                 isFormatting = false
             }
         })
@@ -852,3 +890,4 @@ class EditReceiptActivity : AppCompatActivity() {
         startActivity(intent)
     }
 }
+
