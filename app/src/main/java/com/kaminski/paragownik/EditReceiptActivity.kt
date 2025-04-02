@@ -24,7 +24,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.net.toUri
-import androidx.core.widget.addTextChangedListener
+import androidx.core.widget.addTextChangedListener // Nadal potrzebny dla innych pól
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.Observer // Import Observer
 import androidx.lifecycle.ViewModelProvider // Import ViewModelProvider
@@ -50,6 +50,7 @@ import kotlinx.coroutines.launch
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
+import java.text.ParseException // Import dla ParseException
 import java.text.SimpleDateFormat
 import java.util.Locale
 import java.util.UUID
@@ -193,15 +194,13 @@ class EditReceiptActivity : AppCompatActivity() {
             return
         }
 
-        // Konfiguracja formatowania daty dla pól EditText (z przywróconym setText i kursorem)
-        setupDateEditText(editReceiptDateEditText)
-        setupDateEditText(editVerificationDateEditText)
+        // Usunięto wywołania setupDateEditText
         // Konfiguracja CheckBoxa daty weryfikacji
         setupVerificationDateCheckBox()
         // Inicjalizacja adapterów RecyclerView
         setupAdapters()
         // Ustawienie listenerów dla pól edycyjnych (aktualizują ViewModel)
-        setupFieldListeners()
+        setupFieldListeners() // Ta funkcja teraz obsługuje też formatowanie daty
         // Ustawienie listenerów dla przycisków
         setupButtonClickListeners()
         // Rozpoczęcie obserwacji danych z ViewModelu
@@ -273,9 +272,12 @@ class EditReceiptActivity : AppCompatActivity() {
         transactionPhotosRecyclerViewView.adapter = transactionPhotosAdapter
     }
 
-    /** Ustawia listenery dla pól edycyjnych, które aktualizują stan w ViewModelu. */
+    /**
+     * Ustawia listenery dla pól edycyjnych.
+     * Dla pól daty, listener obsługuje formatowanie, ustawianie kursora i aktualizację ViewModelu.
+     */
     private fun setupFieldListeners() {
-        // Aktualizuj ViewModel tylko jeśli jesteśmy w trybie edycji
+        // Listenery dla pól innych niż data
         editReceiptStoreNumberEditText.addTextChangedListener { if (editReceiptViewModel.isEditMode.value == true) editReceiptViewModel.setStoreNumber(it.toString()) }
         editReceiptNumberEditText.addTextChangedListener { if (editReceiptViewModel.isEditMode.value == true) editReceiptViewModel.setReceiptNumber(it.toString()) }
         editCashRegisterNumberEditText.addTextChangedListener { if (editReceiptViewModel.isEditMode.value == true) editReceiptViewModel.setCashRegisterNumber(it.toString()) }
@@ -283,18 +285,87 @@ class EditReceiptActivity : AppCompatActivity() {
         editClientAppNumberEditText.addTextChangedListener { if (editReceiptViewModel.isEditMode.value == true) editReceiptViewModel.setClientAppNumber(it.toString()) }
         editAmoditNumberEditText.addTextChangedListener { if (editReceiptViewModel.isEditMode.value == true) editReceiptViewModel.setAmoditNumber(it.toString()) }
 
-        // Specjalna obsługa pól daty - aktualizacja ViewModelu
-        editReceiptDateEditText.addTextChangedListener { editable ->
+        // Zcentralizowany TextWatcher dla daty paragonu
+        editReceiptDateEditText.inputType = InputType.TYPE_CLASS_NUMBER // Ustawiamy inputType na numeryczny
+        editReceiptDateEditText.addTextChangedListener(createDateTextWatcher(editReceiptDateEditText) { formattedDate ->
+            // Aktualizuj ViewModel tylko jeśli tryb edycji i zmiana nie pochodzi z VM
             if (editReceiptViewModel.isEditMode.value == true && !isReceiptDateUpdateFromVM) {
-                editReceiptViewModel.setReceiptDate(editable.toString())
+                editReceiptViewModel.setReceiptDate(formattedDate)
             }
-        }
-        editVerificationDateEditText.addTextChangedListener { editable ->
-             if (editReceiptViewModel.isEditMode.value == true && !isVerificationDateUpdateFromVM) {
-                editReceiptViewModel.setVerificationDate(editable.toString())
+        })
+
+        // Zcentralizowany TextWatcher dla daty weryfikacji
+        editVerificationDateEditText.inputType = InputType.TYPE_CLASS_NUMBER // Ustawiamy inputType na numeryczny
+        editVerificationDateEditText.addTextChangedListener(createDateTextWatcher(editVerificationDateEditText) { formattedDate ->
+            // Aktualizuj ViewModel tylko jeśli tryb edycji i zmiana nie pochodzi z VM
+            if (editReceiptViewModel.isEditMode.value == true && !isVerificationDateUpdateFromVM) {
+                editReceiptViewModel.setVerificationDate(formattedDate)
+            }
+        })
+    }
+
+    /**
+     * Tworzy instancję TextWatcher'a do formatowania daty i aktualizacji ViewModelu.
+     * @param editText Pole EditText, do którego watcher będzie dołączony.
+     * @param updateViewModel Lambda wywoływana po sformatowaniu tekstu, przekazująca sformatowaną datę.
+     */
+    private fun createDateTextWatcher(editText: EditText, updateViewModel: (String) -> Unit): TextWatcher {
+        return object : TextWatcher {
+            private var current = ""
+            private var isFormatting: Boolean = false
+            private var cursorPosBefore: Int = 0
+            private var textLengthBefore: Int = 0
+
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
+                if (isFormatting) return
+                cursorPosBefore = editText.selectionStart
+                textLengthBefore = s?.length ?: 0
+            }
+
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+
+            override fun afterTextChanged(s: Editable?) {
+                if (isFormatting || s == null) return
+
+                val userInput = s.toString()
+                if (userInput == current) {
+                    return // Zmiana pochodzi z setText w tym watcherze, ignoruj
+                }
+
+                isFormatting = true
+
+                val digitsOnly = userInput.replace("[^\\d]".toRegex(), "")
+                val len = digitsOnly.length
+                val formatted = StringBuilder()
+                if (len >= 1) formatted.append(digitsOnly.substring(0, minOf(len, 2))) // DD
+                if (len >= 3) formatted.append("-").append(digitsOnly.substring(2, minOf(len, 4))) // MM
+                if (len >= 5) formatted.append("-").append(digitsOnly.substring(4, minOf(len, 8))) // YYYY
+                current = formatted.toString()
+
+                // Ustaw sformatowany tekst w EditText
+                editText.setText(current)
+
+                // Przywróć pozycję kursora
+                try {
+                    val lengthDiff = current.length - textLengthBefore
+                    var newCursorPos = cursorPosBefore + lengthDiff
+                    newCursorPos = maxOf(0, minOf(newCursorPos, current.length))
+                    editText.setSelection(newCursorPos)
+                } catch (e: Exception) {
+                    try { editText.setSelection(current.length) } catch (e2: Exception) { /* Ignoruj */ }
+                    Log.e("DateTextWatcher", "Błąd ustawiania kursora w EditReceiptActivity", e)
+                }
+
+                // Zdejmij flagę formatowania
+                isFormatting = false
+
+                // Zaktualizuj ViewModel sformatowaną datą
+                // Sprawdzenie !isXxxUpdateFromVM odbywa się w setupFieldListeners przed wywołaniem updateViewModel
+                updateViewModel(current)
             }
         }
     }
+
 
     /** Ustawia listenery kliknięć dla przycisków. */
     private fun setupButtonClickListeners() {
@@ -647,25 +718,55 @@ class EditReceiptActivity : AppCompatActivity() {
 
     /**
      * Zbiera dane z formularza (teraz z ViewModelu) i wywołuje metodę zapisu zmian w ViewModelu.
+     * Dodano walidację dat przed wywołaniem zapisu w ViewModelu.
      */
     private fun saveChanges() {
-        // Walidacja po stronie UI (opcjonalna, bo jest też w ViewModelu)
+        // Pobierz aktualne wartości ze stanu LiveData
         val storeNumberString = editReceiptViewModel.storeNumberState.value ?: ""
         val receiptNumber = editReceiptViewModel.receiptNumberState.value ?: ""
         val receiptDateString = editReceiptViewModel.receiptDateState.value ?: ""
+        val verificationDateString = editReceiptViewModel.verificationDateState.value ?: ""
 
+        // Walidacja pól wymaganych
         if (storeNumberString.isBlank() || receiptNumber.isBlank() || receiptDateString.isBlank()) {
             Toast.makeText(this, R.string.error_fill_required_edit_fields, Toast.LENGTH_LONG).show()
             return
         }
-        // Można dodać walidację formatu daty
 
-        // Wywołaj metodę zapisu w ViewModelu (przekazując tylko ID)
+        // Walidacja formatu i poprawności daty paragonu
+        if (!isValidDate(receiptDateString)) {
+            Toast.makeText(this, R.string.error_invalid_receipt_date_format, Toast.LENGTH_LONG).show()
+            return
+        }
+
+        // Walidacja formatu i poprawności daty weryfikacji (jeśli nie jest pusta)
+        if (verificationDateString.isNotEmpty() && !isValidDate(verificationDateString)) {
+            Toast.makeText(this, R.string.error_invalid_verification_date_format, Toast.LENGTH_LONG).show()
+            return
+        }
+
+        // Jeśli walidacja przeszła pomyślnie, wywołaj zapis w ViewModelu
         lifecycleScope.launch {
             val result = editReceiptViewModel.updateReceiptAndClient(receiptId)
             handleEditResult(result)
         }
     }
+
+    /**
+     * Sprawdza, czy podany ciąg znaków reprezentuje poprawną datę w formacie DD-MM-YYYY.
+     */
+    private fun isValidDate(dateStr: String): Boolean {
+        if (dateStr.length != 10) return false // Sprawdza długość
+        val dateFormat = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault())
+        dateFormat.isLenient = false // Kluczowe: nie pozwala na niepoprawne daty (np. 31 lutego)
+        return try {
+            dateFormat.parse(dateStr) // Próbuje sparsować datę
+            true // Sukces
+        } catch (e: ParseException) {
+            false // Błąd parsowania = nieprawidłowa data
+        }
+    }
+
 
     // Metody showDeleteReceiptDialog, deleteReceipt, showDeleteClientDialog, deleteClient, handleEditResult
     // pozostają bez zmian w logice wywoływania ViewModelu, ale handleEditResult
@@ -748,7 +849,7 @@ class EditReceiptActivity : AppCompatActivity() {
         val messageResId = when (result) {
             EditReceiptViewModel.EditResult.SUCCESS -> if (isDeleteOperation) R.string.delete_success_message else R.string.save_success_message
             EditReceiptViewModel.EditResult.ERROR_NOT_FOUND -> R.string.error_not_found
-            EditReceiptViewModel.EditResult.ERROR_DATE_FORMAT -> R.string.error_invalid_date_format
+            EditReceiptViewModel.EditResult.ERROR_DATE_FORMAT -> R.string.error_invalid_date_format // ViewModel też może zwrócić ten błąd
             EditReceiptViewModel.EditResult.ERROR_DUPLICATE_RECEIPT -> R.string.error_duplicate_receipt
             EditReceiptViewModel.EditResult.ERROR_STORE_NUMBER_MISSING -> R.string.error_store_number_missing
             EditReceiptViewModel.EditResult.ERROR_DATABASE -> R.string.error_database
@@ -792,67 +893,7 @@ class EditReceiptActivity : AppCompatActivity() {
         }
     }
 
-    /**
-     * Konfiguruje [EditText] do automatycznego formatowania daty DD-MM-YYYY.
-     * Używa flagi `isFormatting`, aby uniknąć pętli.
-     * *** Ta funkcja NIE aktualizuje ViewModelu. ***
-     */
-    private fun setupDateEditText(editText: EditText) {
-        editText.inputType = InputType.TYPE_CLASS_NUMBER
-        editText.addTextChangedListener(object : TextWatcher {
-            private var current = ""
-            private var isFormatting: Boolean = false
-            private var cursorPosBefore: Int = 0
-            private var textLengthBefore: Int = 0
-
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
-                if (isFormatting) return
-                cursorPosBefore = editText.selectionStart
-                textLengthBefore = s?.length ?: 0
-            }
-
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
-
-            override fun afterTextChanged(s: Editable?) {
-                if (isFormatting || s == null) return // Jeśli już formatujemy lub s jest null, wyjdź
-
-                val userInput = s.toString()
-                // Sprawdzamy, czy zmiana nie pochodzi z setText() w tym samym watcherze
-                if (userInput == current) {
-                    isFormatting = false
-                    return
-                }
-
-                isFormatting = true // Ustaw flagę formatowania
-
-                val digitsOnly = userInput.replace("[^\\d]".toRegex(), "")
-                val len = digitsOnly.length
-                val formatted = StringBuilder()
-                if (len >= 1) formatted.append(digitsOnly.substring(0, minOf(len, 2))) // DD
-                if (len >= 3) formatted.append("-").append(digitsOnly.substring(2, minOf(len, 4))) // MM
-                if (len >= 5) formatted.append("-").append(digitsOnly.substring(4, minOf(len, 8))) // YYYY
-                current = formatted.toString()
-
-                // Ustaw sformatowany tekst w EditText.
-                // To wywoła ponownie afterTextChanged, ale isFormatting=true zapobiegnie pętli.
-                editText.setText(current)
-
-                // Przywróć pozycję kursora
-                try {
-                    val lengthDiff = current.length - textLengthBefore
-                    var newCursorPos = cursorPosBefore + lengthDiff
-                    newCursorPos = maxOf(0, minOf(newCursorPos, current.length))
-                    editText.setSelection(newCursorPos)
-                } catch (e: Exception) {
-                    try { editText.setSelection(current.length) } catch (e2: Exception) { /* Ignoruj */ }
-                    Log.e("DateTextWatcher", "Błąd ustawiania kursora w EditReceiptActivity", e)
-                }
-
-                // Zdejmij flagę formatowania PO zakończeniu wszystkich operacji
-                isFormatting = false
-            }
-        })
-    }
+    // Usunięto funkcję setupDateEditText
 
     /**
      * Kopiuje obraz z podanego źródłowego URI do wewnętrznego magazynu aplikacji.
@@ -890,4 +931,3 @@ class EditReceiptActivity : AppCompatActivity() {
         startActivity(intent)
     }
 }
-
