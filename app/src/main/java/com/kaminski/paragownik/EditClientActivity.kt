@@ -1,3 +1,4 @@
+
 package com.kaminski.paragownik
 
 import android.content.Intent
@@ -15,11 +16,16 @@ import android.widget.HorizontalScrollView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
+// Usunięto: import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.net.toUri
-import androidx.lifecycle.ViewModelProvider
+import androidx.core.widget.addTextChangedListener // Import addTextChangedListener
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.Observer // Import Observer
+import androidx.lifecycle.ViewModelProvider // Import ViewModelProvider
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
@@ -39,12 +45,12 @@ import java.util.UUID
 
 /**
  * Aktywność odpowiedzialna za przeglądanie i edycję danych istniejącego klienta,
- * w tym zarządzanie jego zdjęciami. Używa Glide do ładowania obrazów.
- * Umożliwia otwarcie zdjęcia na pełnym ekranie.
+ * w tym zarządzanie jego zdjęciami. Używa ViewModelu z MutableLiveData.
  */
 class EditClientActivity : AppCompatActivity() {
 
     // --- Widoki UI ---
+    // (Deklaracje bez zmian)
     private lateinit var titleTextView: TextView
     private lateinit var editClientDescriptionEditText: EditText
     private lateinit var editClientAppNumberEditText: EditText
@@ -56,14 +62,12 @@ class EditClientActivity : AppCompatActivity() {
     private lateinit var editAppNumberLayout: LinearLayout
     private lateinit var editAmoditNumberLayout: LinearLayout
     private lateinit var clientDataSectionTitleEdit: TextView
-
     private lateinit var clientPhotosTitleEdit: TextView
     private lateinit var clientPhotosTitleView: TextView
     private lateinit var clientPhotosScrollViewEdit: HorizontalScrollView
     private lateinit var clientPhotosContainerEdit: LinearLayout
     private lateinit var clientPhotosRecyclerViewView: RecyclerView
     private lateinit var addClientPhotoButtonEdit: Button
-
     private lateinit var transactionPhotosTitleEdit: TextView
     private lateinit var transactionPhotosTitleView: TextView
     private lateinit var transactionPhotosScrollViewEdit: HorizontalScrollView
@@ -76,19 +80,24 @@ class EditClientActivity : AppCompatActivity() {
     private lateinit var transactionPhotosAdapter: PhotoAdapter
 
     // --- ViewModel ---
+    // Zmieniono inicjalizację na ViewModelProvider
     private lateinit var editClientViewModel: EditClientViewModel
 
     // --- Dane pomocnicze ---
     private var currentClientId: Long = -1L
-    private var loadDataJob: Job? = null
-    private var isEditMode = false
-
-    private val currentClientPhotos = mutableListOf<Photo>()
-    private val currentTransactionPhotos = mutableListOf<Photo>()
-    private val photosToAdd = mutableMapOf<PhotoType, MutableList<Uri>>()
-    private val photosToRemove = mutableListOf<Uri>()
+    // Usunięto: private var loadDataJob: Job? = null
+    // Usunięto: private var isEditMode = false
+    // Usunięto: private val currentClientPhotos = mutableListOf<Photo>()
+    // Usunięto: private val currentTransactionPhotos = mutableListOf<Photo>()
+    // Usunięto: private val photosToAdd = mutableMapOf<PhotoType, MutableList<Uri>>()
+    // Usunięto: private val photosToRemove = mutableListOf<Uri>()
     private val photoUriToViewMapEdit = mutableMapOf<Uri, View>()
     private var currentPhotoTypeToAdd: PhotoType? = null
+    // Flaga inicjalizacji danych w Activity
+    private var isViewInitialized = false
+    // Przechowuje aktualnie załadowane zdjęcia z bazy
+    private var loadedClientPhotos: List<Photo> = emptyList()
+    private var loadedTransactionPhotos: List<Photo> = emptyList()
 
     // Launcher ActivityResult do wybierania obrazu z galerii
     private val pickImageLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
@@ -98,16 +107,21 @@ class EditClientActivity : AppCompatActivity() {
             destinationUri?.let { finalUri ->
                 val type = currentPhotoTypeToAdd
                 if (type != null) {
-                    val alreadyExists = photosToAdd[type]?.contains(finalUri) == true ||
-                                        (if (type == PhotoType.CLIENT) currentClientPhotos else currentTransactionPhotos)
-                                            .any { it.uri == finalUri.toString() }
+                    val isAlreadyLoaded = (if (type == PhotoType.CLIENT) loadedClientPhotos else loadedTransactionPhotos)
+                        .any { it.uri == finalUri.toString() }
+                    val isAlreadyAdded = (if (type == PhotoType.CLIENT) editClientViewModel.clientPhotosToAddUris.value else editClientViewModel.transactionPhotosToAddUris.value)
+                        ?.contains(finalUri) ?: false
+                    val isMarkedForRemoval = editClientViewModel.photosToRemoveUris.value?.contains(finalUri) ?: false
 
-                    if (!alreadyExists) {
-                        photosToAdd.getOrPut(type) { mutableListOf() }.add(finalUri)
-                        val container = if (type == PhotoType.CLIENT) clientPhotosContainerEdit else transactionPhotosContainerEdit
-                        addPhotoThumbnail(finalUri, container, type, true)
+                    if (!isAlreadyLoaded && !isAlreadyAdded) {
+                        if (isMarkedForRemoval) {
+                            editClientViewModel.removePhotoToRemove(finalUri)
+                        }
+                        editClientViewModel.addPhotoToAdd(finalUri, type)
                         Log.d("EditClientActivity", "Przygotowano do dodania zdjęcie ($type): $finalUri")
-                        updatePhotoSectionVisibility(type, true)
+                    } else if (isAlreadyLoaded && isMarkedForRemoval) {
+                        editClientViewModel.removePhotoToRemove(finalUri)
+                        Log.d("EditClientActivity", "Odznaczono zdjęcie ($type) do usunięcia: $finalUri")
                     } else {
                          Log.d("EditClientActivity", "Zdjęcie $finalUri już istnieje lub zostało dodane.")
                          Toast.makeText(this, R.string.photo_already_added, Toast.LENGTH_SHORT).show()
@@ -130,7 +144,8 @@ class EditClientActivity : AppCompatActivity() {
         setContentView(R.layout.activity_edit_client)
 
         initializeViews()
-        initializeViewModel()
+        // Inicjalizacja ViewModelu
+        editClientViewModel = ViewModelProvider(this).get(EditClientViewModel::class.java)
 
         currentClientId = intent.getLongExtra("CLIENT_ID", -1L)
         Log.d("EditClientActivity", "Otrzymano clientId: $currentClientId")
@@ -141,27 +156,10 @@ class EditClientActivity : AppCompatActivity() {
             return
         }
 
-        clientPhotosAdapter = PhotoAdapter(
-            emptyList(),
-            R.layout.large_photo_item,
-            R.id.largePhotoImageViewItem,
-            GlideScaleType.FIT_CENTER
-        ) { uri -> openFullScreenImage(uri) }
-        clientPhotosRecyclerViewView.layoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
-        clientPhotosRecyclerViewView.adapter = clientPhotosAdapter
-
-        transactionPhotosAdapter = PhotoAdapter(
-            emptyList(),
-            R.layout.large_photo_item,
-            R.id.largePhotoImageViewItem,
-            GlideScaleType.FIT_CENTER
-        ) { uri -> openFullScreenImage(uri) }
-        transactionPhotosRecyclerViewView.layoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
-        transactionPhotosRecyclerViewView.adapter = transactionPhotosAdapter
-
-        loadClientData()
+        setupAdapters()
+        setupFieldListeners() // Ustawia listenery aktualizujące ViewModel
         setupButtonClickListeners()
-        updateUiMode(false)
+        observeViewModel() // Rozpocznij obserwację ViewModelu
     }
 
     /**
@@ -195,11 +193,32 @@ class EditClientActivity : AppCompatActivity() {
         addTransactionPhotoButtonEdit = findViewById(R.id.addTransactionPhotoButtonEdit)
     }
 
-    /**
-     * Inicjalizuje ViewModel.
-     */
-    private fun initializeViewModel() {
-        editClientViewModel = ViewModelProvider(this).get(EditClientViewModel::class.java)
+    /** Inicjalizuje adaptery RecyclerView. */
+    private fun setupAdapters() {
+        clientPhotosAdapter = PhotoAdapter(
+            emptyList(),
+            R.layout.large_photo_item,
+            R.id.largePhotoImageViewItem,
+            GlideScaleType.FIT_CENTER
+        ) { uri -> openFullScreenImage(uri) }
+        clientPhotosRecyclerViewView.layoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
+        clientPhotosRecyclerViewView.adapter = clientPhotosAdapter
+
+        transactionPhotosAdapter = PhotoAdapter(
+            emptyList(),
+            R.layout.large_photo_item,
+            R.id.largePhotoImageViewItem,
+            GlideScaleType.FIT_CENTER
+        ) { uri -> openFullScreenImage(uri) }
+        transactionPhotosRecyclerViewView.layoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
+        transactionPhotosRecyclerViewView.adapter = transactionPhotosAdapter
+    }
+
+    /** Ustawia listenery dla pól edycyjnych, które aktualizują stan w ViewModelu. */
+    private fun setupFieldListeners() {
+        editClientDescriptionEditText.addTextChangedListener { if (editClientViewModel.isEditMode.value == true) editClientViewModel.setClientDescription(it.toString()) }
+        editClientAppNumberEditText.addTextChangedListener { if (editClientViewModel.isEditMode.value == true) editClientViewModel.setClientAppNumber(it.toString()) }
+        editAmoditNumberEditText.addTextChangedListener { if (editClientViewModel.isEditMode.value == true) editClientViewModel.setAmoditNumber(it.toString()) }
     }
 
     /**
@@ -220,124 +239,149 @@ class EditClientActivity : AppCompatActivity() {
         }
 
         editModeClientButton.setOnClickListener {
-            updateUiMode(true)
+            editClientViewModel.setEditMode(true)
         }
     }
 
-    /**
-     * Wczytuje dane klienta i jego zdjęć z ViewModelu i wypełnia formularz oraz kontenery zdjęć.
-     */
-    private fun loadClientData() {
-        loadDataJob?.cancel()
-        loadDataJob = lifecycleScope.launch {
-            editClientViewModel.getClientWithPhotos(currentClientId)
-                .collectLatest { pair ->
-                    if (!isActive) return@collectLatest
-
+    /** Obserwuje zmiany w ViewModelu. */
+    private fun observeViewModel() {
+        // Obserwacja danych klienta i zdjęć z bazy (StateFlow)
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                editClientViewModel.getClientWithPhotosFlow(currentClientId).collectLatest { pair ->
                     val client = pair.first
                     val photos = pair.second
 
-                    clearPhotoData()
-
-                    if (client != null) {
-                        editClientDescriptionEditText.setText(client.description ?: "")
-                        editClientAppNumberEditText.setText(client.clientAppNumber ?: "")
-                        editAmoditNumberEditText.setText(client.amoditNumber ?: "")
-
-                        photos?.let { photoList ->
-                            currentClientPhotos.addAll(photoList.filter { it.type == PhotoType.CLIENT })
-                            currentTransactionPhotos.addAll(photoList.filter { it.type == PhotoType.TRANSACTION })
-
-                            populatePhotoContainer(clientPhotosContainerEdit, currentClientPhotos, PhotoType.CLIENT, true)
-                            populatePhotoContainer(null, currentClientPhotos, PhotoType.CLIENT, false)
-                            populatePhotoContainer(transactionPhotosContainerEdit, currentTransactionPhotos, PhotoType.TRANSACTION, true)
-                            populatePhotoContainer(null, currentTransactionPhotos, PhotoType.TRANSACTION, false)
+                    if (client == null) {
+                        // Jeśli Flow emituje null PO inicjalizacji, to błąd
+                        if (isViewInitialized) {
+                            Log.e("EditClientActivity", "Dane klienta (ID: $currentClientId) stały się null po inicjalizacji.")
+                            if (!isFinishing) {
+                                Toast.makeText(this@EditClientActivity, R.string.error_client_not_found, Toast.LENGTH_SHORT).show()
+                                finish()
+                            }
+                        } else {
+                            // Ignorujemy początkowy null przed inicjalizacją
+                            Log.d("EditClientActivity", "Otrzymano null klienta (przed inicjalizacją), ignorowanie.")
                         }
-
-                        updateUiMode(isEditMode)
-
-                    } else {
-                         if (isActive) {
-                             Log.e("EditClientActivity", "Nie znaleziono danych dla clientId: $currentClientId (prawdopodobnie usunięto)")
-                             Toast.makeText(this@EditClientActivity, R.string.error_client_not_found, Toast.LENGTH_SHORT).show()
-                             finish()
-                         }
-                         clearPhotoData()
-                         updateUiMode(isEditMode)
+                        return@collectLatest
                     }
+
+                    // Mamy dane, inicjalizujemy stan ViewModelu (jeśli trzeba)
+                    Log.d("EditClientActivity", "Otrzymano aktualne dane klienta z Flow.")
+                    loadedClientPhotos = photos?.filter { it.type == PhotoType.CLIENT } ?: emptyList()
+                    loadedTransactionPhotos = photos?.filter { it.type == PhotoType.TRANSACTION } ?: emptyList()
+
+                    // Inicjalizuj stan MutableLiveData w ViewModelu tylko raz
+                    if (!isViewInitialized) {
+                        editClientViewModel.initializeStateIfNeeded(client)
+                        isViewInitialized = true // Ustaw flagę w Activity
+                    }
+
+                    // Aktualizuj UI zdjęć (reszta UI aktualizuje się przez obserwatory LiveData)
+                    updatePhotoUiIfNeeded(PhotoType.CLIENT)
+                    updatePhotoUiIfNeeded(PhotoType.TRANSACTION)
                 }
+            }
         }
+
+        // Obserwacja LiveData stanu UI z ViewModelu
+        editClientViewModel.isEditMode.observe(this, Observer { isEditing ->
+            updateUiMode(isEditing)
+        })
+
+        // Obserwatory dla pól tekstowych
+        editClientViewModel.clientDescriptionState.observe(this, Observer { value -> if (editClientDescriptionEditText.text.toString() != value) editClientDescriptionEditText.setText(value) })
+        editClientViewModel.clientAppNumberState.observe(this, Observer { value -> if (editClientAppNumberEditText.text.toString() != value) editClientAppNumberEditText.setText(value) })
+        editClientViewModel.amoditNumberState.observe(this, Observer { value -> if (editAmoditNumberEditText.text.toString() != value) editAmoditNumberEditText.setText(value) })
+
+        // Obserwatory dla list zdjęć
+        editClientViewModel.clientPhotosToAddUris.observe(this, Observer { updatePhotoUiIfNeeded(PhotoType.CLIENT) })
+        editClientViewModel.transactionPhotosToAddUris.observe(this, Observer { updatePhotoUiIfNeeded(PhotoType.TRANSACTION) })
+        editClientViewModel.photosToRemoveUris.observe(this, Observer {
+            updatePhotoUiIfNeeded(PhotoType.CLIENT)
+            updatePhotoUiIfNeeded(PhotoType.TRANSACTION)
+        })
     }
 
-    /** Wyczyść kontenery zdjęć (edycja i widok) oraz listy pomocnicze. */
-    private fun clearPhotoData() {
-        clientPhotosContainerEdit.removeAllViews()
-        transactionPhotosContainerEdit.removeAllViews()
-        clientPhotosAdapter.updatePhotos(emptyList())
-        transactionPhotosAdapter.updatePhotos(emptyList())
-        currentClientPhotos.clear()
-        currentTransactionPhotos.clear()
-        photosToAdd.clear()
-        photosToRemove.clear()
-        photoUriToViewMapEdit.clear()
+    /** Pomocnicza funkcja do aktualizacji UI zdjęć po zmianie list w ViewModelu. */
+    private fun updatePhotoUiIfNeeded(photoType: PhotoType) {
+        val isEditing = editClientViewModel.isEditMode.value ?: false
+        val loadedPhotos = if (photoType == PhotoType.CLIENT) loadedClientPhotos else loadedTransactionPhotos
+        val container = if (photoType == PhotoType.CLIENT) clientPhotosContainerEdit else transactionPhotosContainerEdit
+
+        if (::clientPhotosContainerEdit.isInitialized && ::transactionPhotosContainerEdit.isInitialized &&
+            ::clientPhotosRecyclerViewView.isInitialized && ::transactionPhotosRecyclerViewView.isInitialized) {
+            populatePhotoContainer(container, loadedPhotos, photoType, isEditing)
+            populatePhotoContainer(null, loadedPhotos, photoType, isEditing) // Dla RecyclerView
+        } else {
+            Log.w("EditClientActivity", "Próba aktualizacji UI zdjęć przed inicjalizacją widoków.")
+        }
     }
 
     /**
      * Wypełnia kontener miniaturami zdjęć (tryb edycji) lub RecyclerView (tryb widoku).
-     * @param container LinearLayout dla trybu edycji (lub null dla trybu widoku).
-     * @param photos Lista obiektów Photo do wyświetlenia.
-     * @param photoType Typ zdjęć w tej liście.
-     * @param isEditing Określa, czy jesteśmy w trybie edycji.
+     * Odczytuje stan zdjęć do dodania/usunięcia z ViewModelu.
      */
     private fun populatePhotoContainer(container: LinearLayout?, photos: List<Photo>, photoType: PhotoType, isEditing: Boolean) {
+        // Odczytujemy listy URI z LiveData ViewModelu
+        val photosToAddUris = (if (photoType == PhotoType.CLIENT) editClientViewModel.clientPhotosToAddUris.value else editClientViewModel.transactionPhotosToAddUris.value) ?: emptyList()
+        val photosToRemoveUris = editClientViewModel.photosToRemoveUris.value ?: emptyList()
+        val photosToAddUrisSet = photosToAddUris.map { it.toString() }.toSet()
+        val photosToRemoveUrisSet = photosToRemoveUris.map { it.toString() }.toSet()
+
         if (isEditing) {
             val editContainer = container ?: return
             editContainer.removeAllViews()
-            val mapToUse = photoUriToViewMapEdit
+            photoUriToViewMapEdit.clear()
 
+            // Dodaj miniatury istniejących zdjęć (nie do usunięcia)
             photos.forEach { photo ->
                 try {
-                    if (!photosToRemove.contains(photo.uri.toUri())) {
-                        addPhotoThumbnail(photo.uri.toUri(), editContainer, photoType, true)
+                    val photoUri = photo.uri.toUri()
+                    if (photoUri.toString() !in photosToRemoveUrisSet) {
+                        addPhotoThumbnail(photoUri, editContainer, photoType, true)
                     }
                 } catch (e: Exception) {
-                    Log.e("EditClientActivity", "Błąd podczas dodawania miniatury dla URI: ${photo.uri}", e)
-                 }
+                    Log.e("EditClientActivity", "Błąd dodawania miniatury istniejącego zdjęcia: ${photo.uri}", e)
+                }
             }
-            photosToAdd[photoType]?.forEach { uri ->
-                if (!mapToUse.containsKey(uri)) {
-                    try {
-                        addPhotoThumbnail(uri, editContainer, photoType, true)
-                    } catch (e: Exception) {
-                        Log.e("EditClientActivity", "Błąd podczas dodawania NOWEJ miniatury dla URI: $uri", e)
+            // Dodaj miniatury nowo dodanych zdjęć
+            photosToAddUris.forEach { photoUri ->
+                try {
+                    if (!photoUriToViewMapEdit.containsKey(photoUri)) {
+                        addPhotoThumbnail(photoUri, editContainer, photoType, true)
                     }
+                } catch (e: Exception) {
+                    Log.e("EditClientActivity", "Błąd dodawania miniatury nowego zdjęcia: $photoUri", e)
                 }
             }
         } else {
+            // Tryb widoku - aktualizuj RecyclerView
             val adapter = if (photoType == PhotoType.CLIENT) clientPhotosAdapter else transactionPhotosAdapter
             val photosToShow = photos.filter { photo ->
                 try {
-                    !photosToRemove.contains(photo.uri.toUri())
+                    photo.uri !in photosToRemoveUrisSet
                 } catch (e: Exception) {
-                    Log.w("EditClientActivity", "Błąd parsowania URI ${photo.uri} podczas filtrowania zdjęć do wyświetlenia.", e)
+                    Log.w("EditClientActivity", "Błąd parsowania URI ${photo.uri} podczas filtrowania.", e)
                     false
                 }
             }
-            adapter.updatePhotos(photosToShow)
+            if (::clientPhotosAdapter.isInitialized && ::transactionPhotosAdapter.isInitialized) {
+                adapter.updatePhotos(photosToShow)
+            }
         }
-        updatePhotoSectionVisibility(photoType, isEditing)
+        if (::clientPhotosTitleEdit.isInitialized) {
+           updatePhotoSectionVisibility(photoType, isEditing)
+        }
     }
 
+
     /**
-     * Dodaje widok miniatury zdjęcia do określonego kontenera [LinearLayout] (tylko dla trybu edycji).
-     * Używa Glide do ładowania obrazu i dodaje przycisk usuwania.
-     * @param photoUri URI zdjęcia do wyświetlenia.
-     * @param container LinearLayout, do którego zostanie dodana miniatura.
-     * @param photoType Typ zdjęcia.
-     * @param isEditing Zawsze true w tej wersji metody.
+     * Dodaje widok miniatury zdjęcia do kontenera (tylko tryb edycji).
      */
     private fun addPhotoThumbnail(photoUri: Uri, container: LinearLayout, photoType: PhotoType, isEditing: Boolean) {
-        if (!isEditing) return
+        if (!isEditing || photoUriToViewMapEdit.containsKey(photoUri)) return
 
         val inflater = LayoutInflater.from(this)
         val thumbnailView = inflater.inflate(R.layout.photo_thumbnail_item, container, false)
@@ -353,36 +397,33 @@ class EditClientActivity : AppCompatActivity() {
                 .into(imageView)
 
             deleteButton.visibility = View.VISIBLE
-
             deleteButton.setOnClickListener {
-                container.removeView(thumbnailView)
-                val wasAddedInThisSession = photosToAdd[photoType]?.remove(photoUri) ?: false
-                if (!wasAddedInThisSession) {
-                    if (!photosToRemove.contains(photoUri)) {
-                        photosToRemove.add(photoUri)
-                        Log.d("EditClientActivity", "Oznaczono do usunięcia istniejące zdjęcie: $photoUri")
-                    }
-                } else {
+                val wasAddedInThisSession = (if (photoType == PhotoType.CLIENT) editClientViewModel.clientPhotosToAddUris.value else editClientViewModel.transactionPhotosToAddUris.value)
+                    ?.contains(photoUri) ?: false
+
+                if (wasAddedInThisSession) {
+                    editClientViewModel.removePhotoToAdd(photoUri, photoType)
                     Log.d("EditClientActivity", "Usunięto nowo dodane zdjęcie (przed zapisem): $photoUri")
+                } else {
+                    editClientViewModel.addPhotoToRemove(photoUri)
+                    Log.d("EditClientActivity", "Oznaczono do usunięcia istniejące zdjęcie: $photoUri")
                 }
-                photoUriToViewMapEdit.remove(photoUri)
-                updatePhotoSectionVisibility(photoType, true)
             }
             photoUriToViewMapEdit[photoUri] = thumbnailView
             container.addView(thumbnailView)
-
         } catch (e: Exception) {
             Log.e("EditClientActivity", "Błąd ładowania miniatury $photoUri", e)
         }
     }
 
-    /** Aktualizuje widoczność kontenerów i tytułów sekcji zdjęć w zależności od trybu i obecności zdjęć. */
+    /** Aktualizuje widoczność kontenerów i tytułów sekcji zdjęć. */
     private fun updatePhotoSectionVisibility(photoType: PhotoType, isEditing: Boolean) {
-        val photosExist = if (photoType == PhotoType.CLIENT) {
-            currentClientPhotos.any { !photosToRemove.contains(it.uri.toUri()) } || photosToAdd[PhotoType.CLIENT]?.isNotEmpty() == true
-        } else {
-            currentTransactionPhotos.any { !photosToRemove.contains(it.uri.toUri()) } || photosToAdd[PhotoType.TRANSACTION]?.isNotEmpty() == true
-        }
+        val loadedPhotos = if (photoType == PhotoType.CLIENT) loadedClientPhotos else loadedTransactionPhotos
+        val photosToAddUris = (if (photoType == PhotoType.CLIENT) editClientViewModel.clientPhotosToAddUris.value else editClientViewModel.transactionPhotosToAddUris.value) ?: emptyList()
+        val photosToRemoveUris = editClientViewModel.photosToRemoveUris.value ?: emptyList()
+        val photosToRemoveUrisSet = photosToRemoveUris.map { it.toString() }.toSet()
+
+        val photosExist = loadedPhotos.any { it.uri !in photosToRemoveUrisSet } || photosToAddUris.isNotEmpty()
 
         val titleEdit = if (photoType == PhotoType.CLIENT) clientPhotosTitleEdit else transactionPhotosTitleEdit
         val titleView = if (photoType == PhotoType.CLIENT) clientPhotosTitleView else transactionPhotosTitleView
@@ -399,11 +440,9 @@ class EditClientActivity : AppCompatActivity() {
     }
 
     /**
-     * Aktualizuje widoczność i stan edytowalności elementów UI w zależności od trybu (edycja/widok).
+     * Aktualizuje widoczność i stan edytowalności elementów UI.
      */
     private fun updateUiMode(isEditing: Boolean) {
-        isEditMode = isEditing
-
         titleTextView.text = getString(if (isEditing) R.string.edit_client_title else R.string.view_client_title)
 
         editClientDescriptionEditText.isEnabled = isEditing
@@ -414,44 +453,28 @@ class EditClientActivity : AppCompatActivity() {
         deleteClientButton.visibility = if (isEditing) View.VISIBLE else View.GONE
         editModeClientButton.visibility = if (isEditing) View.GONE else View.VISIBLE
 
-        val hasDescription = !editClientDescriptionEditText.text.isNullOrBlank()
+        val hasDescription = editClientViewModel.clientDescriptionState.value?.isNotEmpty() ?: false
         editDescriptionLayout.visibility = if (isEditing || hasDescription) View.VISIBLE else View.GONE
 
-        val hasAppNumber = !editClientAppNumberEditText.text.isNullOrBlank()
+        val hasAppNumber = editClientViewModel.clientAppNumberState.value?.isNotEmpty() ?: false
         editAppNumberLayout.visibility = if (isEditing || hasAppNumber) View.VISIBLE else View.GONE
 
-        val hasAmoditNumber = !editAmoditNumberEditText.text.isNullOrBlank()
+        val hasAmoditNumber = editClientViewModel.amoditNumberState.value?.isNotEmpty() ?: false
         editAmoditNumberLayout.visibility = if (isEditing || hasAmoditNumber) View.VISIBLE else View.GONE
 
         clientDataSectionTitleEdit.visibility = if (isEditing) View.VISIBLE else View.GONE
 
-        updatePhotoSectionVisibility(PhotoType.CLIENT, isEditing)
-        updatePhotoSectionVisibility(PhotoType.TRANSACTION, isEditing)
-
-        populatePhotoContainer(clientPhotosContainerEdit, currentClientPhotos, PhotoType.CLIENT, isEditing)
-        populatePhotoContainer(null, currentClientPhotos, PhotoType.CLIENT, isEditing)
-        populatePhotoContainer(transactionPhotosContainerEdit, currentTransactionPhotos, PhotoType.TRANSACTION, isEditing)
-        populatePhotoContainer(null, currentTransactionPhotos, PhotoType.TRANSACTION, isEditing)
+        updatePhotoUiIfNeeded(PhotoType.CLIENT)
+        updatePhotoUiIfNeeded(PhotoType.TRANSACTION)
     }
 
     /**
-     * Zbiera dane z formularza i wywołuje metodę zapisu zmian w ViewModelu.
+     * Zbiera dane z ViewModelu i wywołuje metodę zapisu zmian.
      */
     private fun saveClientChanges() {
-        val clientDescription = editClientDescriptionEditText.text.toString().trim()
-        val clientAppNumber = editClientAppNumberEditText.text.toString().trim()
-        val amoditNumber = editAmoditNumberEditText.text.toString().trim()
-
+        // Walidacja nie jest tu potrzebna, bo pola są opcjonalne
         lifecycleScope.launch {
-            val result = editClientViewModel.updateClientAndPhotos(
-                clientId = currentClientId,
-                clientDescription = clientDescription.takeIf { it.isNotEmpty() },
-                clientAppNumber = clientAppNumber.takeIf { it.isNotEmpty() },
-                amoditNumber = amoditNumber.takeIf { it.isNotEmpty() },
-                clientPhotoUrisToAdd = photosToAdd[PhotoType.CLIENT]?.map { it.toString() } ?: emptyList(),
-                transactionPhotoUrisToAdd = photosToAdd[PhotoType.TRANSACTION]?.map { it.toString() } ?: emptyList(),
-                photoUrisToRemove = photosToRemove.map { it.toString() }
-            )
+            val result = editClientViewModel.updateClientAndPhotos(currentClientId)
             handleEditResult(result)
         }
     }
@@ -470,12 +493,9 @@ class EditClientActivity : AppCompatActivity() {
     }
 
     /**
-     * Wywołuje metodę usuwania klienta w ViewModelu. Anuluje najpierw obserwację danych.
+     * Wywołuje metodę usuwania klienta w ViewModelu.
      */
     private fun deleteClient() {
-        loadDataJob?.cancel()
-        Log.d("EditClientActivity", "Anulowano loadDataJob przed usunięciem klienta.")
-
         lifecycleScope.launch {
             val clientStub = com.kaminski.paragownik.data.Client(id = currentClientId, description = null)
             val result = editClientViewModel.deleteClient(clientStub)
@@ -485,7 +505,6 @@ class EditClientActivity : AppCompatActivity() {
 
     /**
      * Obsługuje wynik operacji edycji/usuwania zwrócony przez ViewModel.
-     * Wyświetla Toast i odpowiednio zarządza stanem aktywności.
      */
     private fun handleEditResult(result: EditClientViewModel.EditResult, isDeleteOperation: Boolean = false) {
         val messageResId = when (result) {
@@ -504,18 +523,13 @@ class EditClientActivity : AppCompatActivity() {
                 startActivity(Intent(this@EditClientActivity, MainActivity::class.java).apply {
                     flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
                 })
-            } else {
-                photosToAdd.clear()
-                photosToRemove.clear()
-                loadClientData()
-                updateUiMode(false)
             }
+            // Nie resetujemy stanu ani trybu - ViewModel to zrobił
         }
     }
 
     /**
-     * Kopiuje obraz z podanego źródłowego URI (np. z galerii) do wewnętrznego magazynu aplikacji.
-     * Zwraca URI skopiowanego pliku lub null w przypadku błędu.
+     * Kopiuje obraz z podanego źródłowego URI do wewnętrznego magazynu aplikacji.
      */
     private fun copyImageToInternalStorage(sourceUri: Uri): Uri? {
         return try {
@@ -550,10 +564,3 @@ class EditClientActivity : AppCompatActivity() {
         startActivity(intent)
     }
 }
-
-
-
-
-
-
-
