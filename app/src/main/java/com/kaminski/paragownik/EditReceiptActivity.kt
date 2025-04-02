@@ -13,21 +13,20 @@ import android.view.View
 import android.widget.Button
 import android.widget.CheckBox
 import android.widget.EditText
+import android.widget.HorizontalScrollView
 import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.LinearLayout
-import android.widget.HorizontalScrollView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
-// Usunięto: import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.net.toUri
-import androidx.core.widget.addTextChangedListener // Nadal potrzebny dla innych pól
+import androidx.core.widget.addTextChangedListener
 import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.Observer // Import Observer
-import androidx.lifecycle.ViewModelProvider // Import ViewModelProvider
+import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -37,24 +36,19 @@ import com.kaminski.paragownik.adapter.GlideScaleType
 import com.kaminski.paragownik.adapter.PhotoAdapter
 import com.kaminski.paragownik.data.Photo
 import com.kaminski.paragownik.data.PhotoType
-import com.kaminski.paragownik.data.ReceiptWithClient
 import com.kaminski.paragownik.viewmodel.EditReceiptViewModel
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.distinctUntilChanged // Import do filtrowania powtórzeń
-import kotlinx.coroutines.flow.filterNotNull // Import do filtrowania nulli
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
-import java.text.ParseException // Import dla ParseException
+import java.text.ParseException
 import java.text.SimpleDateFormat
+import java.util.Calendar
 import java.util.Locale
 import java.util.UUID
-import java.util.Calendar
 
 /**
  * Aktywność odpowiedzialna za przeglądanie i edycję istniejącego paragonu oraz danych powiązanego klienta.
@@ -450,6 +444,9 @@ class EditReceiptActivity : AppCompatActivity() {
                         if (!isDataInitialized) {
                             editReceiptViewModel.initializeStateIfNeeded(receiptWithClient, storeNumber)
                             isDataInitialized = true // Ustaw flagę w Activity
+                            // *** JAWNE WYWOŁANIE AKTUALIZACJI UI PO INICJALIZACJI ***
+                            updateUiMode(editReceiptViewModel.isEditMode.value ?: false)
+                            Log.d("EditReceiptActivity", "Wymuszono aktualizację UI po inicjalizacji danych.")
                         }
 
                         // Aktualizuj UI zdjęć (reszta UI aktualizuje się przez obserwatory LiveData)
@@ -469,6 +466,7 @@ class EditReceiptActivity : AppCompatActivity() {
 
         // Obserwacja LiveData stanu UI z ViewModelu
         editReceiptViewModel.isEditMode.observe(this, Observer { isEditing ->
+            // Ten observer nadal jest potrzebny do obsługi kliknięcia przycisku edycji
             updateUiMode(isEditing)
         })
 
