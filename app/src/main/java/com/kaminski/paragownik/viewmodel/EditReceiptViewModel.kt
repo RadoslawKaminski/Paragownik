@@ -1,14 +1,14 @@
 
 package com.kaminski.paragownik.viewmodel
 
+// Usunięto: import androidx.lifecycle.SavedStateHandle
 import android.app.Application
 import android.net.Uri
+import android.os.Looper
 import android.util.Log
 import androidx.core.net.toUri
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MutableLiveData
-// Usunięto: import androidx.lifecycle.SavedStateHandle
-import androidx.lifecycle.viewModelScope
 import androidx.room.withTransaction
 import com.kaminski.paragownik.R
 import com.kaminski.paragownik.data.AppDatabase
@@ -25,20 +25,16 @@ import com.kaminski.paragownik.data.daos.StoreDao
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.text.ParseException
 import java.text.SimpleDateFormat
+import java.util.Calendar
 import java.util.Date
 import java.util.Locale
-import java.util.Calendar
 
 /**
  * ViewModel dla EditReceiptActivity.
@@ -93,7 +89,12 @@ class EditReceiptViewModel(application: Application) : AndroidViewModel(applicat
     // --- Metody do aktualizacji stanu UI ---
 
     fun setEditMode(isEditing: Boolean) {
-        isEditMode.value = isEditing
+        // Sprawdzamy, czy jesteśmy w głównym wątku
+        if (Thread.currentThread() == Looper.getMainLooper().thread) {
+            isEditMode.value = isEditing
+        } else {
+            isEditMode.postValue(isEditing) // Użyj postValue z tła
+        }
     }
 
     // Metody set... aktualizują teraz MutableLiveData
@@ -142,13 +143,16 @@ class EditReceiptViewModel(application: Application) : AndroidViewModel(applicat
     // Flaga inicjalizacji pozostaje jako zwykła zmienna
     private var isDataInitialized = false
 
+    // Publiczna metoda do sprawdzania flagi (używana w Activity)
+    fun isInitialized(): Boolean = isDataInitialized
+
     /**
      * Inicjalizuje stan MutableLiveData na podstawie danych z bazy, ale tylko raz.
      * @param receiptWithClient Dane paragonu i klienta.
      * @param storeNumber Numer sklepu.
      */
     fun initializeStateIfNeeded(receiptWithClient: ReceiptWithClient, storeNumber: String?) {
-        if (!isDataInitialized) {
+        if (!isDataInitialized) { // Sprawdź zwykłą zmienną
             val receipt = receiptWithClient.receipt
             val client = receiptWithClient.client
             val dateFormat = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault())
@@ -160,7 +164,7 @@ class EditReceiptViewModel(application: Application) : AndroidViewModel(applicat
             cashRegisterNumberState.value = receipt.cashRegisterNumber ?: ""
             val verificationDateStr = receipt.verificationDate?.let { dateFormat.format(it) } ?: ""
             verificationDateState.value = verificationDateStr
-            val todayDateStr = dateFormat.format(Calendar.getInstance().time)
+            val todayDateStr = dateFormat.format(Calendar.getInstance().time) // Użycie Calendar
             isVerificationDateTodayState.value = verificationDateStr == todayDateStr
             clientDescriptionState.value = client?.description ?: ""
             clientAppNumberState.value = client?.clientAppNumber ?: ""
@@ -354,11 +358,12 @@ class EditReceiptViewModel(application: Application) : AndroidViewModel(applicat
             }
 
             // Resetuj listy zdjęć do dodania/usunięcia w stanie LiveData po udanym zapisie
-            clientPhotosToAddUris.postValue(mutableListOf()) // Użyj postValue, bo jesteśmy w tle
+            // Używamy postValue, bo jesteśmy w tle
+            clientPhotosToAddUris.postValue(mutableListOf())
             transactionPhotosToAddUris.postValue(mutableListOf())
             photosToRemoveUris.postValue(mutableListOf())
             // Ustaw tryb widoku
-            setEditMode(false) // To też powinno użyć postValue, jeśli jest ryzyko wywołania z tła
+            isEditMode.postValue(false) // Użyj postValue
             // Zresetuj flagę inicjalizacji, aby dane zostały ponownie załadowane z bazy po zapisie
             isDataInitialized = false
 
@@ -528,4 +533,3 @@ class EditReceiptViewModel(application: Application) : AndroidViewModel(applicat
     private class DuplicateReceiptException : Exception()
     private class DatabaseException(message: String) : Exception(message)
 }
-
