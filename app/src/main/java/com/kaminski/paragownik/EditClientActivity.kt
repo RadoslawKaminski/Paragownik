@@ -42,6 +42,7 @@ import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
 import java.util.UUID
+import com.kaminski.paragownik.data.Client // Dodano import Client
 
 /**
  * Aktywność odpowiedzialna za przeglądanie i edycję danych istniejącego klienta,
@@ -74,6 +75,9 @@ class EditClientActivity : AppCompatActivity() {
     private lateinit var transactionPhotosContainerEdit: LinearLayout
     private lateinit var transactionPhotosRecyclerViewView: RecyclerView
     private lateinit var addTransactionPhotoButtonEdit: Button
+    // Dodano brakujący widok tytułu sekcji danych klienta w trybie widoku
+    private lateinit var clientDataSectionTitleView: TextView
+
 
     // --- Adaptery ---
     private lateinit var clientPhotosAdapter: PhotoAdapter
@@ -177,6 +181,8 @@ class EditClientActivity : AppCompatActivity() {
         editAppNumberLayout = findViewById(R.id.editAppNumberLayout)
         editAmoditNumberLayout = findViewById(R.id.editAmoditNumberLayout)
         clientDataSectionTitleEdit = findViewById(R.id.clientDataSectionTitleEdit)
+        // Inicjalizacja brakującego widoku
+        clientDataSectionTitleView = findViewById(R.id.clientDataSectionTitleView)
 
         clientPhotosTitleEdit = findViewById(R.id.clientPhotosTitleEdit)
         clientPhotosTitleView = findViewById(R.id.clientPhotosTitleView)
@@ -276,9 +282,13 @@ class EditClientActivity : AppCompatActivity() {
                     if (!isViewInitialized) {
                         editClientViewModel.initializeStateIfNeeded(client)
                         isViewInitialized = true // Ustaw flagę w Activity
+                        // *** JAWNE WYWOŁANIE AKTUALIZACJI UI PO INICJALIZACJI ***
+                        updateUiMode(editClientViewModel.isEditMode.value ?: false)
+                        Log.d("EditClientActivity", "Wymuszono aktualizację UI po inicjalizacji danych.")
                     }
 
                     // Aktualizuj UI zdjęć (reszta UI aktualizuje się przez obserwatory LiveData)
+                    // Te wywołania są nadal potrzebne, aby odświeżyć zdjęcia, jeśli się zmienią
                     updatePhotoUiIfNeeded(PhotoType.CLIENT)
                     updatePhotoUiIfNeeded(PhotoType.TRANSACTION)
                 }
@@ -287,6 +297,7 @@ class EditClientActivity : AppCompatActivity() {
 
         // Obserwacja LiveData stanu UI z ViewModelu
         editClientViewModel.isEditMode.observe(this, Observer { isEditing ->
+            // Ten observer nadal jest potrzebny do obsługi kliknięcia przycisku edycji
             updateUiMode(isEditing)
         })
 
@@ -441,32 +452,53 @@ class EditClientActivity : AppCompatActivity() {
 
     /**
      * Aktualizuje widoczność i stan edytowalności elementów UI.
+     * Poprawiono logikę widoczności pól tekstowych w trybie widoku.
      */
     private fun updateUiMode(isEditing: Boolean) {
         titleTextView.text = getString(if (isEditing) R.string.edit_client_title else R.string.view_client_title)
 
+        // Włącz/wyłącz edytowalność pól
         editClientDescriptionEditText.isEnabled = isEditing
         editClientAppNumberEditText.isEnabled = isEditing
         editAmoditNumberEditText.isEnabled = isEditing
 
+        // Widoczność przycisków
         saveClientButton.visibility = if (isEditing) View.VISIBLE else View.GONE
         deleteClientButton.visibility = if (isEditing) View.VISIBLE else View.GONE
         editModeClientButton.visibility = if (isEditing) View.GONE else View.VISIBLE
 
-        val hasDescription = editClientViewModel.clientDescriptionState.value?.isNotEmpty() ?: false
-        editDescriptionLayout.visibility = if (isEditing || hasDescription) View.VISIBLE else View.GONE
-
-        val hasAppNumber = editClientViewModel.clientAppNumberState.value?.isNotEmpty() ?: false
-        editAppNumberLayout.visibility = if (isEditing || hasAppNumber) View.VISIBLE else View.GONE
-
-        val hasAmoditNumber = editClientViewModel.amoditNumberState.value?.isNotEmpty() ?: false
-        editAmoditNumberLayout.visibility = if (isEditing || hasAmoditNumber) View.VISIBLE else View.GONE
-
+        // Widoczność tytułów sekcji danych klienta
         clientDataSectionTitleEdit.visibility = if (isEditing) View.VISIBLE else View.GONE
+        // Tytuł widoku jest zarządzany poniżej razem z polami
 
+        // Widoczność layoutów z polami tekstowymi
+        val hasDescription = editClientViewModel.clientDescriptionState.value?.isNotEmpty() ?: false
+        val hasAppNumber = editClientViewModel.clientAppNumberState.value?.isNotEmpty() ?: false
+        val hasAmoditNumber = editClientViewModel.amoditNumberState.value?.isNotEmpty() ?: false
+        val hasAnyData = hasDescription || hasAppNumber || hasAmoditNumber
+
+        if (isEditing) {
+            // W trybie edycji zawsze pokazuj layouty i tytuł edycji
+            editDescriptionLayout.visibility = View.VISIBLE
+            editAppNumberLayout.visibility = View.VISIBLE
+            editAmoditNumberLayout.visibility = View.VISIBLE
+            clientDataSectionTitleEdit.visibility = View.VISIBLE
+            clientDataSectionTitleView.visibility = View.GONE
+        } else {
+            // W trybie widoku pokazuj layouty tylko jeśli mają zawartość
+            editDescriptionLayout.visibility = if (hasDescription) View.VISIBLE else View.GONE
+            editAppNumberLayout.visibility = if (hasAppNumber) View.VISIBLE else View.GONE
+            editAmoditNumberLayout.visibility = if (hasAmoditNumber) View.VISIBLE else View.GONE
+            // Pokazuj tytuł widoku tylko jeśli jest co najmniej jedno pole z danymi
+            clientDataSectionTitleEdit.visibility = View.GONE
+            clientDataSectionTitleView.visibility = if (hasAnyData) View.VISIBLE else View.GONE
+        }
+
+        // Aktualizacja UI zdjęć (bez zmian)
         updatePhotoUiIfNeeded(PhotoType.CLIENT)
         updatePhotoUiIfNeeded(PhotoType.TRANSACTION)
     }
+
 
     /**
      * Zbiera dane z ViewModelu i wywołuje metodę zapisu zmian.
@@ -523,10 +555,15 @@ class EditClientActivity : AppCompatActivity() {
                 startActivity(Intent(this@EditClientActivity, MainActivity::class.java).apply {
                     flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
                 })
+            } else {
+                // Po udanym zapisie przełączamy z powrotem do trybu widoku
+                editClientViewModel.setEditMode(false)
+                // Resetujemy flagę inicjalizacji, aby dane zostały odświeżone z bazy przy następnym wejściu
+                isViewInitialized = false
             }
-            // Nie resetujemy stanu ani trybu - ViewModel to zrobił
         }
     }
+
 
     /**
      * Kopiuje obraz z podanego źródłowego URI do wewnętrznego magazynu aplikacji.
