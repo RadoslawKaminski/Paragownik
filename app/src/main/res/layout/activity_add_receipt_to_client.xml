@@ -8,6 +8,7 @@
     android:background="@color/main_color_dark"
     tools:context=".AddReceiptToClientActivity">
 
+    <!-- Tytuł aktywności -->
     <TextView
         android:id="@+id/addReceiptToClientTitleTextView"
         android:layout_width="0dp"
@@ -35,6 +36,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/addReceiptToClientTitleTextView">
 
+        <!-- Miniatura zdjęcia klienta -->
         <ImageView
             android:id="@+id/addReceiptClientPhotoImageView"
             android:layout_width="80dp"
@@ -47,6 +49,7 @@
             app:layout_constraintTop_toTopOf="parent"
             app:srcCompat="@drawable/ic_photo_placeholder" />
 
+        <!-- Opis klienta -->
         <TextView
             android:id="@+id/addReceiptClientDescriptionTextView"
             android:layout_width="0dp"
@@ -60,6 +63,7 @@
             app:layout_constraintTop_toTopOf="@+id/addReceiptClientPhotoImageView"
             tools:text="Wysoki blondyn w czerwonej kurtce" />
 
+        <!-- Numer aplikacji klienta -->
         <TextView
             android:id="@+id/addReceiptClientAppNumberTextView"
             android:layout_width="0dp"
@@ -74,6 +78,7 @@
             tools:text="Nr app: 12345678901234"
             tools:visibility="visible" />
 
+        <!-- Numer Amodit klienta -->
         <TextView
             android:id="@+id/addReceiptClientAmoditNumberTextView"
             android:layout_width="0dp"
@@ -83,13 +88,14 @@
             android:textSize="14sp"
             android:visibility="gone"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="@+id/addReceiptClientAppNumberTextView"
+            app:layout_constraintStart_toStartOf="@+id/addReceiptClientDescriptionTextView"
             app:layout_constraintTop_toBottomOf="@+id/addReceiptClientAppNumberTextView"
             tools:text="Amodit: 12345678"
             tools:visibility="visible" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
+    <!-- Separator -->
     <View
         android:id="@+id/addReceiptClientDetailsSeparator"
         android:layout_width="0dp"
@@ -167,6 +173,7 @@
                     </LinearLayout>
                 </LinearLayout>
 
+                <!-- Data paragonu -->
                 <EditText
                     android:id="@+id/firstReceiptDateEditText"
                     android:layout_width="match_parent"
@@ -176,7 +183,7 @@
                     android:hint="@string/hint_receipt_date_required"
                     android:inputType="date" />
 
-                <!-- Dodane pole numeru kasy -->
+                <!-- Numer kasy -->
                 <EditText
                     android:id="@+id/firstCashRegisterNumberEditText"
                     android:layout_width="match_parent"
@@ -187,7 +194,7 @@
                     android:inputType="number"
                     android:maxLength="2" />
 
-                <!-- Pole daty weryfikacji i checkbox "Dzisiaj" w jednej linii. -->
+                <!-- Data weryfikacji i checkbox "Dzisiaj" -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -207,7 +214,7 @@
                             android:layout_height="wrap_content"
                             android:autofillHints="date"
                             android:hint="@string/verification_date_hint"
-                            android:inputType="date" /> <!-- inputType modyfikowany przez TextWatcher na number -->
+                            android:inputType="date" />
                     </LinearLayout>
 
                     <LinearLayout
@@ -266,4 +273,3 @@
         app:layout_constraintStart_toStartOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
-
