@@ -147,7 +147,7 @@ class EditClientActivity : AppCompatActivity() {
             return
         }
 
-        setupAdapters() // Zmieniono logikę listenera w tej metodzie
+        setupAdapters()
         setupFieldListeners()
         setupButtonClickListeners()
         observeViewModel()
@@ -197,7 +197,6 @@ class EditClientActivity : AppCompatActivity() {
             R.id.largePhotoImageViewItem,
             GlideScaleType.FIT_CENTER
         ) { clickedUri ->
-            // Pobierz aktualną listę URI z adaptera
             val currentPhotoList = clientPhotosAdapter.getCurrentPhotos()
             val allUris = currentPhotoList.map { it.uri }
             val clickedIndex = allUris.indexOf(clickedUri.toString())
@@ -219,7 +218,6 @@ class EditClientActivity : AppCompatActivity() {
             R.id.largePhotoImageViewItem,
             GlideScaleType.FIT_CENTER
         ) { clickedUri ->
-            // Pobierz aktualną listę URI z adaptera
             val currentPhotoList = transactionPhotosAdapter.getCurrentPhotos()
             val allUris = currentPhotoList.map { it.uri }
             val clickedIndex = allUris.indexOf(clickedUri.toString())
@@ -274,31 +272,33 @@ class EditClientActivity : AppCompatActivity() {
                     val photos = pair.second
 
                     if (client == null) {
+                        // ZMIANA: Logujemy błąd, ale nie zamykamy aktywności od razu
                         if (isViewInitialized) {
-                            Log.e("EditClientActivity", "Dane klienta (ID: $currentClientId) stały się null po inicjalizacji.")
-                            if (!isFinishing) {
-                                Toast.makeText(this@EditClientActivity, R.string.error_client_not_found, Toast.LENGTH_SHORT).show()
-                                finish()
-                            }
+                            Log.e("EditClientActivity", "Dane klienta (ID: $currentClientId) stały się null po inicjalizacji. Aktywność może zostać zamknięta, jeśli stan się nie poprawi.")
+                            // Usunięto Toast i finish() - pozwalamy na ewentualne odświeżenie danych
                         } else {
                             Log.d("EditClientActivity", "Otrzymano null klienta (przed inicjalizacją), ignorowanie.")
                         }
-                        return@collectLatest
+                        // Nie przerywamy collectLatest, aby dać szansę na otrzymanie danych
+                        // return@collectLatest // Usunięto return
+                    } else {
+                        // Mamy poprawne dane klienta
+                        Log.d("EditClientActivity", "Otrzymano aktualne dane klienta z Flow.")
+                        loadedClientPhotos = photos?.filter { it.type == PhotoType.CLIENT } ?: emptyList()
+                        loadedTransactionPhotos = photos?.filter { it.type == PhotoType.TRANSACTION } ?: emptyList()
+
+                        // Inicjalizuj stan MutableLiveData w ViewModelu tylko raz
+                        if (!isViewInitialized) {
+                            editClientViewModel.initializeStateIfNeeded(client)
+                            isViewInitialized = true
+                            updateUiMode(editClientViewModel.isEditMode.value ?: false)
+                            Log.d("EditClientActivity", "Wymuszono aktualizację UI po inicjalizacji danych.")
+                        }
+
+                        // Aktualizuj UI zdjęć (reszta UI aktualizuje się przez obserwatory LiveData)
+                        updatePhotoUiIfNeeded(PhotoType.CLIENT)
+                        updatePhotoUiIfNeeded(PhotoType.TRANSACTION)
                     }
-
-                    Log.d("EditClientActivity", "Otrzymano aktualne dane klienta z Flow.")
-                    loadedClientPhotos = photos?.filter { it.type == PhotoType.CLIENT } ?: emptyList()
-                    loadedTransactionPhotos = photos?.filter { it.type == PhotoType.TRANSACTION } ?: emptyList()
-
-                    if (!isViewInitialized) {
-                        editClientViewModel.initializeStateIfNeeded(client)
-                        isViewInitialized = true
-                        updateUiMode(editClientViewModel.isEditMode.value ?: false)
-                        Log.d("EditClientActivity", "Wymuszono aktualizację UI po inicjalizacji danych.")
-                    }
-
-                    updatePhotoUiIfNeeded(PhotoType.CLIENT)
-                    updatePhotoUiIfNeeded(PhotoType.TRANSACTION)
                 }
             }
         }
@@ -596,4 +596,3 @@ class EditClientActivity : AppCompatActivity() {
         startActivity(intent)
     }
 }
-
