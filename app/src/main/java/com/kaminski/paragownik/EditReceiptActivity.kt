@@ -57,7 +57,6 @@ import java.util.UUID
 class EditReceiptActivity : AppCompatActivity() {
 
     // --- Widoki UI ---
-    // (Deklaracje widoków bez zmian)
     private lateinit var editReceiptStoreNumberEditText: EditText
     private lateinit var editReceiptNumberEditText: EditText
     private lateinit var editReceiptDateEditText: EditText
@@ -73,6 +72,7 @@ class EditReceiptActivity : AppCompatActivity() {
     private lateinit var editModeImageButton: ImageButton
     private lateinit var showClientReceiptsButton: Button
     private lateinit var showStoreReceiptsButton: Button
+    private lateinit var addReceiptsToClientButton: Button // Dodano referencję
     private lateinit var editCashRegisterNumberLayout: LinearLayout
     private lateinit var editVerificationSectionLayout: LinearLayout
     private lateinit var verificationSectionTitleEdit: TextView
@@ -100,7 +100,6 @@ class EditReceiptActivity : AppCompatActivity() {
     private lateinit var transactionPhotosAdapter: PhotoAdapter
 
     // --- ViewModel ---
-    // Zmieniono inicjalizację na ViewModelProvider
     private lateinit var editReceiptViewModel: EditReceiptViewModel
 
     // --- Dane pomocnicze ---
@@ -188,7 +187,6 @@ class EditReceiptActivity : AppCompatActivity() {
             return
         }
 
-        // Usunięto wywołania setupDateEditText
         // Konfiguracja CheckBoxa daty weryfikacji
         setupVerificationDateCheckBox()
         // Inicjalizacja adapterów RecyclerView
@@ -208,7 +206,7 @@ class EditReceiptActivity : AppCompatActivity() {
         editReceiptStoreNumberEditText = findViewById(R.id.editReceiptStoreNumberEditText)
         editReceiptNumberEditText = findViewById(R.id.editReceiptNumberEditText)
         editReceiptDateEditText = findViewById(R.id.editReceiptDateEditText)
-        editCashRegisterNumberEditText = findViewById(R.id.editCashRegisterNumberEditText) // Inicjalizacja pola numeru kasy
+        editCashRegisterNumberEditText = findViewById(R.id.editCashRegisterNumberEditText)
         editVerificationDateEditText = findViewById(R.id.editVerificationDateEditText)
         editVerificationDateTodayCheckBox = findViewById(R.id.editVerificationDateTodayCheckBox)
         editClientDescriptionEditText = findViewById(R.id.editClientDescriptionEditText)
@@ -220,7 +218,8 @@ class EditReceiptActivity : AppCompatActivity() {
         editModeImageButton = findViewById(R.id.editModeImageButton)
         showClientReceiptsButton = findViewById(R.id.showClientReceiptsButton)
         showStoreReceiptsButton = findViewById(R.id.showStoreReceiptsButton)
-        editCashRegisterNumberLayout = findViewById(R.id.editCashRegisterNumberLayout) // Inicjalizacja layoutu numeru kasy
+        addReceiptsToClientButton = findViewById(R.id.addReceiptsToClientButton) // Inicjalizacja nowego przycisku
+        editCashRegisterNumberLayout = findViewById(R.id.editCashRegisterNumberLayout)
         editVerificationSectionLayout = findViewById(R.id.editVerificationSectionLayout)
         verificationSectionTitleEdit = findViewById(R.id.verificationSectionTitleEdit)
         verificationSectionTitleView = findViewById(R.id.verificationSectionTitleView)
@@ -389,6 +388,18 @@ class EditReceiptActivity : AppCompatActivity() {
                 intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
                 startActivity(intent)
                 Log.d("EditReceiptActivity", "Nawigacja do ClientReceiptsActivity dla klienta ID: $clientId")
+            } ?: run {
+                Toast.makeText(this, R.string.error_cannot_identify_client, Toast.LENGTH_SHORT).show()
+            }
+        }
+
+        // Listener dla nowego przycisku
+        addReceiptsToClientButton.setOnClickListener {
+            currentClientId?.let { clientId ->
+                val intent = Intent(this, AddReceiptToClientActivity::class.java)
+                intent.putExtra("CLIENT_ID", clientId)
+                startActivity(intent)
+                Log.d("EditReceiptActivity", "Uruchamianie AddReceiptToClientActivity dla klienta ID: $clientId")
             } ?: run {
                 Toast.makeText(this, R.string.error_cannot_identify_client, Toast.LENGTH_SHORT).show()
             }
@@ -663,6 +674,7 @@ class EditReceiptActivity : AppCompatActivity() {
 
     /**
      * Aktualizuje widoczność i stan edytowalności elementów UI na podstawie stanu `isEditMode` z ViewModelu.
+     * Uwzględnia widoczność nowego przycisku `addReceiptsToClientButton`.
      */
     private fun updateUiMode(isEditing: Boolean) {
         // Stan pól jest aktualizowany przez obserwatorów, tutaj tylko włączamy/wyłączamy edytowalność
@@ -710,6 +722,7 @@ class EditReceiptActivity : AppCompatActivity() {
 
         // Przyciski nawigacyjne
         showClientReceiptsButton.visibility = if (!isEditing && navigationContext == "STORE_LIST") View.VISIBLE else View.GONE
+        addReceiptsToClientButton.visibility = if (!isEditing) View.VISIBLE else View.GONE // Nowy przycisk
         showStoreReceiptsButton.visibility = if (!isEditing && navigationContext == "CLIENT_LIST") View.VISIBLE else View.GONE
     }
 
@@ -787,7 +800,6 @@ class EditReceiptActivity : AppCompatActivity() {
      * Wywołuje metodę usuwania paragonu w ViewModelu.
      */
     private fun deleteReceipt() {
-        // Nie potrzebujemy już anulować loadDataJob
         lifecycleScope.launch {
             // Pobierz aktualny paragon (można by to uprościć, jeśli ViewModel trzyma referencję)
             val currentReceipt = editReceiptViewModel.getReceiptDataFlow(receiptId)
@@ -829,7 +841,6 @@ class EditReceiptActivity : AppCompatActivity() {
      * Wywołuje metodę usuwania klienta w ViewModelu.
      */
     private fun deleteClient() {
-        // Nie potrzebujemy już anulować loadDataJob
         val clientIdToDelete = currentClientId ?: return
 
         lifecycleScope.launch {
@@ -890,8 +901,6 @@ class EditReceiptActivity : AppCompatActivity() {
             }
         }
     }
-
-    // Usunięto funkcję setupDateEditText
 
     /**
      * Kopiuje obraz z podanego źródłowego URI do wewnętrznego magazynu aplikacji.

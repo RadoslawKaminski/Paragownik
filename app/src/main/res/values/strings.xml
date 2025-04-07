@@ -85,6 +85,7 @@
     <!-- Przyciski nawigacyjne w EditReceiptActivity -->
     <string name="button_show_client_receipts">Pokaż wszystkie paragony klienta</string>
     <string name="button_show_store_receipts">Pokaż wszystkie paragony drogerii</string>
+    <string name="button_add_receipts_to_client">Dodaj paragony do tego klienta</string> <!-- Nowy string -->
     <!-- Etykiety sekcji w trybie widoku -->
     <string name="verification_section_title_view">Weryfikacja:</string>
     <string name="client_data_section_title_view">Dane klienta:</string>
