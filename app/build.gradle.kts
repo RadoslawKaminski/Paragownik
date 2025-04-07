@@ -78,13 +78,14 @@ dependencies {
 
     // Biblioteki do obsługi layoutów
     implementation("androidx.constraintlayout:constraintlayout:2.1.4") // Zaawansowany layout manager
+    implementation(libs.androidx.viewpager2) // Dodano zależność ViewPager2 z katalogu wersji
 
     // Biblioteki cyklu życia (ViewModel, LiveData)
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.7.0") // ViewModel z Kotlin extensions
     implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.7.0") // LiveData z Kotlin extensions
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.7.0") // Cykl życia dla Coroutines
     implementation("androidx.lifecycle:lifecycle-viewmodel-savedstate:2.7.0") // Dla SavedStateHandle w ViewModelu
-    implementation("androidx.activity:activity-ktx:1.9.0") // Zawiera delegata by viewModels() - DODANO
+    implementation("androidx.activity:activity-ktx:1.9.0") // Zawiera delegata by viewModels()
 
     // Biblioteka Room (baza danych)
     val room_version = "2.6.1" // Definicja wersji Room

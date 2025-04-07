@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Layout dla aktywności wyświetlającej obraz na pełnym ekranie z zoomem. -->
+<!-- Layout dla aktywności wyświetlającej obraz na pełnym ekranie z zoomem i przesuwaniem. -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
@@ -8,16 +8,11 @@
     tools:context=".FullScreenImageActivity">
     <!-- Użycie półprzezroczystego czarnego tła (#CC = 80% alpha) -->
 
-    <!-- Komponent PhotoView do wyświetlania obrazu z obsługą gestów zoomowania. -->
-    <com.github.chrisbanes.photoview.PhotoView
-        android:id="@+id/photo_view"
+    <!-- ViewPager2 do obsługi przesuwania między zdjęciami. -->
+    <androidx.viewpager2.widget.ViewPager2
+        android:id="@+id/fullScreenViewPager"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:contentDescription="@string/cd_full_screen_image"/>
+        android:layout_height="match_parent" />
 
 </FrameLayout>
-
-
-
-
 

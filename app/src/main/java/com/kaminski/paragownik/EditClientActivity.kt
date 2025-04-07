@@ -16,14 +16,13 @@ import android.widget.HorizontalScrollView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
-// Usunięto: import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.net.toUri
-import androidx.core.widget.addTextChangedListener // Import addTextChangedListener
+import androidx.core.widget.addTextChangedListener
 import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.Observer // Import Observer
-import androidx.lifecycle.ViewModelProvider // Import ViewModelProvider
+import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -42,7 +41,7 @@ import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
 import java.util.UUID
-import com.kaminski.paragownik.data.Client // Dodano import Client
+import com.kaminski.paragownik.data.Client
 
 /**
  * Aktywność odpowiedzialna za przeglądanie i edycję danych istniejącego klienta,
@@ -51,7 +50,6 @@ import com.kaminski.paragownik.data.Client // Dodano import Client
 class EditClientActivity : AppCompatActivity() {
 
     // --- Widoki UI ---
-    // (Deklaracje bez zmian)
     private lateinit var titleTextView: TextView
     private lateinit var editClientDescriptionEditText: EditText
     private lateinit var editClientAppNumberEditText: EditText
@@ -75,7 +73,6 @@ class EditClientActivity : AppCompatActivity() {
     private lateinit var transactionPhotosContainerEdit: LinearLayout
     private lateinit var transactionPhotosRecyclerViewView: RecyclerView
     private lateinit var addTransactionPhotoButtonEdit: Button
-    // Dodano brakujący widok tytułu sekcji danych klienta w trybie widoku
     private lateinit var clientDataSectionTitleView: TextView
 
 
@@ -84,22 +81,13 @@ class EditClientActivity : AppCompatActivity() {
     private lateinit var transactionPhotosAdapter: PhotoAdapter
 
     // --- ViewModel ---
-    // Zmieniono inicjalizację na ViewModelProvider
     private lateinit var editClientViewModel: EditClientViewModel
 
     // --- Dane pomocnicze ---
     private var currentClientId: Long = -1L
-    // Usunięto: private var loadDataJob: Job? = null
-    // Usunięto: private var isEditMode = false
-    // Usunięto: private val currentClientPhotos = mutableListOf<Photo>()
-    // Usunięto: private val currentTransactionPhotos = mutableListOf<Photo>()
-    // Usunięto: private val photosToAdd = mutableMapOf<PhotoType, MutableList<Uri>>()
-    // Usunięto: private val photosToRemove = mutableListOf<Uri>()
     private val photoUriToViewMapEdit = mutableMapOf<Uri, View>()
     private var currentPhotoTypeToAdd: PhotoType? = null
-    // Flaga inicjalizacji danych w Activity
     private var isViewInitialized = false
-    // Przechowuje aktualnie załadowane zdjęcia z bazy
     private var loadedClientPhotos: List<Photo> = emptyList()
     private var loadedTransactionPhotos: List<Photo> = emptyList()
 
@@ -148,7 +136,6 @@ class EditClientActivity : AppCompatActivity() {
         setContentView(R.layout.activity_edit_client)
 
         initializeViews()
-        // Inicjalizacja ViewModelu
         editClientViewModel = ViewModelProvider(this).get(EditClientViewModel::class.java)
 
         currentClientId = intent.getLongExtra("CLIENT_ID", -1L)
@@ -160,10 +147,10 @@ class EditClientActivity : AppCompatActivity() {
             return
         }
 
-        setupAdapters()
-        setupFieldListeners() // Ustawia listenery aktualizujące ViewModel
+        setupAdapters() // Zmieniono logikę listenera w tej metodzie
+        setupFieldListeners()
         setupButtonClickListeners()
-        observeViewModel() // Rozpocznij obserwację ViewModelu
+        observeViewModel()
     }
 
     /**
@@ -181,7 +168,6 @@ class EditClientActivity : AppCompatActivity() {
         editAppNumberLayout = findViewById(R.id.editAppNumberLayout)
         editAmoditNumberLayout = findViewById(R.id.editAmoditNumberLayout)
         clientDataSectionTitleEdit = findViewById(R.id.clientDataSectionTitleEdit)
-        // Inicjalizacja brakującego widoku
         clientDataSectionTitleView = findViewById(R.id.clientDataSectionTitleView)
 
         clientPhotosTitleEdit = findViewById(R.id.clientPhotosTitleEdit)
@@ -199,23 +185,52 @@ class EditClientActivity : AppCompatActivity() {
         addTransactionPhotoButtonEdit = findViewById(R.id.addTransactionPhotoButtonEdit)
     }
 
-    /** Inicjalizuje adaptery RecyclerView. */
+    /**
+     * Inicjalizuje adaptery RecyclerView i ustawia listenery kliknięć zdjęć.
+     * Listener przekazuje teraz listę URI i pozycję do FullScreenImageActivity.
+     */
     private fun setupAdapters() {
+        // Adapter dla zdjęć klienta
         clientPhotosAdapter = PhotoAdapter(
             emptyList(),
             R.layout.large_photo_item,
             R.id.largePhotoImageViewItem,
             GlideScaleType.FIT_CENTER
-        ) { uri -> openFullScreenImage(uri) }
+        ) { clickedUri ->
+            // Pobierz aktualną listę URI z adaptera
+            val currentPhotoList = clientPhotosAdapter.getCurrentPhotos()
+            val allUris = currentPhotoList.map { it.uri }
+            val clickedIndex = allUris.indexOf(clickedUri.toString())
+
+            if (clickedIndex != -1) {
+                openFullScreenImage(ArrayList(allUris), clickedIndex)
+            } else {
+                Log.e("EditClientActivity", "Nie znaleziono klikniętego URI ($clickedUri) w liście zdjęć klienta.")
+                Toast.makeText(this, R.string.error_loading_image, Toast.LENGTH_SHORT).show()
+            }
+        }
         clientPhotosRecyclerViewView.layoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
         clientPhotosRecyclerViewView.adapter = clientPhotosAdapter
 
+        // Adapter dla zdjęć transakcji
         transactionPhotosAdapter = PhotoAdapter(
             emptyList(),
             R.layout.large_photo_item,
             R.id.largePhotoImageViewItem,
             GlideScaleType.FIT_CENTER
-        ) { uri -> openFullScreenImage(uri) }
+        ) { clickedUri ->
+            // Pobierz aktualną listę URI z adaptera
+            val currentPhotoList = transactionPhotosAdapter.getCurrentPhotos()
+            val allUris = currentPhotoList.map { it.uri }
+            val clickedIndex = allUris.indexOf(clickedUri.toString())
+
+            if (clickedIndex != -1) {
+                openFullScreenImage(ArrayList(allUris), clickedIndex)
+            } else {
+                Log.e("EditClientActivity", "Nie znaleziono klikniętego URI ($clickedUri) w liście zdjęć transakcji.")
+                Toast.makeText(this, R.string.error_loading_image, Toast.LENGTH_SHORT).show()
+            }
+        }
         transactionPhotosRecyclerViewView.layoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
         transactionPhotosRecyclerViewView.adapter = transactionPhotosAdapter
     }
@@ -259,7 +274,6 @@ class EditClientActivity : AppCompatActivity() {
                     val photos = pair.second
 
                     if (client == null) {
-                        // Jeśli Flow emituje null PO inicjalizacji, to błąd
                         if (isViewInitialized) {
                             Log.e("EditClientActivity", "Dane klienta (ID: $currentClientId) stały się null po inicjalizacji.")
                             if (!isFinishing) {
@@ -267,28 +281,22 @@ class EditClientActivity : AppCompatActivity() {
                                 finish()
                             }
                         } else {
-                            // Ignorujemy początkowy null przed inicjalizacją
                             Log.d("EditClientActivity", "Otrzymano null klienta (przed inicjalizacją), ignorowanie.")
                         }
                         return@collectLatest
                     }
 
-                    // Mamy dane, inicjalizujemy stan ViewModelu (jeśli trzeba)
                     Log.d("EditClientActivity", "Otrzymano aktualne dane klienta z Flow.")
                     loadedClientPhotos = photos?.filter { it.type == PhotoType.CLIENT } ?: emptyList()
                     loadedTransactionPhotos = photos?.filter { it.type == PhotoType.TRANSACTION } ?: emptyList()
 
-                    // Inicjalizuj stan MutableLiveData w ViewModelu tylko raz
                     if (!isViewInitialized) {
                         editClientViewModel.initializeStateIfNeeded(client)
-                        isViewInitialized = true // Ustaw flagę w Activity
-                        // *** JAWNE WYWOŁANIE AKTUALIZACJI UI PO INICJALIZACJI ***
+                        isViewInitialized = true
                         updateUiMode(editClientViewModel.isEditMode.value ?: false)
                         Log.d("EditClientActivity", "Wymuszono aktualizację UI po inicjalizacji danych.")
                     }
 
-                    // Aktualizuj UI zdjęć (reszta UI aktualizuje się przez obserwatory LiveData)
-                    // Te wywołania są nadal potrzebne, aby odświeżyć zdjęcia, jeśli się zmienią
                     updatePhotoUiIfNeeded(PhotoType.CLIENT)
                     updatePhotoUiIfNeeded(PhotoType.TRANSACTION)
                 }
@@ -297,7 +305,6 @@ class EditClientActivity : AppCompatActivity() {
 
         // Obserwacja LiveData stanu UI z ViewModelu
         editClientViewModel.isEditMode.observe(this, Observer { isEditing ->
-            // Ten observer nadal jest potrzebny do obsługi kliknięcia przycisku edycji
             updateUiMode(isEditing)
         })
 
@@ -335,7 +342,6 @@ class EditClientActivity : AppCompatActivity() {
      * Odczytuje stan zdjęć do dodania/usunięcia z ViewModelu.
      */
     private fun populatePhotoContainer(container: LinearLayout?, photos: List<Photo>, photoType: PhotoType, isEditing: Boolean) {
-        // Odczytujemy listy URI z LiveData ViewModelu
         val photosToAddUris = (if (photoType == PhotoType.CLIENT) editClientViewModel.clientPhotosToAddUris.value else editClientViewModel.transactionPhotosToAddUris.value) ?: emptyList()
         val photosToRemoveUris = editClientViewModel.photosToRemoveUris.value ?: emptyList()
         val photosToAddUrisSet = photosToAddUris.map { it.toString() }.toSet()
@@ -346,7 +352,6 @@ class EditClientActivity : AppCompatActivity() {
             editContainer.removeAllViews()
             photoUriToViewMapEdit.clear()
 
-            // Dodaj miniatury istniejących zdjęć (nie do usunięcia)
             photos.forEach { photo ->
                 try {
                     val photoUri = photo.uri.toUri()
@@ -357,7 +362,6 @@ class EditClientActivity : AppCompatActivity() {
                     Log.e("EditClientActivity", "Błąd dodawania miniatury istniejącego zdjęcia: ${photo.uri}", e)
                 }
             }
-            // Dodaj miniatury nowo dodanych zdjęć
             photosToAddUris.forEach { photoUri ->
                 try {
                     if (!photoUriToViewMapEdit.containsKey(photoUri)) {
@@ -368,7 +372,6 @@ class EditClientActivity : AppCompatActivity() {
                 }
             }
         } else {
-            // Tryb widoku - aktualizuj RecyclerView
             val adapter = if (photoType == PhotoType.CLIENT) clientPhotosAdapter else transactionPhotosAdapter
             val photosToShow = photos.filter { photo ->
                 try {
@@ -457,44 +460,35 @@ class EditClientActivity : AppCompatActivity() {
     private fun updateUiMode(isEditing: Boolean) {
         titleTextView.text = getString(if (isEditing) R.string.edit_client_title else R.string.view_client_title)
 
-        // Włącz/wyłącz edytowalność pól
         editClientDescriptionEditText.isEnabled = isEditing
         editClientAppNumberEditText.isEnabled = isEditing
         editAmoditNumberEditText.isEnabled = isEditing
 
-        // Widoczność przycisków
         saveClientButton.visibility = if (isEditing) View.VISIBLE else View.GONE
         deleteClientButton.visibility = if (isEditing) View.VISIBLE else View.GONE
         editModeClientButton.visibility = if (isEditing) View.GONE else View.VISIBLE
 
-        // Widoczność tytułów sekcji danych klienta
         clientDataSectionTitleEdit.visibility = if (isEditing) View.VISIBLE else View.GONE
-        // Tytuł widoku jest zarządzany poniżej razem z polami
 
-        // Widoczność layoutów z polami tekstowymi
         val hasDescription = editClientViewModel.clientDescriptionState.value?.isNotEmpty() ?: false
         val hasAppNumber = editClientViewModel.clientAppNumberState.value?.isNotEmpty() ?: false
         val hasAmoditNumber = editClientViewModel.amoditNumberState.value?.isNotEmpty() ?: false
         val hasAnyData = hasDescription || hasAppNumber || hasAmoditNumber
 
         if (isEditing) {
-            // W trybie edycji zawsze pokazuj layouty i tytuł edycji
             editDescriptionLayout.visibility = View.VISIBLE
             editAppNumberLayout.visibility = View.VISIBLE
             editAmoditNumberLayout.visibility = View.VISIBLE
             clientDataSectionTitleEdit.visibility = View.VISIBLE
             clientDataSectionTitleView.visibility = View.GONE
         } else {
-            // W trybie widoku pokazuj layouty tylko jeśli mają zawartość
             editDescriptionLayout.visibility = if (hasDescription) View.VISIBLE else View.GONE
             editAppNumberLayout.visibility = if (hasAppNumber) View.VISIBLE else View.GONE
             editAmoditNumberLayout.visibility = if (hasAmoditNumber) View.VISIBLE else View.GONE
-            // Pokazuj tytuł widoku tylko jeśli jest co najmniej jedno pole z danymi
             clientDataSectionTitleEdit.visibility = View.GONE
             clientDataSectionTitleView.visibility = if (hasAnyData) View.VISIBLE else View.GONE
         }
 
-        // Aktualizacja UI zdjęć (bez zmian)
         updatePhotoUiIfNeeded(PhotoType.CLIENT)
         updatePhotoUiIfNeeded(PhotoType.TRANSACTION)
     }
@@ -504,7 +498,6 @@ class EditClientActivity : AppCompatActivity() {
      * Zbiera dane z ViewModelu i wywołuje metodę zapisu zmian.
      */
     private fun saveClientChanges() {
-        // Walidacja nie jest tu potrzebna, bo pola są opcjonalne
         lifecycleScope.launch {
             val result = editClientViewModel.updateClientAndPhotos(currentClientId)
             handleEditResult(result)
@@ -556,9 +549,7 @@ class EditClientActivity : AppCompatActivity() {
                     flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
                 })
             } else {
-                // Po udanym zapisie przełączamy z powrotem do trybu widoku
                 editClientViewModel.setEditMode(false)
-                // Resetujemy flagę inicjalizacji, aby dane zostały odświeżone z bazy przy następnym wejściu
                 isViewInitialized = false
             }
         }
@@ -593,11 +584,16 @@ class EditClientActivity : AppCompatActivity() {
     }
 
     /**
-     * Otwiera aktywność [FullScreenImageActivity] dla podanego URI obrazu.
+     * Otwiera aktywność [FullScreenImageActivity] dla podanej listy URI obrazów i pozycji startowej.
+     * @param imageUris Lista URI zdjęć (jako String).
+     * @param startPosition Indeks zdjęcia, które ma być wyświetlone jako pierwsze.
      */
-    private fun openFullScreenImage(imageUri: Uri) {
-        val intent = Intent(this, FullScreenImageActivity::class.java)
-        intent.putExtra("IMAGE_URI", imageUri.toString())
+    private fun openFullScreenImage(imageUris: ArrayList<String>, startPosition: Int) {
+        val intent = Intent(this, FullScreenImageActivity::class.java).apply {
+            putStringArrayListExtra(FullScreenImageActivity.IMAGE_URIS, imageUris)
+            putExtra(FullScreenImageActivity.START_POSITION, startPosition)
+        }
         startActivity(intent)
     }
 }
+

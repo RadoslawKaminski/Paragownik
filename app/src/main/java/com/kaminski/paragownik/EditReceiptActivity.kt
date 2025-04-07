@@ -72,7 +72,7 @@ class EditReceiptActivity : AppCompatActivity() {
     private lateinit var editModeImageButton: ImageButton
     private lateinit var showClientReceiptsButton: Button
     private lateinit var showStoreReceiptsButton: Button
-    private lateinit var addReceiptsToClientButton: Button // Dodano referencję
+    private lateinit var addReceiptsToClientButton: Button
     private lateinit var editCashRegisterNumberLayout: LinearLayout
     private lateinit var editVerificationSectionLayout: LinearLayout
     private lateinit var verificationSectionTitleEdit: TextView
@@ -104,18 +104,14 @@ class EditReceiptActivity : AppCompatActivity() {
 
     // --- Dane pomocnicze ---
     private var receiptId: Long = -1L
-    private var currentClientId: Long? = null // Nadal potrzebne do nawigacji
-    private var currentStoreId: Long = -1L // Nadal potrzebne do nawigacji
+    private var currentClientId: Long? = null
+    private var currentStoreId: Long = -1L
     private var navigationContext: String? = null
     private var currentPhotoTypeToAdd: PhotoType? = null
-    // Mapa widoków miniatur (tylko dla trybu edycji)
     private val photoUriToViewMapEdit = mutableMapOf<Uri, View>()
-    // Przechowuje aktualnie załadowane zdjęcia z bazy (do filtrowania)
     private var loadedClientPhotos: List<Photo> = emptyList()
     private var loadedTransactionPhotos: List<Photo> = emptyList()
-    // Flaga do jednorazowej inicjalizacji stanu z bazy
     private var isDataInitialized = false
-    // Flagi do blokowania listenerów podczas programowej zmiany tekstu daty
     private var isReceiptDateUpdateFromVM = false
     private var isVerificationDateUpdateFromVM = false
 
@@ -128,25 +124,19 @@ class EditReceiptActivity : AppCompatActivity() {
             destinationUri?.let { finalUri ->
                 val type = currentPhotoTypeToAdd
                 if (type != null) {
-                    // Sprawdź, czy zdjęcie nie jest już dodane LUB oznaczone do usunięcia
                     val isAlreadyLoaded = (if (type == PhotoType.CLIENT) loadedClientPhotos else loadedTransactionPhotos)
                         .any { it.uri == finalUri.toString() }
-                    // Sprawdzamy teraz LiveData z ViewModelu
                     val isAlreadyAdded = (if (type == PhotoType.CLIENT) editReceiptViewModel.clientPhotosToAddUris.value else editReceiptViewModel.transactionPhotosToAddUris.value)
                         ?.contains(finalUri) ?: false
                     val isMarkedForRemoval = editReceiptViewModel.photosToRemoveUris.value?.contains(finalUri) ?: false
 
                     if (!isAlreadyLoaded && !isAlreadyAdded) {
-                        // Jeśli było oznaczone do usunięcia, usuń oznaczenie
                         if (isMarkedForRemoval) {
                             editReceiptViewModel.removePhotoToRemove(finalUri)
                         }
-                        // Dodaj do listy 'do dodania' w ViewModelu
                         editReceiptViewModel.addPhotoToAdd(finalUri, type)
                         Log.d("EditReceiptActivity", "Przygotowano do dodania zdjęcie ($type): $finalUri")
-                        // UI zaktualizuje się przez obserwatorów
                     } else if (isAlreadyLoaded && isMarkedForRemoval) {
-                        // Zdjęcie istnieje w bazie, ale było oznaczone do usunięcia - odznaczamy
                         editReceiptViewModel.removePhotoToRemove(finalUri)
                         Log.d("EditReceiptActivity", "Odznaczono zdjęcie ($type) do usunięcia: $finalUri")
                     } else {
@@ -171,9 +161,7 @@ class EditReceiptActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_edit_receipt)
 
-        // Inicjalizacja widoków musi być pierwsza
         initializeViews()
-        // Inicjalizacja ViewModelu za pomocą ViewModelProvider
         editReceiptViewModel = ViewModelProvider(this).get(EditReceiptViewModel::class.java)
 
         receiptId = intent.getLongExtra("RECEIPT_ID", -1L)
@@ -187,15 +175,10 @@ class EditReceiptActivity : AppCompatActivity() {
             return
         }
 
-        // Konfiguracja CheckBoxa daty weryfikacji
         setupVerificationDateCheckBox()
-        // Inicjalizacja adapterów RecyclerView
-        setupAdapters()
-        // Ustawienie listenerów dla pól edycyjnych (aktualizują ViewModel)
-        setupFieldListeners() // Ta funkcja teraz obsługuje też formatowanie daty
-        // Ustawienie listenerów dla przycisków
+        setupAdapters() // Zmieniono logikę listenera w tej metodzie
+        setupFieldListeners()
         setupButtonClickListeners()
-        // Rozpoczęcie obserwacji danych z ViewModelu
         observeViewModel()
     }
 
@@ -218,7 +201,7 @@ class EditReceiptActivity : AppCompatActivity() {
         editModeImageButton = findViewById(R.id.editModeImageButton)
         showClientReceiptsButton = findViewById(R.id.showClientReceiptsButton)
         showStoreReceiptsButton = findViewById(R.id.showStoreReceiptsButton)
-        addReceiptsToClientButton = findViewById(R.id.addReceiptsToClientButton) // Inicjalizacja nowego przycisku
+        addReceiptsToClientButton = findViewById(R.id.addReceiptsToClientButton)
         editCashRegisterNumberLayout = findViewById(R.id.editCashRegisterNumberLayout)
         editVerificationSectionLayout = findViewById(R.id.editVerificationSectionLayout)
         verificationSectionTitleEdit = findViewById(R.id.verificationSectionTitleEdit)
@@ -244,23 +227,52 @@ class EditReceiptActivity : AppCompatActivity() {
         addTransactionPhotoButtonEdit = findViewById(R.id.addTransactionPhotoButtonEdit)
     }
 
-    /** Inicjalizuje adaptery RecyclerView. */
+    /**
+     * Inicjalizuje adaptery RecyclerView i ustawia listenery kliknięć zdjęć.
+     * Listener przekazuje teraz listę URI i pozycję do FullScreenImageActivity.
+     */
     private fun setupAdapters() {
+        // Adapter dla zdjęć klienta
         clientPhotosAdapter = PhotoAdapter(
             emptyList(),
             R.layout.large_photo_item,
             R.id.largePhotoImageViewItem,
             GlideScaleType.FIT_CENTER
-        ) { uri -> openFullScreenImage(uri) }
+        ) { clickedUri ->
+            // Pobierz aktualną listę URI z adaptera
+            val currentPhotoList = clientPhotosAdapter.getCurrentPhotos() // Zakładamy, że adapter ma metodę zwracającą listę Photo
+            val allUris = currentPhotoList.map { it.uri }
+            val clickedIndex = allUris.indexOf(clickedUri.toString())
+
+            if (clickedIndex != -1) {
+                openFullScreenImage(ArrayList(allUris), clickedIndex)
+            } else {
+                Log.e("EditReceiptActivity", "Nie znaleziono klikniętego URI ($clickedUri) w liście zdjęć klienta.")
+                Toast.makeText(this, R.string.error_loading_image, Toast.LENGTH_SHORT).show()
+            }
+        }
         clientPhotosRecyclerViewView.layoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
         clientPhotosRecyclerViewView.adapter = clientPhotosAdapter
 
+        // Adapter dla zdjęć transakcji
         transactionPhotosAdapter = PhotoAdapter(
             emptyList(),
             R.layout.large_photo_item,
             R.id.largePhotoImageViewItem,
             GlideScaleType.FIT_CENTER
-        ) { uri -> openFullScreenImage(uri) }
+        ) { clickedUri ->
+            // Pobierz aktualną listę URI z adaptera
+            val currentPhotoList = transactionPhotosAdapter.getCurrentPhotos() // Zakładamy, że adapter ma metodę zwracającą listę Photo
+            val allUris = currentPhotoList.map { it.uri }
+            val clickedIndex = allUris.indexOf(clickedUri.toString())
+
+            if (clickedIndex != -1) {
+                openFullScreenImage(ArrayList(allUris), clickedIndex)
+            } else {
+                Log.e("EditReceiptActivity", "Nie znaleziono klikniętego URI ($clickedUri) w liście zdjęć transakcji.")
+                Toast.makeText(this, R.string.error_loading_image, Toast.LENGTH_SHORT).show()
+            }
+        }
         transactionPhotosRecyclerViewView.layoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
         transactionPhotosRecyclerViewView.adapter = transactionPhotosAdapter
     }
@@ -429,7 +441,6 @@ class EditReceiptActivity : AppCompatActivity() {
                     val photos = triple.third
 
                     if (receiptWithClient == null) {
-                        // Jeśli Flow emituje null PO inicjalizacji, to błąd
                         if (isDataInitialized) {
                             Log.e("EditReceiptActivity", "Dane paragonu (ID: $receiptId) stały się null po inicjalizacji.")
                             if (!isFinishing) {
@@ -437,13 +448,11 @@ class EditReceiptActivity : AppCompatActivity() {
                                 finish()
                             }
                         } else {
-                            // Ignorujemy początkowy null przed inicjalizacją
                             Log.d("EditReceiptActivity", "Otrzymano null receiptWithClient (przed inicjalizacją), ignorowanie.")
                         }
                         return@collectLatest
                     }
 
-                    // Mamy dane, inicjalizujemy stan ViewModelu (jeśli trzeba)
                     if (receiptWithClient.client != null) {
                         Log.d("EditReceiptActivity", "Otrzymano aktualne dane paragonu/klienta z Flow.")
                         currentClientId = receiptWithClient.client.id
@@ -451,20 +460,16 @@ class EditReceiptActivity : AppCompatActivity() {
                         loadedClientPhotos = photos?.filter { it.type == PhotoType.CLIENT } ?: emptyList()
                         loadedTransactionPhotos = photos?.filter { it.type == PhotoType.TRANSACTION } ?: emptyList()
 
-                        // Inicjalizuj stan MutableLiveData w ViewModelu tylko raz
                         if (!isDataInitialized) {
                             editReceiptViewModel.initializeStateIfNeeded(receiptWithClient, storeNumber)
-                            isDataInitialized = true // Ustaw flagę w Activity
-                            // *** JAWNE WYWOŁANIE AKTUALIZACJI UI PO INICJALIZACJI ***
+                            isDataInitialized = true
                             updateUiMode(editReceiptViewModel.isEditMode.value ?: false)
                             Log.d("EditReceiptActivity", "Wymuszono aktualizację UI po inicjalizacji danych.")
                         }
 
-                        // Aktualizuj UI zdjęć (reszta UI aktualizuje się przez obserwatory LiveData)
                         updatePhotoUiIfNeeded(PhotoType.CLIENT)
                         updatePhotoUiIfNeeded(PhotoType.TRANSACTION)
                     } else {
-                        // Paragon istnieje, ale klient nie (błąd danych?)
                         Log.e("EditReceiptActivity", "Znaleziono paragon (ID: $receiptId), ale powiązany klient jest null.")
                         if (!isFinishing) {
                             Toast.makeText(this@EditReceiptActivity, R.string.error_client_not_found, Toast.LENGTH_SHORT).show()
@@ -477,28 +482,25 @@ class EditReceiptActivity : AppCompatActivity() {
 
         // Obserwacja LiveData stanu UI z ViewModelu
         editReceiptViewModel.isEditMode.observe(this, Observer { isEditing ->
-            // Ten observer nadal jest potrzebny do obsługi kliknięcia przycisku edycji
             updateUiMode(isEditing)
         })
 
         // Obserwatory dla pól tekstowych
         editReceiptViewModel.storeNumberState.observe(this, Observer { value -> if (editReceiptStoreNumberEditText.text.toString() != value) editReceiptStoreNumberEditText.setText(value) })
         editReceiptViewModel.receiptNumberState.observe(this, Observer { value -> if (editReceiptNumberEditText.text.toString() != value) editReceiptNumberEditText.setText(value) })
-        // Obserwator daty paragonu - ustawia tekst, jeśli się różni i ustawia flagę
         editReceiptViewModel.receiptDateState.observe(this, Observer { value ->
             if (editReceiptDateEditText.text.toString() != value) {
-                isReceiptDateUpdateFromVM = true // Ustaw flagę przed zmianą tekstu
+                isReceiptDateUpdateFromVM = true
                 editReceiptDateEditText.setText(value)
-                isReceiptDateUpdateFromVM = false // Zdejmij flagę po zmianie tekstu
+                isReceiptDateUpdateFromVM = false
             }
         })
         editReceiptViewModel.cashRegisterNumberState.observe(this, Observer { value -> if (editCashRegisterNumberEditText.text.toString() != value) editCashRegisterNumberEditText.setText(value) })
-        // Obserwator daty weryfikacji - ustawia tekst, jeśli się różni i ustawia flagę
         editReceiptViewModel.verificationDateState.observe(this, Observer { value ->
             if (editVerificationDateEditText.text.toString() != value) {
-                isVerificationDateUpdateFromVM = true // Ustaw flagę przed zmianą tekstu
+                isVerificationDateUpdateFromVM = true
                 editVerificationDateEditText.setText(value)
-                isVerificationDateUpdateFromVM = false // Zdejmij flagę po zmianie tekstu
+                isVerificationDateUpdateFromVM = false
             }
         })
         editReceiptViewModel.isVerificationDateTodayState.observe(this, Observer { isChecked ->
@@ -520,15 +522,14 @@ class EditReceiptActivity : AppCompatActivity() {
 
     /** Pomocnicza funkcja do aktualizacji UI zdjęć po zmianie list w ViewModelu. */
     private fun updatePhotoUiIfNeeded(photoType: PhotoType) {
-        val isEditing = editReceiptViewModel.isEditMode.value ?: false // Bezpieczny odczyt
+        val isEditing = editReceiptViewModel.isEditMode.value ?: false
         val loadedPhotos = if (photoType == PhotoType.CLIENT) loadedClientPhotos else loadedTransactionPhotos
         val container = if (photoType == PhotoType.CLIENT) clientPhotosContainerEdit else transactionPhotosContainerEdit
 
-        // Upewnij się, że kontenery istnieją przed próbą aktualizacji
         if (::clientPhotosContainerEdit.isInitialized && ::transactionPhotosContainerEdit.isInitialized &&
             ::clientPhotosRecyclerViewView.isInitialized && ::transactionPhotosRecyclerViewView.isInitialized) {
             populatePhotoContainer(container, loadedPhotos, photoType, isEditing)
-            populatePhotoContainer(null, loadedPhotos, photoType, isEditing) // Dla RecyclerView w trybie widoku
+            populatePhotoContainer(null, loadedPhotos, photoType, isEditing)
         } else {
             Log.w("EditReceiptActivity", "Próba aktualizacji UI zdjęć przed inicjalizacją widoków.")
         }
@@ -540,16 +541,14 @@ class EditReceiptActivity : AppCompatActivity() {
      * Odczytuje stan zdjęć do dodania/usunięcia z ViewModelu.
      */
     private fun populatePhotoContainer(container: LinearLayout?, photos: List<Photo>, photoType: PhotoType, isEditing: Boolean) {
-        // Odczytujemy listy URI z LiveData ViewModelu
         val photosToAddUrisSet = (if (photoType == PhotoType.CLIENT) editReceiptViewModel.clientPhotosToAddUris.value else editReceiptViewModel.transactionPhotosToAddUris.value)?.map { it.toString() }?.toSet() ?: emptySet()
         val photosToRemoveUrisSet = editReceiptViewModel.photosToRemoveUris.value?.map { it.toString() }?.toSet() ?: emptySet()
 
         if (isEditing) {
             val editContainer = container ?: return
             editContainer.removeAllViews()
-            photoUriToViewMapEdit.clear() // Wyczyść mapę widoków
+            photoUriToViewMapEdit.clear()
 
-            // Dodaj miniatury istniejących zdjęć (które nie są do usunięcia)
             photos.forEach { photo ->
                 try {
                     val photoUri = photo.uri.toUri()
@@ -560,10 +559,8 @@ class EditReceiptActivity : AppCompatActivity() {
                     Log.e("EditReceiptActivity", "Błąd podczas dodawania miniatury istniejącego zdjęcia: ${photo.uri}", e)
                 }
             }
-            // Dodaj miniatury nowo dodanych zdjęć
             (if (photoType == PhotoType.CLIENT) editReceiptViewModel.clientPhotosToAddUris.value else editReceiptViewModel.transactionPhotosToAddUris.value)?.forEach { photoUri ->
                 try {
-                    // Sprawdź, czy widok już nie istnieje (na wszelki wypadek)
                     if (!photoUriToViewMapEdit.containsKey(photoUri)) {
                         addPhotoThumbnail(photoUri, editContainer, photoType, true)
                     }
@@ -572,9 +569,7 @@ class EditReceiptActivity : AppCompatActivity() {
                 }
             }
         } else {
-            // Tryb widoku - aktualizuj RecyclerView
             val adapter = if (photoType == PhotoType.CLIENT) clientPhotosAdapter else transactionPhotosAdapter
-            // Pokaż istniejące zdjęcia, które nie są do usunięcia
             val photosToShow = photos.filter { photo ->
                 try {
                     photo.uri !in photosToRemoveUrisSet
@@ -583,12 +578,10 @@ class EditReceiptActivity : AppCompatActivity() {
                     false
                 }
             }
-            // Upewnij się, że adapter jest zainicjalizowany
             if (::clientPhotosAdapter.isInitialized && ::transactionPhotosAdapter.isInitialized) {
                 adapter.updatePhotos(photosToShow)
             }
         }
-        // Upewnij się, że widoki tytułów i kontenerów są zainicjalizowane
         if (::clientPhotosTitleEdit.isInitialized) {
            updatePhotoSectionVisibility(photoType, isEditing)
         }
@@ -601,7 +594,6 @@ class EditReceiptActivity : AppCompatActivity() {
      */
     private fun addPhotoThumbnail(photoUri: Uri, container: LinearLayout, photoType: PhotoType, isEditing: Boolean) {
         if (!isEditing) return
-        // Sprawdź, czy widok dla tego URI już istnieje
         if (photoUriToViewMapEdit.containsKey(photoUri)) {
             return
         }
@@ -622,22 +614,18 @@ class EditReceiptActivity : AppCompatActivity() {
             deleteButton.visibility = View.VISIBLE
 
             deleteButton.setOnClickListener {
-                // Sprawdź, czy to zdjęcie było nowo dodane czy istniało w bazie
                 val wasAddedInThisSession = (if (photoType == PhotoType.CLIENT) editReceiptViewModel.clientPhotosToAddUris.value else editReceiptViewModel.transactionPhotosToAddUris.value)
                     ?.contains(photoUri) ?: false
 
                 if (wasAddedInThisSession) {
-                    // Jeśli nowo dodane, usuń je z listy 'do dodania'
                     editReceiptViewModel.removePhotoToAdd(photoUri, photoType)
                     Log.d("EditReceiptActivity", "Usunięto nowo dodane zdjęcie (przed zapisem): $photoUri")
                 } else {
-                    // Jeśli istniało w bazie, dodaj je do listy 'do usunięcia'
                     editReceiptViewModel.addPhotoToRemove(photoUri)
                     Log.d("EditReceiptActivity", "Oznaczono do usunięcia istniejące zdjęcie: $photoUri")
                 }
-                // UI zaktualizuje się przez obserwatorów
             }
-            photoUriToViewMapEdit[photoUri] = thumbnailView // Dodaj widok do mapy
+            photoUriToViewMapEdit[photoUri] = thumbnailView
             container.addView(thumbnailView)
 
         } catch (e: Exception) {
@@ -649,12 +637,9 @@ class EditReceiptActivity : AppCompatActivity() {
     /** Aktualizuje widoczność kontenerów i tytułów sekcji zdjęć. */
     private fun updatePhotoSectionVisibility(photoType: PhotoType, isEditing: Boolean) {
         val loadedPhotos = if (photoType == PhotoType.CLIENT) loadedClientPhotos else loadedTransactionPhotos
-        // Odczytujemy listy URI z LiveData ViewModelu
         val photosToAddUrisSet = (if (photoType == PhotoType.CLIENT) editReceiptViewModel.clientPhotosToAddUris.value else editReceiptViewModel.transactionPhotosToAddUris.value)?.map { it.toString() }?.toSet() ?: emptySet()
         val photosToRemoveUrisSet = editReceiptViewModel.photosToRemoveUris.value?.map { it.toString() }?.toSet() ?: emptySet()
 
-
-        // Zdjęcia istnieją, jeśli są załadowane i nie do usunięcia LUB są nowo dodane
         val photosExist = loadedPhotos.any { it.uri !in photosToRemoveUrisSet } || photosToAddUrisSet.isNotEmpty()
 
         val titleEdit = if (photoType == PhotoType.CLIENT) clientPhotosTitleEdit else transactionPhotosTitleEdit
@@ -682,7 +667,6 @@ class EditReceiptActivity : AppCompatActivity() {
         editReceiptNumberEditText.isEnabled = isEditing
         editReceiptDateEditText.isEnabled = isEditing
         editCashRegisterNumberEditText.isEnabled = isEditing
-        // Stan pola daty weryfikacji jest zarządzany przez obserwatora isVerificationDateTodayState
         editVerificationDateEditText.isEnabled = isEditing && !(editReceiptViewModel.isVerificationDateTodayState.value ?: false)
         editVerificationDateTodayCheckBox.isEnabled = isEditing
         editVerificationDateTodayCheckBox.visibility = if (isEditing) View.VISIBLE else View.GONE
@@ -720,7 +704,7 @@ class EditReceiptActivity : AppCompatActivity() {
         updatePhotoUiIfNeeded(PhotoType.CLIENT)
         updatePhotoUiIfNeeded(PhotoType.TRANSACTION)
 
-        // Przyciski nawigacyjne
+        // Przyciski nawigacyjne i nowy przycisk
         showClientReceiptsButton.visibility = if (!isEditing && navigationContext == "STORE_LIST") View.VISIBLE else View.GONE
         addReceiptsToClientButton.visibility = if (!isEditing) View.VISIBLE else View.GONE // Nowy przycisk
         showStoreReceiptsButton.visibility = if (!isEditing && navigationContext == "CLIENT_LIST") View.VISIBLE else View.GONE
@@ -732,31 +716,26 @@ class EditReceiptActivity : AppCompatActivity() {
      * Dodano walidację dat przed wywołaniem zapisu w ViewModelu.
      */
     private fun saveChanges() {
-        // Pobierz aktualne wartości ze stanu LiveData
         val storeNumberString = editReceiptViewModel.storeNumberState.value ?: ""
         val receiptNumber = editReceiptViewModel.receiptNumberState.value ?: ""
         val receiptDateString = editReceiptViewModel.receiptDateState.value ?: ""
         val verificationDateString = editReceiptViewModel.verificationDateState.value ?: ""
 
-        // Walidacja pól wymaganych
         if (storeNumberString.isBlank() || receiptNumber.isBlank() || receiptDateString.isBlank()) {
             Toast.makeText(this, R.string.error_fill_required_edit_fields, Toast.LENGTH_LONG).show()
             return
         }
 
-        // Walidacja formatu i poprawności daty paragonu
         if (!isValidDate(receiptDateString)) {
             Toast.makeText(this, R.string.error_invalid_receipt_date_format, Toast.LENGTH_LONG).show()
             return
         }
 
-        // Walidacja formatu i poprawności daty weryfikacji (jeśli nie jest pusta)
         if (verificationDateString.isNotEmpty() && !isValidDate(verificationDateString)) {
             Toast.makeText(this, R.string.error_invalid_verification_date_format, Toast.LENGTH_LONG).show()
             return
         }
 
-        // Jeśli walidacja przeszła pomyślnie, wywołaj zapis w ViewModelu
         lifecycleScope.launch {
             val result = editReceiptViewModel.updateReceiptAndClient(receiptId)
             handleEditResult(result)
@@ -767,21 +746,17 @@ class EditReceiptActivity : AppCompatActivity() {
      * Sprawdza, czy podany ciąg znaków reprezentuje poprawną datę w formacie DD-MM-YYYY.
      */
     private fun isValidDate(dateStr: String): Boolean {
-        if (dateStr.length != 10) return false // Sprawdza długość
+        if (dateStr.length != 10) return false
         val dateFormat = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault())
-        dateFormat.isLenient = false // Kluczowe: nie pozwala na niepoprawne daty (np. 31 lutego)
+        dateFormat.isLenient = false
         return try {
-            dateFormat.parse(dateStr) // Próbuje sparsować datę
-            true // Sukces
+            dateFormat.parse(dateStr)
+            true
         } catch (e: ParseException) {
-            false // Błąd parsowania = nieprawidłowa data
+            false
         }
     }
 
-
-    // Metody showDeleteReceiptDialog, deleteReceipt, showDeleteClientDialog, deleteClient, handleEditResult
-    // pozostają bez zmian w logice wywoływania ViewModelu, ale handleEditResult
-    // nie musi już resetować stanu lokalnego ani przełączać trybu (robi to ViewModel).
 
     /**
      * Wyświetla dialog potwierdzenia usunięcia paragonu.
@@ -801,10 +776,9 @@ class EditReceiptActivity : AppCompatActivity() {
      */
     private fun deleteReceipt() {
         lifecycleScope.launch {
-            // Pobierz aktualny paragon (można by to uprościć, jeśli ViewModel trzyma referencję)
             val currentReceipt = editReceiptViewModel.getReceiptDataFlow(receiptId)
                 .map { it.first?.receipt }
-                .firstOrNull() // Pobierz pierwszą wartość z Flow
+                .firstOrNull()
 
             if (currentReceipt == null) {
                 Toast.makeText(this@EditReceiptActivity, R.string.error_cannot_get_receipt_data, Toast.LENGTH_LONG).show()
@@ -844,7 +818,6 @@ class EditReceiptActivity : AppCompatActivity() {
         val clientIdToDelete = currentClientId ?: return
 
         lifecycleScope.launch {
-            // Tworzymy "stub" klienta tylko z ID, bo ViewModel i tak pobierze pełne dane
             val clientStub = com.kaminski.paragownik.data.Client(id = clientIdToDelete, description = null)
             val result = editReceiptViewModel.deleteClient(clientStub)
             handleEditResult(result, true)
@@ -858,7 +831,7 @@ class EditReceiptActivity : AppCompatActivity() {
         val messageResId = when (result) {
             EditReceiptViewModel.EditResult.SUCCESS -> if (isDeleteOperation) R.string.delete_success_message else R.string.save_success_message
             EditReceiptViewModel.EditResult.ERROR_NOT_FOUND -> R.string.error_not_found
-            EditReceiptViewModel.EditResult.ERROR_DATE_FORMAT -> R.string.error_invalid_date_format // ViewModel też może zwrócić ten błąd
+            EditReceiptViewModel.EditResult.ERROR_DATE_FORMAT -> R.string.error_invalid_date_format
             EditReceiptViewModel.EditResult.ERROR_DUPLICATE_RECEIPT -> R.string.error_duplicate_receipt
             EditReceiptViewModel.EditResult.ERROR_STORE_NUMBER_MISSING -> R.string.error_store_number_missing
             EditReceiptViewModel.EditResult.ERROR_DATABASE -> R.string.error_database
@@ -870,13 +843,11 @@ class EditReceiptActivity : AppCompatActivity() {
 
         if (result == EditReceiptViewModel.EditResult.SUCCESS) {
             if (isDeleteOperation) {
-                // Zamknij wszystkie aktywności i wróć do MainActivity
                 finishAffinity()
                 startActivity(Intent(this@EditReceiptActivity, MainActivity::class.java).apply {
                     flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
                 })
             }
-            // Nie musimy już resetować stanu ani przełączać trybu - ViewModel to zrobił
         }
     }
 
@@ -887,17 +858,12 @@ class EditReceiptActivity : AppCompatActivity() {
      */
     private fun setupVerificationDateCheckBox() {
         editVerificationDateTodayCheckBox.setOnCheckedChangeListener { _, isChecked ->
-            // Aktualizuj stan w ViewModelu tylko jeśli jesteśmy w trybie edycji
             if (editReceiptViewModel.isEditMode.value == true) {
                 editReceiptViewModel.setIsVerificationDateToday(isChecked)
                 if (isChecked) {
                     val currentDate = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault()).format(Calendar.getInstance().time)
-                    // Ustaw datę w stanie ViewModelu
                     editReceiptViewModel.setVerificationDate(currentDate)
-                    // Pole EditText zostanie zaktualizowane przez obserwatora
-                    // Pole EditText zostanie wyłączone przez obserwatora isVerificationDateTodayState
                 }
-                // Stan pola EditText (isEnabled) jest zarządzany przez obserwatora isVerificationDateTodayState
             }
         }
     }
@@ -930,11 +896,16 @@ class EditReceiptActivity : AppCompatActivity() {
     }
 
     /**
-     * Otwiera aktywność [FullScreenImageActivity] dla podanego URI obrazu.
+     * Otwiera aktywność [FullScreenImageActivity] dla podanej listy URI obrazów i pozycji startowej.
+     * @param imageUris Lista URI zdjęć (jako String).
+     * @param startPosition Indeks zdjęcia, które ma być wyświetlone jako pierwsze.
      */
-    private fun openFullScreenImage(imageUri: Uri) {
-        val intent = Intent(this, FullScreenImageActivity::class.java)
-        intent.putExtra("IMAGE_URI", imageUri.toString())
+    private fun openFullScreenImage(imageUris: ArrayList<String>, startPosition: Int) {
+        val intent = Intent(this, FullScreenImageActivity::class.java).apply {
+            putStringArrayListExtra(FullScreenImageActivity.IMAGE_URIS, imageUris)
+            putExtra(FullScreenImageActivity.START_POSITION, startPosition)
+        }
         startActivity(intent)
     }
 }
+
